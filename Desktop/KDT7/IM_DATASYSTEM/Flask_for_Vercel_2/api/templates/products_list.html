@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}대출 상품 목록{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --moa-green: #00d8b0;
+    --moa-dark: #020715;
+  }
+
+  .section-title {
+    color: var(--moa-dark);
+    border-bottom: 3px solid var(--moa-green);
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+  }
+
+  .filter-bar {
+    border: 2px solid #b2f5ea;
+    border-radius: 15px;
+    padding: 15px 25px;
+    background-color: #f8fffd;
+    margin-bottom: 30px;
+  }
+
+  .filter-bar label {
+    margin-right: 20px;
+    font-weight: 500;
+  }
+
+  .filter-bar input[type="checkbox"] {
+    margin-right: 6px;
+  }
+
+  .bank-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .btn-outline-primary {
+    border-radius: 20px;
+    font-weight: 600;
+    color: var(--moa-green);
+    border-color: var(--moa-green);
+  }
+
+  .btn-outline-primary:hover {
+    background-color: var(--moa-green);
+    color: white;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+
+  .page-link {
+    color: var(--moa-green);
+  }
+
+  .page-item.active .page-link {
+    background-color: var(--moa-green);
+    border-color: var(--moa-green);
+    color: white;
+  }
+</style>
+
+<div class="container my-5">
+  <h1 class="text-center fw-bold section-title">대출 상품 목록</h1>
+
+  <!-- 필터 바 -->
+  <form method="get" action="/loans" class="filter-bar d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <div>
+        <label for="amount">대출 금액 (원):</label>
+        <input type="number" name="amount" id="amount" class="form-control d-inline-block" style="width: 180px;" value="{{ input_amount or '' }}">
+      </div>
+
+      {% for option in ['전체', '햇살론', '비상금대출', '새희망홀씨', '사잇돌', '신용대출', '기타'] %}
+        <label>
+          <input type="checkbox" name="loanType" value="{{ option }}"
+            {% if option in selected_types or (not selected_types and option == '전체') %}checked{% endif %}>
+          {{ option }}
+        </label>
+      {% endfor %}
+    </div>
+
+    <div>
+      <button type="submit" class="btn btn-outline-primary btn-sm">필터 적용</button>
+    </div>
+  </form>
+
+  {% if products %}
+    <div class="table-responsive">
+      <table class="table text-center align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>금융회사</th>
+            <th>상품명</th>
+            <th>최저 금리(%)</th>
+            <th>계산금액</th>
+            <th>자세히 보기</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in products %}
+          <tr>
+            <td>
+              <img src="{{ url_for('static', filename=p['logo']) }}" class="bank-logo" alt="로고">
+              {{ p['금융회사명'] or '정보 없음' }}
+            </td>
+            <td>{{ p['상품명'] or '상품명 없음' }}</td>
+            <td>{{ p['최저 금리(%)'] or '정보 없음' }}</td>
+            <td>
+              {% if p['계산금액'] %}
+                {{ "{:,.0f}".format(p['계산금액']) }} 원
+              {% else %}
+                정보 없음
+              {% endif %}
+            </td>
+            <td>
+              <button class="btn btn-outline-primary btn-sm" type="button"
+                      data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}"
+                      aria-expanded="false" aria-controls="collapse{{ loop.index }}">
+                보기
+              </button>
+            </td>
+          </tr>
+          <tr class="collapse" id="collapse{{ loop.index }}">
+            <td colspan="5" class="bg-light text-start p-4">
+              <p><strong>대출 한도:</strong> {{ p.get('대출한도', '정보 없음') }}</p>
+              <p><strong>상환 방식:</strong> {{ p.get('상환방식', '정보 없음') }}</p>
+              <p><strong>가입 대상:</strong> {{ p.get('가입대상', '정보 없음') }}</p>
+              <p><strong>대출 기간:</strong> {{ p.get('저축기간(개월)', '정보 없음') }}개월</p>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        {% for page_num in range(1, total_pages + 1) %}
+          <li class="page-item {% if page_num == current_page %}active{% endif %}">
+            <a class="page-link" href="?page={{ page_num }}{% for t in selected_types %}&loanType={{ t }}{% endfor %}&amount={{ input_amount or '' }}">
+              {{ page_num }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% else %}
+    <p class="text-center text-muted mt-5">대출 상품 정보가 없습니다.</p>
+  {% endif %}
+</div>
+{% endblock %}

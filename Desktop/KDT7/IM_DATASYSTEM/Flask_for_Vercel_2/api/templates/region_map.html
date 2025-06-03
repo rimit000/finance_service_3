@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}시도별 전세지도{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background-color: #f4f9f5;
+    padding: 40px 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+  }
+
+  /* 지도 영역 */
+  #mapdiv {
+    width: 100%;
+    max-width: 1000px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  svg path {
+    stroke: #333;
+    stroke-width: 1;
+    fill: #95dc61;
+    transition: fill 0.2s ease;
+    cursor: pointer;
+  }
+
+  svg path:hover {
+    fill: #70c149;
+  }
+
+  /* 오른쪽 정보 카드 */
+  .col-lg-4 {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    max-width: 400px;
+    flex: 1;
+  }
+
+  #selected-region {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #00b37d;
+  }
+
+  #avg-price {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  #savings-list .list-group-item {
+    border: none;
+    padding: 12px 16px;
+    background-color: #f8f9fa;
+    margin-bottom: 8px;
+    border-left: 4px solid #00b37d;
+    transition: background-color 0.2s ease;
+  }
+
+  #savings-list .list-group-item:hover {
+    background-color: #e7f9f0;
+  }
+
+  /* 툴팁 */
+  .region-tooltip {
+    position: absolute;
+    background: #222;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: none;
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  /* 모바일 대응 */
+  @media (max-width: 768px) {
+    .row {
+      flex-direction: column;
+    }
+
+    .col-lg-8, .col-lg-4 {
+      width: 100%;
+    }
+
+    #mapdiv {
+      padding: 15px;
+    }
+
+    #selected-region {
+      font-size: 1.3rem;
+    }
+
+    #avg-price {
+      font-size: 1.1rem;
+    }
+  }
+</style>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div id="mapdiv">
+      {% include 'svg_map_only.html' %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <h3 id="selected-region">📍 지역: 선택X</h3>
+    <p id="avg-price">💰 평균 주택 전세가: -</p>
+    <h4 class="mt-4">📌 최고 금리 적금상품</h4>
+    <ul id="savings-list" class="list-group"></ul>
+  </div>
+</div>
+
+<!-- 툴팁 -->
+<div class="region-tooltip" id="tooltip"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const paths = document.querySelectorAll('svg path');
+  const tooltip = document.getElementById('tooltip');
+
+  paths.forEach(path => {
+    const title = path.getAttribute('id');
+    if (!title) return;
+
+    path.style.cursor = 'pointer';
+
+    path.addEventListener('mousemove', function (e) {
+      tooltip.innerText = title;
+      tooltip.style.left = (e.pageX + 10) + 'px';
+      tooltip.style.top = (e.pageY + 10) + 'px';
+      tooltip.style.display = 'block';
+    });
+
+    path.addEventListener('mouseleave', function () {
+      tooltip.style.display = 'none';
+    });
+
+    path.addEventListener('click', function () {
+      const region = title.replace("특별시", "").replace("광역시", "").replace("도", "도").trim();
+      document.getElementById('selected-region').innerText = '📍 지역: ' + region;
+
+      fetch(`/plus/region-data?region=${region}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('avg-price').innerText = '💰 평균 전세가: ' + data.price + '만원';
+          const list = document.getElementById('savings-list');
+          list.innerHTML = '';
+          data.products.forEach(p => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerText = `${p.상품명} (${p['최고우대금리(%)']}%) - ${p.금융회사명}`;
+            list.appendChild(li);
+          });
+        });
+    });
+  });
+});
+</script>
+{% endblock %}

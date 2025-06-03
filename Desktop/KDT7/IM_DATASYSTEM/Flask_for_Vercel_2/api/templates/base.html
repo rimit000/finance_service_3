@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}MOA PLUS{% endblock %}</title>
+
+    <!-- ✅ 파비콘 추가 -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .custom-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px 20% 40px;
+            flex-wrap: wrap;
+        }
+
+        .custom-logo img {
+            height: 48px;
+        }
+
+        .custom-nav {
+            display: flex;
+            gap: 2rem;
+            font-family: "눈누 기초고딕 Regular-Regular", sans-serif;
+            font-size: 28px;
+            font-weight: 400;
+        }
+
+        .custom-nav a {
+            text-decoration: none;
+            color: #000;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        .custom-nav a:hover {
+            color: #00bfa5;
+        }
+
+        .custom-nav .dropdown {
+            position: relative;
+        }
+
+        .custom-nav .dropdown-menu {
+            display: block;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: #fff;
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            padding: 0.5rem 0;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            pointer-events: none;
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        .custom-nav .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            color: #333;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+
+        .custom-nav .dropdown-item + .dropdown-item {
+            margin-top: 0.25rem;
+        }
+
+        .custom-nav .dropdown-item:hover {
+            background: #f0fdf9;
+            color: #008e76;
+        }
+
+        @media (max-width: 768px) {
+            .custom-nav .dropdown-menu {
+                position: static;
+                transform: none;
+                opacity: 1;
+                pointer-events: auto;
+                box-shadow: none;
+                background: none;
+                padding: 0;
+                margin-top: 0.5rem;
+            }
+            .custom-nav .dropdown-item {
+                padding: 0.5rem 0;
+                font-size: 1.125rem;
+                color: #000;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ✅ 상단 헤더 -->
+    <header class="custom-header">
+        <a class="custom-logo" href="/">
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="MOA+ 로고">
+        </a>
+        <nav class="custom-nav">
+            <a href="/deposits">예금</a>
+            <a href="/savings">적금</a>
+            <a href="/loans">대출</a>
+            <div class="dropdown">
+                <a class="nav-link" href="/plus" id="plusDropdown">모아플러스</a>
+                <div class="dropdown-menu" aria-labelledby="plusDropdown">
+                    <a class="dropdown-item" href="/plus/terms">Step 1. 금융, 이제는 쉽고 재미있게</a>
+                    <a class="dropdown-item" href="/plus/youth">Step 2. 청년들을 위한 지원 사업</a>
+                    <a class="dropdown-item" href="/guide">Step 3. 가이드 모아</a>
+                    <a class="dropdown-item" href="/plus/roadmap">Step 4. 상품을 모아</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    {% if not no_container %}
+    <div class="container py-5">
+    {% endif %}
+
+        {% block content %}{% endblock %}
+
+    {% if not no_container %}
+    </div>
+    {% endif %}
+
+    <!-- ✅ 푸터 이미지 -->
+    <footer style="width:100vw;margin:0;padding:0;">
+        <img src="{{ url_for('static', filename='footer.png') }}" alt="푸터 이미지" style="width:100vw;height:auto;display:block;">
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- ✅ 드롭다운 유지 스크립트 (10초 딜레이) -->
+    <script>
+    document.querySelectorAll('.custom-nav .dropdown').forEach(dropdown => {
+        let timeout;
+
+        dropdown.addEventListener('mouseenter', () => {
+            clearTimeout(timeout);
+            const menu = dropdown.querySelector('.dropdown-menu');
+            menu.style.opacity = '1';
+            menu.style.transform = 'translateY(0)';
+            menu.style.pointerEvents = 'auto';
+        });
+
+        dropdown.addEventListener('mouseleave', () => {
+            timeout = setTimeout(() => {
+                const menu = dropdown.querySelector('.dropdown-menu');
+                menu.style.opacity = '0';
+                menu.style.transform = 'translateY(-10px)';
+                menu.style.pointerEvents = 'none';
+            }, 10000); // 10초 유지
+        });
+    });
+    </script>
+</body>
+</html>

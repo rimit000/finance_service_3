@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}청년 지원정책{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="display-4 fw-bold text-center mb-5">🌱 청년을 위한 정보 지원 정책</h1>
+
+    <h2 class="mt-4">🏠 주거 지원 정책</h2>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr><th>구분</th><th>유형</th><th>주요내용</th><th>특징</th></tr>
+        </thead>
+        <tbody>
+            <tr><td rowspan="3">공공분양주택</td><td>나눔형</td><td>시세 70% 이하 분양</td><td>분양 차익 70% 보장</td></tr>
+            <tr><td>선택형</td><td>6년 임대 후 분양 선택</td><td>분양 여부 자율</td></tr>
+            <tr><td>일반형</td><td>시세 80% 수준 분양</td><td>최저 2%대 저리 대출 제공</td></tr>
+            <tr><td rowspan="3">공공임대주택</td><td>건설임대</td><td>직접 건설 후 임대</td><td>시세 30~90% 임대료</td></tr>
+            <tr><td>매입임대</td><td>매입 후 임대</td><td>시세 40~50% 임대료</td></tr>
+            <tr><td>전세임대</td><td>전세계약 후 재임대</td><td>보증금 100만원 / 월세 10~20만원</td></tr>
+        </tbody>
+    </table>
+
+    <h2 class="mt-5">💼 청년 권리자 건 주거/발전 지원</h2>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr><th>구분</th><th>내용</th><th>조건 및 특징</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>전세보증금 반환보증</td><td>보증료 최대 30만원 지원</td><td>19~39세 무주택 청년 / 보증금 3억 이하</td></tr>
+            <tr><td>청년월세 특별지원</td><td>월 최대 20만원 (최대 24개월)</td><td>청년가구 중위소득 60% 이하</td></tr>
+            <tr><td>청약통장(주택드림)</td><td>분양가 80%까지 장기 저리 대출</td><td>최저 2.2%, 최대 40년 / 소득 5천만원 이하</td></tr>
+            <tr><td>디딤돌 대출</td><td>생애최초 주택 구입 대출</td><td>최대 3억원 / 금리 2.65~3.95%</td></tr>
+            <tr><td>버팀목 대출</td><td>전세 보증금 대출</td><td>최대 2억원 / 금리 2.0~3.1%</td></tr>
+            <tr><td>보증부 월세대출</td><td>보증금 + 월세 저리대출</td><td>보증금 연 1.3%, 월세 연 0~1%</td></tr>
+            <tr><td>햇살론 청년대출</td><td>저신용 청년 대상 저금리 대출</td><td>최대 1,200만원 / 보증부 대출 / 생계 또는 학자금 등 목적</td></tr>
+        </tbody>
+    </table>
+
+    <h2 class="mt-5">💰 청년 자산형성 지원</h2>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr><th>구분</th><th>내용</th><th>특징</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>청년도약계좌</td><td>월 최대 70만원 자유납입 (5년)</td><td>정부기여금 6% + 비과세 + 신용점수 가점</td></tr>
+            <tr><td>장병내일준비적금</td><td>전역 후 약 2천만원 자산 형성</td><td>원금 990만원 + 매칭 990만원 + 이자</td></tr>
+        </tbody>
+    </table>
+
+    <h2 class="mt-5">📋 신청 방법 요약</h2>
+    <table class="table table-bordered">
+        <thead class="table-light">
+            <tr><th>정책</th><th>신청처</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>반환보증료 지원</td><td>관할 시군구청, 주민센터, 정부24</td></tr>
+            <tr><td>월세 특별지원</td><td>복지로 누리집</td></tr>
+            <tr><td>청약통장</td><td>수탁은행 영업점 (국민, 농협, 신한 등)</td></tr>
+            <tr><td>청년도약계좌</td><td>협약은행 앱 (농협, 신한, 기업 등)</td></tr>
+            <tr><td>기타 대출</td><td>주택금융공사 및 해당 은행</td></tr>
+        </tbody>
+    </table>
+
+    <p class="mt-5 text-muted text-center">※ 자세한 사항은 정부24, 복지로, 각 금융기관을 통해 확인하세요.</p>
+</div>
+{% endblock %}

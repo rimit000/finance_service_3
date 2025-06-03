@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+{% block title %}MOA PLUS 용어 사전{% endblock %}
+
+{% block content %}
+<style>
+  .moa-header {
+    background: white;
+    padding: 80px 20px 20px;
+    text-align: center;
+  }
+
+  .moa-header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #00bfa5;
+  }
+
+  .moa-header h1 span {
+    color: #4fd1c5;
+    font-weight: 700;
+  }
+
+  .moa-header p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-top: 10px;
+  }
+
+  .moa-search-box {
+    background-color: #f0fdfb;
+    padding: 30px 0 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .moa-search-form {
+    border: 4px solid #00ccb0;
+    border-radius: 4px;
+    display: flex;
+    width: 600px;
+    max-width: 90%;
+    overflow: hidden;
+    background-color: white;
+    align-items: center;
+  }
+
+  .moa-search-form input[type="text"] {
+    border: none;
+    padding: 12px 20px;
+    flex-grow: 1;
+    font-size: 1.1rem;
+    outline: none;
+  }
+
+  .moa-search-form button {
+    background-color: white;
+    border: none;
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  .moa-search-form .search-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  .moa-buttons {
+    margin-top: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .moa-buttons a {
+    background-color: #b2f5ea;
+    color: #222;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 5px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: 0.2s;
+  }
+  .moa-bar {
+    width: 80px;
+    height: 6px;
+    background-color: #00d8b0;
+    margin: 20px auto 30px;
+    border-radius: 3px;
+  }
+  .moa-buttons a:hover {
+    background-color: #00bfa5;
+    color: white;
+  }
+
+  .scroll-box {
+    max-height: 500px;
+    overflow-y: scroll;
+    padding-right: 6px;
+  }
+</style>
+
+<!-- ✅ 상단 제목 영역 -->
+<div class="moa-header">
+  <div class="moa-bar"></div>
+  <h1><span>MOA</span> PLUS 용어 사전</h1>
+  <p>한눈에 보는 핵심 개념, 모아플러스 금융 용어 사전</p>
+</div>
+
+<!-- ✅ 검색 및 초성 필터 -->
+<div class="moa-search-box">
+  <form class="moa-search-form" method="get" action="/plus/terms">
+    <input type="text" name="query" placeholder="검색어를 입력하세요" required>
+    <button type="submit">
+      <img src="{{ url_for('static', filename='search icon.png') }}" alt="검색" class="search-icon">
+    </button>
+  </form>
+
+  <div class="moa-buttons mt-4">
+    <a href="/plus/terms">전체</a>
+    {% for category in categories %}
+      <a href="/plus/terms?query=&selected=&initial={{ category }}">{{ category }}</a>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ✅ 용어 리스트 & 설명 영역 -->
+<div class="container my-5">
+  <div class="row">
+    <!-- 좌측: 용어 리스트 -->
+    <div class="col-md-4 border-end">
+      <div class="list-group scroll-box">
+        {% for t in terms %}
+          <a href="?selected={{ t['용어'] }}&query={{ query }}" class="list-group-item list-group-item-action {% if selected == t['용어'] %}active{% endif %}">{{ t['용어'] }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 우측: 설명 -->
+    <div class="col-md-8 ps-4">
+      {% if selected_term %}
+        <h3 class="fw-bold">{{ selected_term['용어'] }}</h3>
+        <p class="text-muted mt-3">{{ selected_term['설명'] }}</p>
+      {% else %}
+        <p class="text-muted">왼쪽에서 용어를 클릭하면 설명이 여기에 나타납니다.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>대출 설문</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f5f7fa;
+      padding: 40px;
+    }
+    h2 {
+      color: #222;
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+    fieldset {
+      border: 2px solid #cce5df;
+      border-radius: 10px;
+      padding: 20px 30px;
+      margin-bottom: 30px;
+      background-color: #ffffff;
+    }
+    legend {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #007b5e;
+    }
+    label {
+      display: block;
+      margin: 10px 0;
+    }
+    .btn-wrap {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    button, .back-btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button {
+      background-color: #00b37d;
+      color: white;
+      border: none;
+    }
+    button:hover {
+      background-color: #008c64;
+    }
+    .back-btn {
+      background-color: #e0e0e0;
+      border: none;
+      color: #333;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+    .back-btn:hover {
+      background-color: #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h2> 대출 설문지</h2>
+
+  <form method="POST" action="/loan/recommend">
+    
+    <!-- 1. 대출 목적 -->
+    <fieldset>
+      <legend>1. 대출 목적은 무엇인가요? <small>(→ 대출 추천 유형 분기 기준)</small></legend>
+      <label><input type="radio" name="purpose" value="생활자금"> 생활비 등 긴급 생활자금</label>
+      <label><input type="radio" name="purpose" value="학자금"> 학자금 / 교육비</label>
+      <label><input type="radio" name="purpose" value="창업자금"> 창업자금 또는 사업 운영자금</label>
+      <label><input type="radio" name="purpose" value="전세자금"> 전세금 / 월세 보증금</label>
+      <label><input type="radio" name="purpose" value="기타대환"> 기존 대출 상환 (대환 목적)</label>
+    </fieldset>
+
+    <!-- 2. 현재 소득 -->
+    <fieldset>
+      <legend>2. 현재 소득이 있으신가요? <small>(→ 근로/자영업 여부 판단)</small></legend>
+      <label><input type="radio" name="income" value="정규직"> 정규직 또는 계약직 근로자</label>
+      <label><input type="radio" name="income" value="무직"> 소득無 (무직, 구직 중 등)</label>
+      <label><input type="radio" name="income" value="자영업자"> 자영업자 / 프리랜서</label>
+    </fieldset>
+
+    <!-- 3. 신용등급 -->
+    <fieldset>
+      <legend>3. 현재 본인의 신용등급은 어느 수준인가요? <small>(→ 신용 위험군 여부 판단)</small></legend>
+      <label><input type="radio" name="credit" value="1~4등급"> 1~4등급 (우량 / 정상 등급)</label>
+      <label><input type="radio" name="credit" value="5~6등급"> 5~6등급 (주의군)</label>
+      <label><input type="radio" name="credit" value="7등급이하"> 7등급 이하 (위험군)</label>
+      <label><input type="radio" name="credit" value="모름"> 모름</label>
+    </fieldset>
+
+    <div class="btn-wrap">
+      <button type="submit">제출하기</button>
+      <a href="/loans" class="back-btn">← 돌아가기</a>
+    </div>
+  </form>
+
+</body>
+</html>

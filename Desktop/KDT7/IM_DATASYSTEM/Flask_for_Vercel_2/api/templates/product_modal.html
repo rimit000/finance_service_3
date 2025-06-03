@@ -1,0 +1,26 @@
+<!-- templates/product_modal.html -->
+<div>
+  <h5 class="fw-bold">{{ product['상품명'] }}</h5>
+  <p><strong>금융회사명:</strong> {{ product['금융회사명'] }}</p>
+
+  {% if product_type == 'loans' %}
+    <p><strong>최저 금리:</strong> {{ product['기본금리(%)'] }}</p>
+    <p><strong>대출 한도:</strong> {{ product['대출한도'] }}</p>
+    <p><strong>상환 방식:</strong> {{ product.get('상환방식', '정보 없음') }}</p>
+    <p><strong>가입 대상:</strong> {{ product.get('가입대상', '정보 없음') }}</p>
+    <p><strong>대출 기간:</strong> {{ product.get('저축기간(개월)', '정보 없음') }}개월</p>
+  {% else %}
+    <p><strong>최고 우대금리:</strong> {{ product.get('최고우대금리(%)', '정보 없음') }}%</p>
+    <p><strong>기본 금리:</strong> {{ product.get('기본금리(%)', '정보 없음') }}%</p>
+    <p><strong>가입 기간:</strong> {{ product.get('저축기간(개월)', '정보 없음') }}개월</p>
+    <p><strong>가입 방법:</strong> {{ product.get('가입방법', '정보 없음') }}</p>
+    <p><strong>금리 유형:</strong> {{ product.get('금리유형', '정보 없음') }}</p>
+    <p><strong>적립 유형:</strong> {{ product.get('적립유형', '정보 없음') }}</p>
+    <p><strong>금융권:</strong> {{ product.get('금융권', '정보 없음') }}</p>
+  {% endif %}
+
+  <hr>
+  <p><strong>우대 조건:</strong> {{ product.get('우대조건', '정보 없음') }}</p>
+</div>
+
+

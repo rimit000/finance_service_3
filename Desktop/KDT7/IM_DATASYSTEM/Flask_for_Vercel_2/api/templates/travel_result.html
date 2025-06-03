@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}여행 자금 계획{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --moa-green: #00d8b0;
+    --moa-lightgreen: #b2f5ea;
+    --moa-dark: #020715;
+  }
+
+  .section-title {
+    color: var(--moa-dark);
+    border-bottom: 3px solid var(--moa-green);
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+  }
+
+  .result-box {
+    background: #f8fffd;
+    border: 2px solid var(--moa-lightgreen);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 40px;
+  }
+
+  .result-box p {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+
+  .saving-amount {
+    font-weight: bold;
+    color: #00bfa5;
+    font-size: 1.3rem;
+  }
+
+  .list-group-item {
+    border-radius: 15px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 12px;
+    background-color: #ffffff;
+  }
+
+  .list-group-item strong {
+    color: var(--moa-dark);
+  }
+
+  .travel-detail {
+    background-color: #ffffff;
+    border: 2px solid #e0f7f3;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 40px;
+  }
+
+  .travel-detail h5 {
+    font-weight: bold;
+    color: #111;
+    margin-bottom: 20px;
+  }
+
+  .travel-detail ul {
+    padding-left: 20px;
+  }
+
+  .travel-detail li {
+    margin-bottom: 8px;
+  }
+</style>
+
+<div class="container my-5">
+  <h1 class="text-center fw-bold section-title">✈️ {{ city }} 여행 계획</h1>
+
+  <div class="travel-detail">
+    <h5>📍 여행 상세 정보</h5>
+    <ul>
+      <li>🌏 국가: {{ country }}</li>
+      <li>📝 테마: {{ theme }}</li>
+      <li>💡 추천 이유: {{ reason }}</li>
+      <li>⏰ 추천 일정: {{ days }}</li>
+      <li>🛫 항공료: {{ airfare | int | format_currency('₩') }}</li>
+      <li>🏨 숙박비: {{ accommodation | int | format_currency('₩') }}</li>
+      <li>🍽 식비: {{ food | int | format_currency('₩') }}</li>
+    </ul>
+  </div>
+
+  <div class="result-box text-center">
+    <p>총 필요 금액: <span class="saving-amount">{{ total_cost | int | format_currency('₩') }}</span></p>
+    <p>저축 기간: <strong>{{ months }}개월</strong></p>
+    <p>월 저축 금액: <span class="saving-amount">{{ monthly_saving | int | format_currency('₩') }}</span></p>
+  </div>
+
+  <h4 class="mb-3 fw-bold">추천 적금 상품</h4>
+  <ul class="list-group">
+    {% for p in products %}
+    {% set period = p['저축기간(개월)'] | int %}
+    {% set monthly = (total_cost // period) %}
+    {% set rate = (p['최고우대금리(%)'] | float) %}
+    {% set total_with_interest = monthly * period * (1 + rate / 100) %}
+    <li class="list-group-item">
+      <strong>{{ p['금융회사명'] }}</strong> - {{ p['상품명'] }}<br>
+      금리: 기본 {{ p['기본금리(%)'] }}%, 최고우대 {{ p['최고우대금리(%)'] }}%<br>
+      저축 기간: {{ period }}개월<br>
+      💸 월 저축 금액: <strong>{{ monthly | format_currency('₩') }}</strong><br>
+      💰 만기 수령 예상 금액 (단리): <strong>{{ total_with_interest | int | format_currency('₩') }}</strong>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>추천 대출 결과</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f0faf7;
+      padding: 40px;
+    }
+    h2 {
+      font-size: 2rem;
+      color: #00a386;
+      margin-bottom: 20px;
+    }
+    .result-box {
+      background: #ffffff;
+      border: 2px solid #b2f5ea;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+    .result-item {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+    }
+    .warning {
+      color: #d9534f;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    .back-btn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      background-color: #00b37d;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .back-btn:hover {
+      background-color: #008c64;
+    }
+  </style>
+</head>
+<body>
+
+  <h2> 설문 기반 추천 결과</h2>
+
+  <div class="result-box">
+    {% if recommendations %}
+      <p class="result-item"><strong>추천 상품:</strong></p>
+      <ul>
+        {% for item in recommendations %}
+          <li class="result-item"> {{ item }}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="warning">조건에 맞는 대출 상품이 없습니다.<br>신용 회복 또는 전문 상담을 권장합니다.</p>
+    {% endif %}
+    <form action="/loan/survey">
+      <button class="back-btn">← 설문으로 돌아가기</button>
+    </form>
+  </div>
+
+</body>
+</html>

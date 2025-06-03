@@ -1,0 +1,492 @@
+.frame {
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 100%;
+}
+
+.frame .div {
+  background-color: #ffffff;
+  width: 1920px;
+  height: 1100px;
+  position: relative;
+}
+
+.frame .text-wrapper {
+  width: 54px;
+  height: 46px;
+  top: 56px;
+  left: 1304px;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  color: #000000;
+  font-size: 28px;
+  text-align: center;
+  line-height: 36.4px;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .text-wrapper-2 {
+  width: 53px;
+  height: 45px;
+  top: 56px;
+  left: 978px;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  color: #000000;
+  font-size: 28px;
+  text-align: center;
+  line-height: 36.4px;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .text-wrapper-3 {
+  width: 53px;
+  height: 45px;
+  top: 56px;
+  left: 1141px;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  color: #000000;
+  font-size: 28px;
+  text-align: center;
+  line-height: 36.4px;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .text-wrapper-4 {
+  width: 132px;
+  height: 46px;
+  top: 56px;
+  left: 1468px;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  color: #000000;
+  font-size: 28px;
+  text-align: center;
+  line-height: 36.4px;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .element {
+  position: absolute;
+  width: 306px;
+  height: 194px;
+  top: 0;
+  left: 257px;
+  object-fit: cover;
+}
+
+.frame .banner {
+  position: absolute;
+  width: 1920px;
+  height: 425px;
+  top: 210px;
+  left: 0;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.frame .slide {
+  position: absolute;
+  width: 1920px;
+  height: 480px;
+  top: 12px;
+  left: 1920px;
+}
+
+.frame .view {
+  position: relative;
+  width: 1440px;
+  height: 350px;
+}
+
+.frame .sub-txt {
+  position: absolute;
+  width: 486px;
+  height: 30px;
+  top: 159px;
+  left: 771px;
+  font-family: "DXSiingwaNa-Regular", Helvetica;
+  font-weight: 400;
+  color: #000000;
+  font-size: 24px;
+  letter-spacing: 0;
+  line-height: 31.2px;
+  white-space: nowrap;
+}
+
+.frame .text-wrapper-5 {
+  width: 225px;
+  height: 45px;
+  top: 82px;
+  left: 771px;
+  font-family: "DXSiingwaNa-Regular", Helvetica;
+  color: #000000;
+  font-size: 36px;
+  line-height: 46.8px;
+  white-space: nowrap;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .button {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  width: 180px;
+  height: 40px;
+  top: 252px;
+  left: 1115px;
+  background-color: #009781;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.frame .text-wrapper-6 {
+  height: 23px;
+  top: 8px;
+  left: 49px;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  color: #ffffff;
+  font-size: 18px;
+  text-align: center;
+  line-height: 23.4px;
+  white-space: nowrap;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .group {
+  position: absolute;
+  width: 225px;
+  height: 16px;
+  top: 312px;
+  left: 658px;
+}
+
+.frame .ellipse {
+  width: 20px;
+  left: 0;
+  background-color: #d9d9d9;
+  border-radius: 9.99px / 8px;
+  position: absolute;
+  height: 16px;
+  top: 0;
+}
+
+.frame .ellipse-2 {
+  width: 21px;
+  left: 68px;
+  background-color: #009781;
+  border-radius: 10.42px / 8px;
+  position: absolute;
+  height: 16px;
+  top: 0;
+}
+
+.frame .ellipse-3 {
+  width: 21px;
+  left: 136px;
+  background-color: #d9d9d9;
+  border-radius: 10.42px / 8px;
+  position: absolute;
+  height: 16px;
+  top: 0;
+}
+
+.frame .ellipse-4 {
+  width: 20px;
+  left: 205px;
+  background-color: #d9d9d9;
+  border-radius: 9.99px / 8px;
+  position: absolute;
+  height: 16px;
+  top: 0;
+}
+
+.frame .img {
+  width: 526px;
+  height: 309px;
+  top: -3887px;
+  left: -7745px;
+  position: absolute;
+  object-fit: cover;
+}
+
+.frame .view-wrapper {
+  position: absolute;
+  width: 1920px;
+  height: 480px;
+  top: 12px;
+  left: 0;
+}
+
+.frame .view-2 {
+  position: relative;
+  height: 480px;
+}
+
+.frame .element-2 {
+  width: 476px;
+  height: 321px;
+  top: 60px;
+  left: 246px;
+  position: absolute;
+  object-fit: cover;
+}
+
+.frame .p {
+  position: absolute;
+  width: 486px;
+  height: 30px;
+  top: 209px;
+  left: 1135px;
+  font-family: "DXSiingwaNa-Regular", Helvetica;
+  font-weight: 400;
+  color: #000000;
+  font-size: 24px;
+  letter-spacing: 0;
+  line-height: 31.2px;
+  white-space: nowrap;
+}
+
+.frame .text-wrapper-7 {
+  width: 225px;
+  height: 45px;
+  top: 132px;
+  left: 1135px;
+  font-family: "DXSiingwaNa-Regular", Helvetica;
+  color: #000000;
+  font-size: 36px;
+  line-height: 46.8px;
+  white-space: nowrap;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .group-2 {
+  position: absolute;
+  width: 225px;
+  height: 16px;
+  top: 390px;
+  left: 860px;
+}
+
+.frame .ellipse-5 {
+  position: absolute;
+  width: 20px;
+  height: 16px;
+  top: 0;
+  left: 0;
+  background-color: #009781;
+  border-radius: 9.99px / 8px;
+}
+
+.frame .ellipse-6 {
+  position: absolute;
+  width: 21px;
+  height: 16px;
+  top: 0;
+  left: 68px;
+  background-color: #d9d9d9;
+  border-radius: 10.42px / 8px;
+}
+
+.frame .element-intro {
+  position: absolute;
+  width: 1474px;
+  height: 365px;
+  top: 650px;
+  left: 225px;
+}
+
+.frame .overlap {
+  position: absolute;
+  width: 1470px;
+  height: 255px;
+  top: 110px;
+  left: 0;
+}
+
+.frame .element-3 {
+  position: absolute;
+  width: 504px;
+  height: 239px;
+  top: 16px;
+  left: 966px;
+}
+
+.frame .overlap-group-wrapper {
+  position: absolute;
+  width: 508px;
+  height: 92px;
+  top: 146px;
+  left: 0;
+}
+
+.frame .overlap-group {
+  position: relative;
+  width: 504px;
+  height: 92px;
+}
+
+.frame .text-wrapper-8 {
+  position: absolute;
+  width: 504px;
+  height: 47px;
+  top: 0;
+  left: 0;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  font-weight: 400;
+  color: #000000c7;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 23.4px;
+}
+
+.frame .text-wrapper-9 {
+  top: 45px;
+  position: absolute;
+  width: 504px;
+  height: 47px;
+  left: 0;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  font-weight: 400;
+  color: #000000c7;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 23.4px;
+}
+
+.frame .element-4 {
+  position: absolute;
+  width: 204px;
+  height: 140px;
+  top: 0;
+  left: 138px;
+  object-fit: cover;
+}
+
+.frame .overlap-wrapper {
+  position: absolute;
+  width: 504px;
+  height: 249px;
+  top: 0;
+  left: 490px;
+}
+
+.frame .overlap-2 {
+  position: relative;
+  width: 508px;
+  height: 249px;
+}
+
+.frame .div-wrapper {
+  position: absolute;
+  width: 508px;
+  height: 92px;
+  top: 156px;
+  left: 0;
+}
+
+.frame .element-5 {
+  width: 160px;
+  height: 160px;
+  top: 0;
+  left: 168px;
+  position: absolute;
+  object-fit: cover;
+}
+
+.frame .element-6 {
+  position: absolute;
+  width: 504px;
+  height: 241px;
+  top: 2px;
+  left: 0;
+}
+
+.frame .element-7 {
+  position: absolute;
+  width: 508px;
+  height: 103px;
+  top: 137px;
+  left: 0;
+}
+
+.frame .text-wrapper-10 {
+  top: 56px;
+  position: absolute;
+  width: 504px;
+  height: 47px;
+  left: 0;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  font-weight: 400;
+  color: #000000c7;
+  font-size: 18px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 23.4px;
+}
+
+.frame .element-8 {
+  position: absolute;
+  width: 180px;
+  height: 120px;
+  top: 0;
+  left: 162px;
+  object-fit: cover;
+}
+
+.frame .div-2 {
+  width: 504px;
+  height: 47px;
+  top: 47px;
+  left: 504px;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  color: transparent;
+  font-size: 28px;
+  text-align: center;
+  line-height: 36.4px;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.frame .span {
+  color: #00b096;
+}
+
+.frame .text-wrapper-11 {
+  color: #6dd7a7;
+}
+
+.frame .text-wrapper-12 {
+  color: #000000;
+}
+
+.frame .text-wrapper-13 {
+  width: 504px;
+  height: 47px;
+  top: 0;
+  left: 505px;
+  font-family: "눈누 기초고딕 Regular-Regular", Helvetica;
+  color: #676464d9;
+  font-size: 18px;
+  text-align: center;
+  line-height: 23.4px;
+  position: absolute;
+  font-weight: 400;
+  letter-spacing: 0;
+}

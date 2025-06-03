@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}{{ product['상품명'] }} 상세 정보{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --moa-green: #00d8b0;
+        --moa-dark: #020715;
+    }
+    .section-title {
+        color: var(--moa-dark);
+        border-bottom: 3px solid var(--moa-green);
+        padding-bottom: 12px;
+        margin-bottom: 30px;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #333;
+    }
+    .card-box {
+        border: 1px solid #e0e0e0;
+        border-radius: 15px;
+        padding: 25px;
+        background-color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .btn-outline-dark {
+        border-radius: 30px;
+        padding: 6px 18px;
+    }
+    .btn-success {
+        background-color: var(--moa-green);
+        border-color: var(--moa-green);
+        font-weight: 600;
+    }
+    .btn-success:hover {
+        background-color: #00c0a2;
+    }
+    .result-box p {
+        margin-bottom: 5px;
+        color: #333;
+    }
+    .form-label {
+        font-weight: 500;
+    }
+    .sticky-top {
+        z-index: 10;
+    }
+</style>
+
+<div class="container my-5">
+    <div class="row g-5 flex-column-reverse flex-lg-row">
+        <!-- 좌측: 상품 설명 -->
+        <div class="col-lg-8">
+            <h1 class="section-title">{{ product['상품명'] }}</h1>
+            <p><span class="detail-label">🏦 은행:</span> {{ product['금융회사명'] }}</p>
+
+            {% if product_type == '대출' %}
+                <p><span class="detail-label">💸 최저 금리:</span> {{ product['기본금리(%)'] }}</p>
+                <p><span class="detail-label">💰 대출 한도:</span> {{ product['대출한도'] }}</p>
+                <p><span class="detail-label">📅 상환 방식:</span> {{ product.get('상환방식', '정보 없음') }}</p>
+                <p><span class="detail-label">👤 가입 대상:</span> {{ product.get('가입대상', '정보 없음') }}</p>
+                <p><span class="detail-label">⏳ 대출 기간:</span> {{ product.get('저축기간(개월)', '정보 없음') }}개월</p>
+            {% else %}
+                <p><span class="detail-label">💰 최고 우대금리:</span> {{ product.get('최고우대금리(%)', '정보 없음') }}%</p>
+                <p><span class="detail-label">📊 기본 금리:</span> {{ product.get('기본금리(%)', '정보 없음') }}%</p>
+                <p><span class="detail-label">⏳ 가입 기간:</span> {{ product.get('저축기간(개월)', '정보 없음') }}개월</p>
+                <p><span class="detail-label">📄 가입 방법:</span> {{ product.get('가입방법', '정보 없음') }}</p>
+                <p><span class="detail-label">📌 금리 유형:</span> {{ product.get('금리유형', '정보 없음') }}</p>
+                <p><span class="detail-label">📁 적립 유형:</span> {{ product.get('적립유형', '정보 없음') }}</p>
+                <p><span class="detail-label">🏷️ 금융권:</span> {{ product.get('금융권', '정보 없음') }}</p>
+            {% endif %}
+
+            <hr class="my-4">
+            <h4 class="fw-bold">✨ 우대 조건</h4>
+            <p>{{ product.get('우대조건', '정보 없음') }}</p>
+
+            <div class="mt-5">
+                <a href="/{{ product_type_url }}" class="btn btn-outline-dark me-2">← 목록으로</a>
+                <a href="/" class="btn btn-outline-dark">메인으로</a>
+            </div>
+        </div>
+
+        <!-- 우측: 계산기 -->
+        <div class="col-lg-4">
+            <div class="card-box sticky-top" style="top: 100px;">
+                <h4 class="fw-bold mb-4">📈 이자 계산기</h4>
+                <div class="mb-3">
+                    <label class="form-label">금액 (원)</label>
+                    <input type="number" id="amount" class="form-control" placeholder="금액 입력">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">금리 (%)</label>
+                    <input type="text" id="rate" class="form-control"
+                        value="{% if product_type == '대출' %}{{ product.get('기본금리(%)', '0') | extract_rate }}{% else %}{{ product.get('최고우대금리(%)', '0') | extract_rate }}{% endif %}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">기간 (개월)</label>
+                    <input type="number" id="period" class="form-control"
+                        value="{% if product.get('저축기간(개월)') == '정보 없음' %}12{% else %}{{ product.get('저축기간(개월)') }}{% endif %}">
+                </div>
+                {% if product_type != '대출' %}
+                <div class="mb-3">
+                    <label class="form-label">이자 방식</label>
+                    <select id="interestType" class="form-select">
+                        <option value="simple">단리</option>
+                        <option value="compound">복리</option>
+                    </select>
+                </div>
+                {% endif %}
+                <button class="btn btn-success w-100" onclick="calculateInterest()">계산하기</button>
+                <div class="mt-4 result-box">
+                    {% if product_type == '대출' %}
+                        <p><strong>월 납입금:</strong> <span id="monthly-payment">-</span> 원</p>
+                        <p><strong>총 상환액:</strong> <span id="total-amount">-</span> 원</p>
+                        <p><strong>총 이자:</strong> <span id="expected-interest">-</span> 원</p>
+                    {% else %}
+                        <p><strong>예상 이자 (세전):</strong> <span id="expected-interest">-</span> 원</p>
+                        <p><strong>세후 이자:</strong> <span id="net-interest">-</span> 원</p>
+                        <p><strong>총 수령액 (세후):</strong> <span id="total-amount">-</span> 원</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateInterest() {
+        const amount = parseFloat(document.getElementById('amount').value);
+        const rate = parseFloat(document.getElementById('rate').value);
+        const period = parseInt(document.getElementById('period').value);
+
+        if (!amount || !rate || !period || isNaN(rate)) {
+            alert('금액, 금리, 기간을 정확히 입력하세요.');
+            return;
+        }
+
+        const monthlyRate = rate / 100 / 12;
+
+        {% if product_type == '대출' %}
+            const r = monthlyRate;
+            const n = period;
+            const monthlyPayment = amount * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+            const totalPayment = monthlyPayment * n;
+            const interest = totalPayment - amount;
+
+            document.getElementById('monthly-payment').innerText = Math.round(monthlyPayment).toLocaleString();
+            document.getElementById('expected-interest').innerText = Math.round(interest).toLocaleString();
+            document.getElementById('total-amount').innerText = Math.round(totalPayment).toLocaleString();
+
+        {% else %}
+            const type = document.getElementById('interestType').value;
+            let interest = 0;
+            let total = 0;
+
+            if (type === 'simple') {
+                interest = amount * (rate / 100) * (period / 12);
+                total = amount + interest;
+            } else {
+                total = amount * Math.pow(1 + monthlyRate, period);
+                interest = total - amount;
+            }
+
+            const tax = interest * 0.154;
+            const netInterest = interest - tax;
+            const netTotal = amount + netInterest;
+
+            document.getElementById('expected-interest').innerText = Math.round(interest).toLocaleString();
+            document.getElementById('net-interest').innerText = Math.round(netInterest).toLocaleString();
+            document.getElementById('total-amount').innerText = Math.round(netTotal).toLocaleString();
+        {% endif %}
+    }
+</script>
+{% endblock %}

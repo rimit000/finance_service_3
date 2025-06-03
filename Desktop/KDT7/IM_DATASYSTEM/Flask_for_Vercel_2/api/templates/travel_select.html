@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}여행 자금 로드맵{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --moa-green: #00d8b0;
+    --moa-lightgreen: #b2f5ea;
+    --moa-dark: #020715;
+  }
+
+  .section-title {
+    color: var(--moa-dark);
+    border-bottom: 3px solid var(--moa-green);
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+  }
+
+  .travel-form {
+    border: 2px solid var(--moa-lightgreen);
+    border-radius: 15px;
+    padding: 25px 30px;
+    background-color: #f8fffd;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .travel-form label {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .travel-form select {
+    width: 100%;
+  }
+
+  .btn-submit {
+    background-color: var(--moa-green);
+    color: white;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 10px 30px;
+    margin-top: 20px;
+  }
+
+  .btn-submit:hover {
+    background-color: #00bfa5;
+  }
+
+  .result-box {
+    margin-top: 40px;
+    padding: 25px;
+    border-radius: 15px;
+    background-color: #ffffff;
+    border: 2px solid #b2f5ea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .result-box h4 {
+    font-weight: 700;
+    color: var(--moa-dark);
+    margin-bottom: 20px;
+  }
+
+  .result-box ul {
+    padding-left: 20px;
+  }
+
+  .result-box li {
+    margin-bottom: 10px;
+  }
+</style>
+
+<div class="container my-5">
+  <h1 class="text-center fw-bold section-title">✈️ 여행 자금 로드맵</h1>
+
+  <form method="POST" action="/plus/travel-plan" class="travel-form">
+    <div class="mb-3">
+      <label for="city" class="form-label">여행지 선택</label>
+      <select name="city" id="city" class="form-select" required>
+        {% for city in cities %}
+          <option value="{{ city }}">{{ city }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="months" class="form-label">목표 저축 기간 (개월)</label>
+      <select name="months" id="months" class="form-select" required>
+        <option value="6">6개월</option>
+        <option value="12">12개월</option>
+        <option value="24">24개월</option>
+        <option value="36">36개월</option>
+      </select>
+    </div>
+
+    <div class="text-center">
+      <button type="submit" class="btn btn-submit">모으기 시작</button>
+    </div>
+  </form>
+
+  {% if travel_plan %}
+  <div class="result-box mt-5">
+    <h4>📍 {{ travel_plan.city }} 여행 추천 일정</h4>
+    <ul>
+      <li>⏰ 추천 여행 기간: {{ travel_plan.days }}일</li>
+      <li>🏨 예상 숙박비: {{ travel_plan.accommodation | int | comma }}원</li>
+      <li>🍽 예상 식비: {{ travel_plan.food | int | comma }}원</li>
+      <li>🚕 기타 비용 (교통/입장권 등): {{ travel_plan.etc | int | comma }}원</li>
+      <li>💰 총 예상 비용: <strong>{{ travel_plan.total | int | comma }}원</strong></li>
+      <li>📆 월 저축 목표 금액: <strong>{{ travel_plan.monthly | int | comma }}원</strong></li>
+    </ul>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>상품 비교 결과</title>
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #ffffff;
+      padding: 40px;
+      margin: 0;
+      color: #222;
+    }
+
+    h1 {
+      text-align: left;
+      color: #004e3e;
+      font-size: 2rem;
+      margin-bottom: 30px;
+      border-left: 6px solid #00a386;
+      padding-left: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #ccc;
+      margin-bottom: 30px;
+    }
+
+    th, td {
+      padding: 14px 18px;
+      border: 1px solid #ccc;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    th {
+      background-color: #f2f4f6;
+      font-weight: 600;
+      color: #333;
+    }
+
+    tr:last-child td {
+      background-color: #e3f5f0;
+      font-weight: bold;
+    }
+
+    .label-cell {
+      background-color: #f9f9f9;
+      font-weight: 500;
+      text-align: left;
+      padding-left: 20px;
+    }
+
+    .highlight {
+      color: #00755e;
+      font-weight: bold;
+    }
+
+    .result-message {
+      font-size: 1.15rem;
+      color: #333;
+      background-color: #f7fcfa;
+      border-left: 5px solid #00b37d;
+      padding: 16px 20px;
+    }
+
+    .result-message strong {
+      color: #00755e;
+    }
+
+    @media screen and (max-width: 768px) {
+      table, th, td {
+        font-size: 0.9rem;
+      }
+
+      .label-cell {
+        padding-left: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1> 상품 비교 결과</h1>
+
+  <table>
+    <tr>
+      <th></th>
+      <th>{{ result1.금융회사명 }}</th>
+      <th>{{ result2.금융회사명 }}</th>
+    </tr>
+    <tr>
+      <td class="label-cell">상품명</td>
+      <td>{{ result1.상품명 }}</td>
+      <td>{{ result2.상품명 }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">금리</td>
+      <td>{{ result1.금리 }}%</td>
+      <td>{{ result2.금리 }}%</td>
+    </tr>
+    <tr>
+      <td class="label-cell">세전 이자</td>
+      <td>{{ result1.세전이자 }}</td>
+      <td>{{ result2.세전이자 }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">이자 과세</td>
+      <td>{{ result1.이자과세 }}</td>
+      <td>{{ result2.이자과세 }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell">세후 이자</td>
+      <td>{{ result1.세후이자 }}</td>
+      <td>{{ result2.세후이자 }}</td>
+    </tr>
+    <tr>
+      <td class="label-cell"><strong>실수령액</strong></td>
+      <td class="highlight">{{ result1.실수령액 }}</td>
+      <td class="highlight">{{ result2.실수령액 }}</td>
+    </tr>
+  </table>
+
+  <div class="result-message">
+    <strong>{{ better }}</strong>의 상품이 <strong>{{ gap }}</strong>원 더 유리합니다.
+  </div>
+</body>
+</html>
