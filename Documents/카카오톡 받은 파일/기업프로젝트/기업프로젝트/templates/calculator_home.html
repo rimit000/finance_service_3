@@ -10,7 +10,7 @@
     --moa-light: #8AE2BB;
     --moa-dark: #020715;
 
-    --card-border-width: 2px;
+    --card-border-width: 1.5px;
     --card-border-radius: 0.5rem;
     --card-padding: 3rem;
     --card-bg: #FFFFFF;
@@ -34,7 +34,7 @@
     margin: 0 auto 30px;
   }
   .moa-header h1 {
-    font-size: 5rem;
+    font-size: 4rem;
     font-weight: 700;
     color: var(--moa-green);
     letter-spacing: 1.5px;
@@ -66,7 +66,7 @@
     border-bottom: 2px solid var(--moa-green);
   }
 
-  /* 카드 공통 스타일 (재사용 가능) */
+
   .calc-card {
     border-width: var(--card-border-width) !important;
     border-style: solid !important;
@@ -79,7 +79,7 @@
   }
 
   .calc-card .card-title {
-    color: var(--card-title-color) !important;
+    color: #251C1C !important;
     margin-bottom: 0.7cm;
     font-size: 1.8rem;
   }
@@ -87,7 +87,10 @@
   .calc-card.info { border-color: var(--card-border-info) !important; }
 
   .btn-fill-dark {
-    --bs-btn-bg: #00C4A8;
+    height: 45px;
+    font-size: 25px;
+    --bs-btn-bg: #8AE2BB;
+    --bs-btn-border-color: none !important;
     --bs-btn-color: #020715;
   }
 
