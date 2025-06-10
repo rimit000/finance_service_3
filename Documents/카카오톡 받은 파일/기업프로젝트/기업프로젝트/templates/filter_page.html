@@ -338,7 +338,7 @@
           <div class="col-md-2 col-sm-4">
             <label for="periodSelect" class="form-label">기간</label>
             <select id="periodSelect" class="form-select">
-              <option value="">전체</option>
+              <option value="" selected disabled> month </option>
               {% for p in periods if p != 1 and p != 3 %}
                 <option value="{{ p }}">{{ p }}개월</option>
               {% endfor %}
@@ -348,7 +348,7 @@
         <div class="col-md-2 col-sm-4">
           <label for="regionSelect" class="form-label">지역</label>
           <select id="regionSelect" class="form-select">
-            <option value="">전체</option>
+            <option value="" selected disabled> region </option>
             {% for region in regions %}
               <option value="{{ region }}">{{ region }}</option>
             {% endfor %}
