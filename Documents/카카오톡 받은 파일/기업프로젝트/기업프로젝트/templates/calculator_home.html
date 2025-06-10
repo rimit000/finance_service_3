@@ -94,6 +94,28 @@
     --bs-btn-color: #020715;
   }
 
+    .result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    font-size: 1rem;
+    /* 테이블이 가로로 넘칠 때 스크롤 */
+    overflow-x: auto;
+    }
+
+    .result-table th,
+    .result-table td {
+    border: 1px solid #ccc;
+    padding: .5rem 1.5rem;
+    text-align: center;       
+    white-space: nowrap;      
+    word-break: keep-all;   
+    }
+
+    .result-table th {
+    background: #ccc;
+    }
+
 </style>
 
 <!-- 상단 헤더 -->
@@ -107,42 +129,77 @@
   <!-- 탭 메뉴 -->
   <ul class="nav nav-tabs mb-4" id="calcTabs" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple" type="button" role="tab">예금</button>
+      <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple" type="button">예금</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="compound-tab" data-bs-toggle="tab" data-bs-target="#compound" type="button" role="tab">적금</button>
+      <button class="nav-link" id="compound-tab" data-bs-toggle="tab" data-bs-target="#compound" type="button">적금</button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="loan-tab" data-bs-toggle="tab" data-bs-target="#loan" type="button" role="tab">대출</button>
+      <button class="nav-link" id="loan-tab" data-bs-toggle="tab" data-bs-target="#loan" type="button">대출</button>
     </li>
   </ul>
 
   <div class="tab-content">
     <!-- 예금 계산기 -->
-    <div class="tab-pane fade show active" id="simple" role="tabpanel" aria-labelledby="simple-tab">
+    <div class="tab-pane fade show active" id="simple" role="tabpanel">
       <div class="row justify-content-center">
         <div class="col-md-6">
+
+          <!-- 입력 폼 카드 -->
           <div class="card calc-card info">
             <div class="card-body">
               <h4 class="card-title text-right fw-bold">예금 계산기</h4>
               <form id="simpleInterestForm">
-                <input type="number" class="form-control my-2" placeholder="예치 금액" name="monthly">
+                <input type="number" class="form-control my-2" placeholder="예치 금액" name="principal">
                 <input type="number" class="form-control my-2" placeholder="연 이자율(%)" name="rate">
                 <input type="number" class="form-control my-2" placeholder="예금 기간(월)" name="months">
                 <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcSimple()">계산하기</button>
-                
-                <p class="mt-3 text-center fw-semibold" id="simpleResult"></p>
               </form>
+              <p class="mt-3 text-center fw-semibold" id="simpleResult"></p>
             </div>
           </div>
+
+          <!-- 결과 테이블 -->
+          <div id="simpleResultTable" class="mt-4">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>구분</th>
+                  <th>월납입액 합계(원)</th>
+                  <th>이자(세전, 원)</th>
+                  <th>이자(세후, 원)</th>
+                  <th>만기지급액(원)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>일반 (<span id="taxNormalRate">15.4</span>%)</td>
+                  <td id="normalPrincipal">0</td>
+                  <td id="normalInterestBefore">0</td>
+                  <td id="normalInterestAfter">0</td>
+                  <td id="normalMature">0</td>
+                </tr>
+                <tr>
+                  <td>비과세 (0.0%)</td>
+                  <td id="nonePrincipal">0</td>
+                  <td id="noneInterestBefore">0</td>
+                  <td id="noneInterestAfter">0</td>
+                  <td id="noneMature">0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     </div>
 
     <!-- 적금 계산기 -->
-    <div class="tab-pane fade" id="compound" role="tabpanel" aria-labelledby="compound-tab">
+    <div class="tab-pane fade" id="compound" role="tabpanel">
       <div class="row justify-content-center">
         <div class="col-md-6">
+
+          <!-- 입력 폼 카드 -->
           <div class="card calc-card info">
             <div class="card-body">
               <h4 class="card-title text-right fw-bold">적금 계산기</h4>
@@ -150,19 +207,53 @@
                 <input type="number" class="form-control my-2" placeholder="월 납입액" name="monthly">
                 <input type="number" class="form-control my-2" placeholder="연 이자율(%)" name="rate">
                 <input type="number" class="form-control my-2" placeholder="적립 기간(월)" name="months">
-                <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcSimple()">계산하기</button>
-                <p class="mt-3 text-center fw-semibold" id="compoundResult"></p>
+                <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcCompound()">계산하기</button>
               </form>
+              <p class="mt-3 text-center fw-semibold" id="compoundResult"></p>
             </div>
           </div>
+
+          <!-- 결과 테이블 -->
+          <div id="compoundResultTable" class="mt-4">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>구분</th>
+                  <th>월납입액 합계(원)</th>
+                  <th>이자(세전, 원)</th>
+                  <th>이자(세후, 원)</th>
+                  <th>만기지급액(원)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>일반 (<span id="compoundTaxRate">15.4</span>%)</td>
+                  <td id="compoundNormalPrincipal">0</td>
+                  <td id="compoundInterestBefore">0</td>
+                  <td id="compoundInterestAfter">0</td>
+                  <td id="compoundMature">0</td>
+                </tr>
+                <tr>
+                  <td>비과세 (0.0%)</td>
+                  <td id="compoundNonePrincipal">0</td>
+                  <td id="compoundNoneInterestBefore">0</td>
+                  <td id="compoundNoneInterestAfter">0</td>
+                  <td id="compoundNoneMature">0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     </div>
 
     <!-- 대출 계산기 -->
-    <div class="tab-pane fade" id="loan" role="tabpanel" aria-labelledby="loan-tab">
+    <div class="tab-pane fade" id="loan" role="tabpanel">
       <div class="row justify-content-center">
         <div class="col-md-6">
+
+          <!-- 입력 폼 카드 -->
           <div class="card calc-card info">
             <div class="card-body">
               <h4 class="card-title text-right fw-bold">대출 계산기</h4>
@@ -175,20 +266,39 @@
                   <option value="equal_principal">원금균등</option>
                   <option value="bullet">만기일시상환</option>
                 </select>
-                <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcSimple()">계산하기</button>
-                <p class="mt-3 text-center fw-semibold" id="loanResult"></p>
+                <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcLoan()">계산하기</button>
               </form>
+              <p class="mt-3 text-center fw-semibold" id="loanResult"></p>
             </div>
           </div>
+
+          <!-- 결과 테이블 -->
+          <div id="loanResultTable" class="mt-4">
+            <table class="result-table">
+              <thead>
+                <tr>
+                  <th>회차</th>
+                  <th>상환금(원)</th>
+                  <th>납입원금(원)</th>
+                  <th>이자(원)</th>
+                  <th>납입원금 누계(원)</th>
+                  <th>잔금(원)</th>
+                </tr>
+              </thead>
+              <tbody id="loanScheduleBody">
+                <!-- JS로 채워집니다 -->
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </div>
     </div>
   </div>
-
 </div>
 
 
-
+<script type="text/javascript" src="https://simg.wooribank.com/js/mall/caculator_new.js?1362234790000"></script>
 <script>
 function calcSimple() {
     const form = document.forms["simpleInterestForm"];
