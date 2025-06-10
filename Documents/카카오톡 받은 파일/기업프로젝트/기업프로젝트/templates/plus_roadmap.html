@@ -2,102 +2,218 @@
 {% block title %}미래 자금 로드맵{% endblock %}
 
 {% block content %}
-<style>
-  body {
-    background-color: #f0faf7;
-    font-family: '눈누 기초고딕 Regular-Regular', sans-serif;
-    padding: 60px 20px;
-  }
 
-  .roadmap-title {
-    text-align: center;
-    font-size: 2.8rem;
-    font-weight: 800;
-    color: #00b37d;
-    margin-bottom: 40px;
-  }
 
-  .roadmap-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: none;
-    margin: auto;
-    padding: 0 10px;
-    border-radius: 15px;
-    overflow: hidden;
-  }
+    <style>
 
-  .roadmap-bg {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 15px;
-  }
 
-  .roadmap-step {
-    position: absolute;
-    text-align: center;
-    transform: translate(-50%, -50%);
-    width: 130px;
-  }
+        .left-section {
+            flex: 1;
+        }
 
-  .roadmap-step img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 4px solid #00b37d;
-    background: white;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  }
+        .left-section h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 40px;
+            line-height: 1.1;
+        }
 
-  .roadmap-step p {
-    margin-top: 10px;
-    font-weight: 600;
-    font-size: 1.6rem;
-    color: #111;
-    text-shadow: none;
-  }
+        .left-section p {
+            font-size: 1.2rem;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
 
-  /* 위치 조정 */
-  .step1 { top: 30%; left: 70%; }
-  .step2 { top: 55%; left: 18%; }
-  .step3 { top: 85%; left: 67%; }
+        .service-button {
+            background-color: #2a2a2a;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
 
-  @media screen and (max-width: 768px) {
-    .roadmap-step {
-      width: 90px;
-    }
+        .service-button:hover {
+            background-color: #404040;
+        }
 
-    .roadmap-step img {
-      width: 70px;
-      height: 70px;
-    }
+        .right-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
 
-    .roadmap-step p {
-      font-size: 1rem;
-    }
-  }
-</style>
+        .solution-box {
+            background: linear-gradient(135deg, #2a2a2a 0%, #4a4a4a 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: rgb(172, 172, 172);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-<div class="roadmap-title">모아플러스와 함께하는 미래 자금 로드맵</div>
+        .solution-box:hover {
+            transform: translateY(-5px);
+        }
 
-<div class="roadmap-wrapper">
-  <img src="{{ url_for('static', filename='map.png') }}" class="roadmap-bg" alt="로드맵 도로">
+        .solution-box h3 {
+            font-size: 1.1rem;
+            color: #717171;
+            margin-bottom: 10px;
+        }
 
-  <a href="{{ url_for('travel_plan') }}" class="roadmap-step step1">
-    <img src="{{ url_for('static', filename='travel.jpg') }}" alt="여행">
-    <p>여행을 모아</p>
-  </a>
+        .solution-box h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            line-height: 1.3;
+            z-index: 2;
+            color: #000000;
+            position: relative;
+        }
 
-  <a href="{{ url_for('plus_region_map') }}" class="roadmap-step step2">
-    <img src="{{ url_for('static', filename='house.jpg') }}" alt="집">
-    <p>집을 모아</p>
-  </a>
+        .solution-box .brand {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: auto;
+            z-index: 2;
+            position: relative;
+        }
 
-  <a href="{{ url_for('car_roadmap') }}" class="roadmap-step step3">
-    <img src="{{ url_for('static', filename='car2.png') }}" alt="차">
-    <p>차를 모아</p>
-  </a>
-</div>
+        .hover-image {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.5s ease;
+            z-index: 1;
+        }
+
+        .solution-box:hover .hover-image {
+            opacity: 0.9;
+            transform: translateX(0);
+            animation: slideFrames 1s ease-out;
+        }
+
+        @keyframes slideFrames {
+            0% { transform: translateX(100px); }
+            10% { transform: translateX(90px); }
+            20% { transform: translateX(80px); }
+            30% { transform: translateX(70px); }
+            40% { transform: translateX(60px); }
+            50% { transform: translateX(50px); }
+            60% { transform: translateX(40px); }
+            70% { transform: translateX(30px); }
+            80% { transform: translateX(20px); }
+            90% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+
+        .box1 {
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+        }
+
+        .box1 .hover-image {
+            background-image: url('../static/roadmap_trip.jpeg');
+        }
+
+        .box2 {
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+        }
+
+        .box2 .hover-image {
+            background-image: url('../static/roadmap_car.jpg');
+        }
+
+        .box3 {
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+        }
+
+        .box3 .hover-image {
+            background-image: url('../static/roadmap_house.jpg');
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                gap: 40px;
+            }
+            
+            .left-section h1 {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+
+<body>
+    <div class="container">
+        <div class="left-section">
+            <h1>모아플러스와 함께하는<hr>미래 자금 로드맵</h1>
+            <p>
+                <br>
+                
+            </p>
+            <!-- <button class="service-button">서비스 더보기</button> -->
+        </div>
+        
+        <div class="right-section">
+            <div class="solution-box box1"  onclick="navigateToPage('trip')">
+                <div class="hover-image"></div>
+                <h3>여행은 계획했지? 돈은 TRIP 모아에서!</h3>
+                <h2>TRIP MOA</h2>
+                <div class="brand"></div>
+            </div>
+            
+            <div class="solution-box box2"  onclick="navigateToPage('car')">
+                <div class="hover-image"></div>
+                <h3>드라이브의 꿈, 적금으로 시동 걸자! </h3>
+                <h2>CAR MOA</h2>
+                <div class="brand"></div>
+            </div>
+            
+            <div class="solution-box box3"  onclick="navigateToPage('house')">
+                <div class="hover-image"></div>
+                <h3>전세 목돈, 여기서 MOA봐~</h3>
+                <h2>HOUSE MOA</h2>
+                <div class="brand"></div>
+            </div>
+        </div>
+    </div>
+
+        <script>
+        function navigateToPage(section) {
+            // 현재 창에서 페이지 이동
+            switch(section) {
+                case 'trip':
+                    window.location.href = '/plus/travel-plan';
+                    break;
+                case 'car':
+                    window.location.href = '/plus/car-roadmap';
+                    break;
+                case 'house':
+                    window.location.href = '/plus/region';
+                    break;
+                default:
+                    console.log('페이지를 찾을 수 없습니다.');
+            }
+        }
+            </script>
+</body>
+
 {% endblock %}
