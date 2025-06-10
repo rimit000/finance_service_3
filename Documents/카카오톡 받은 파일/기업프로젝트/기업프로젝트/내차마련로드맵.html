@@ -1,0 +1,131 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>내 차 마련 로드맵</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='globals.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <div class="screen">
+      <!-- 상단 타이틀 및 설명 -->
+      <div class="title">
+        <p class="p">한눈에 보는 중고차 시세, 모아 플러스 중고차 모아보기</p>
+        <p class="CAR-MOA"><span class="span">CAR MOA</span></p>
+        <div class="rectangle"></div>
+      </div>
+
+      <!-- 카테고리 필터 -->
+      <div class="filter">
+        <div class="SUV"><div class="text-wrapper-2" onclick="filterCategory('SUV')">SUV</div></div>
+        <div class="view"><div class="text-wrapper-2" onclick="filterCategory('세단')">세단</div></div>
+        <div class="div-wrapper"><div class="text-wrapper-2" onclick="filterCategory('경차')">소형(경차)</div></div>
+      </div>
+
+      <!-- 설명 텍스트 및 이미지 -->
+      <div class="contents">
+        <img class="image" src="{{ url_for('static', filename='img/image-30.png') }}" />
+        <div class="overlap">
+          <div class="text-wrapper">당신의 차는?</div>
+          <img class="img" src="{{ url_for('static', filename='img/image-29.png') }}" />
+        </div>
+        <p class="div">차종과 기간을 선택하고<br />내 예산에 꼭 맞는 저축액과 추천 적금을 확인해 보세요.</p>
+      </div>
+
+      <!-- 차량 리스트 출력 -->
+      <div id="car-table">
+        {% for car in car_list %}
+        <div class="row car-item" data-category="{{ car['차종'] }}">
+          <div class="cell">
+            <div class="text-wrapper">{{ car['모델명'] }}</div>
+          </div>
+          <div class="group-wrapper">
+            <div class="group">
+              <div class="div">{{ '{:,}'.format(car['평균가격']) }}</div>
+              <div class="text-wrapper-2">만원</div>
+            </div>
+          </div>
+          <div class="region-wrapper">
+            <div class="region">
+              <select onchange="calculateAndRecommend(this, {{ car['평균가격'] }}, '{{ loop.index }}')" class="form-select">
+                <option disabled selected>선택</option>
+                {% for period in period_options %}
+                <option value="{{ period }}">{{ period }}개월</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="div-wrapper">
+            <div class="text-wrapper-4" id="monthly-saving-{{ loop.index }}">-</div>
+          </div>
+          <div class="cell-2">
+            <div class="text-wrapper-5" id="recommendation-{{ loop.index }}">-</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- 하단 네비게이션 -->
+      <div class="view-2">
+        <a href="/plus" class="text-wrapper-4">모아플러스</a>
+        <a href="/loans" class="text-wrapper-5">대출</a>
+        <a href="/savings" class="text-wrapper-6">적금</a>
+        <a href="/deposits" class="text-wrapper-7">예금</a>
+        <img class="element" src="{{ url_for('static', filename='img/1.png') }}" />
+      </div>
+    </div>
+
+    <!-- 추천 적금 계산 스크립트 -->
+    <script>
+      const savingsProducts = {{ savings_products | tojson | safe }};
+
+      function calculateAndRecommend(select, price, index) {
+        const months = parseInt(select.value);
+        const monthlyTarget = document.getElementById(`monthly-saving-${index}`);
+        const recommendBox = document.getElementById(`recommendation-${index}`);
+
+        if (!isNaN(months) && months > 0) {
+          const monthly = (price / months).toFixed(1);
+          monthlyTarget.textContent = `${monthly} 만원`;
+
+          const filtered = savingsProducts
+            .filter(p => {
+              const rawPeriod = typeof p.기간 === 'string' ? p.기간 : String(p.기간);
+              const numericPeriod = parseInt(rawPeriod.match(/\d+/)?.[0] || '0');
+              return numericPeriod === months;
+            })
+            .sort((a, b) => b.금리 - a.금리)
+            .slice(0, 3);
+
+          if (filtered.length > 0) {
+            const list = filtered.map(p =>
+              `<li><a href="/savings/detail/${encodeURIComponent(p.금융회사명)}/${encodeURIComponent(p.상품명)}">
+                <strong>${p.상품명}</strong> (${p.금융회사명}, ${p.금리}%)
+              </a></li>`
+            ).join('');
+            recommendBox.innerHTML = `<ul class="recommend-list">${list}</ul>`;
+          } else {
+            recommendBox.textContent = "추천 상품 없음";
+          }
+        } else {
+          monthlyTarget.textContent = "-";
+          recommendBox.textContent = "-";
+        }
+      }
+
+      function filterCategory(category) {
+        const allCars = document.querySelectorAll('.car-item');
+        allCars.forEach(card => {
+          if (category === '전체' || card.dataset.category === category) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

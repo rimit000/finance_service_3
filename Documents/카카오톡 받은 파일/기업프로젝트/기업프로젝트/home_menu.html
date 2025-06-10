@@ -1,0 +1,134 @@
+{% set no_container = True %}
+{% extends 'base.html' %}
+
+{% block title %}MOA PLUS{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='globals.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='styleguide.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+  #mainCarousel {
+    width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #mainCarousel .carousel-inner {
+    width: 100%;
+  }
+
+  .carousel-item {
+    position: relative;
+    text-align: center;
+  }
+
+  .carousel-item img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /*  자세히 보기 버튼 스타일 */
+  .banner-btn {
+    position: absolute;
+    top: 80%;
+    left: 17%;
+    transform: translateX(-50%);
+    background: none;
+    border: none;
+    color: #000;
+    font-weight: bold;
+    font-size: 2.3rem;
+    padding: 0;
+    z-index: 50;
+    pointer-events: auto;
+  }
+
+  .banner-btn:hover {
+    color: #009f85;
+  }
+
+  /* 캐러셀 좌우 버튼 위치 + 스타일 */
+  .carousel-control-prev,
+  .carousel-control-next {
+    position: absolute;
+    top: 20%;
+    transform: translateY(-50%);
+    z-index: 30;
+    width: auto;
+    height: auto;
+  }
+
+  .carousel-control-prev {
+    left: 20px;
+  }
+
+  .carousel-control-next {
+    right: 20px;
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    background-color: transparent !important;
+    background-size: 100% 100%;
+    border-radius: 50%;
+    width: 40px;
+    height: 45px;
+  }
+</style>
+
+<!--  메인 캐러셀 배너 -->
+<div id="mainCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="{{ url_for('static', filename='banner1 (2).png') }}" alt="배너1">
+      <a href="{{ url_for('terms_home') }}" class="banner-btn">→ 자세히보기</a>
+    </div>
+    <div class="carousel-item">
+      <img src="{{ url_for('static', filename='banner2.png') }}" alt="배너2">
+      <a href="{{ url_for('plus_youth_policy') }}" class="banner-btn">→ 자세히보기</a>
+    </div>
+    <div class="carousel-item">
+      <img src="{{ url_for('static', filename='banner 3.png') }}" alt="배너3">
+      <a href="{{ url_for('plus_calculator') }}" class="banner-btn">→ 자세히보기</a>
+    </div>
+    <div class="carousel-item">
+      <img src="{{ url_for('static', filename='banner 4 (1).png') }}" alt="배너4">
+      <a href="{{ url_for('roadmap') }}" class="banner-btn">→ 자세히보기</a>
+    </div>
+  </div>
+
+  <!-- ▶ 좌우 화살표 버튼 -->
+  <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Previous</span>
+  </button>
+  <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    <span class="visually-hidden">Next</span>
+  </button>
+
+  <!-- ▶ 인디케이터 -->
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+    <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
+  </div>
+
+  <!-- section2 소개 영역 -->
+  <div style="width: 100%; text-align: center; padding-bottom: 60px;">
+    <img src="{{ url_for('static', filename='section2.png') }}" alt="MOA PLUS 소개" style="max-width: 100%; height: auto;">
+
+    <a href="{{ url_for('plus_home') }}"
+       style="position: absolute; top: 73.5%; left: 22.5%; transform: translate(-50%, -50%);">
+      <img src="{{ url_for('static', filename='Button.png') }}"
+           alt="자세히 보기 버튼"
+           style="width: 200px; height: auto;">
+    </a>
+  </div>
+</div>
+{% endblock %}

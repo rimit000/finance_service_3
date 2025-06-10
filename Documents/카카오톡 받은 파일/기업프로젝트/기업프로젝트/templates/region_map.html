@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}HOUSE MOA{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background-color: #f4f9f5;
+    padding: 40px 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: center;
+  }
+
+  #mapdiv {
+    width: 100%;
+    max-width: 700px;
+    background: #fff;
+    padding: 80px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  svg {
+    max-width: 800px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  svg path {
+    stroke: #333;
+    stroke-width: 1;
+    fill: #ccc !important;
+    transition: fill 0.2s ease;
+    cursor: pointer;
+    pointer-events: all;
+  }
+
+  svg path:hover {
+    fill: #999;
+  }
+
+  .region-label {
+    font-family: 'Nanum Gothic', sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    pointer-events: none;
+  }
+
+  .col-lg-4 {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    max-width: 400px;
+    flex: 1;
+  }
+
+  #selected-region {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #00b37d;
+  }
+
+  #avg-price {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  #savings-list .list-group-item {
+    border: none;
+    padding: 12px 16px;
+    background-color: #f8f9fa;
+    margin-bottom: 8px;
+    border-left: 4px solid #00b37d;
+    transition: background-color 0.2s ease;
+  }
+
+  #savings-list .list-group-item:hover {
+    background-color: #e7f9f0;
+  }
+
+  .region-tooltip {
+    position: absolute;
+    background: #222;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    display: none;
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    .row {
+      flex-direction: column;
+    }
+
+    .col-lg-8, .col-lg-4 {
+      width: 100%;
+    }
+
+    #mapdiv {
+      padding: 15px;
+    }
+
+    #selected-region {
+      font-size: 1.3rem;
+    }
+
+    #avg-price {
+      font-size: 1.1rem;
+    }
+  }
+</style>
+
+<div class="row">
+  <div class="col-lg-8">
+    <div id="mapdiv">
+      {% include '전국_시도_전세지도_인터랙티브.html' %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <h3 id="selected-region"> 경기: 선택X</h3>
+    <p id="avg-price"> 평균 주태 전세가: -</p>
+    <h4 class="mt-4"> 최고 금리 적금생품</h4>
+    <ul id="savings-list" class="list-group"></ul>
+  </div>
+</div>
+
+<div class="region-tooltip" id="tooltip"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const paths = document.querySelectorAll('svg path, polyline');
+  const tooltip = document.getElementById('tooltip');
+  let selectedPath = null;
+
+  paths.forEach(path => {
+    const title = path.getAttribute('id');
+    if (!title) return;
+
+    path.style.cursor = 'pointer';
+
+    path.addEventListener('mousemove', function (e) {
+      tooltip.innerText = title;
+      tooltip.style.left = (e.pageX + 10) + 'px';
+      tooltip.style.top = (e.pageY + 10) + 'px';
+      tooltip.style.display = 'block';
+    });
+
+    path.addEventListener('mouseleave', function () {
+      tooltip.style.display = 'none';
+    });
+
+    path.addEventListener('click', function () {
+      if (selectedPath) {
+        selectedPath.style.fill = '#ccc';
+      }
+
+      path.style.fill = '#555';
+      selectedPath = path;
+
+      const region = title.replace("특별시", "").replace("광역시", "").replace(" 원", "").replace(" 도", "").trim();
+      document.getElementById('selected-region').innerText = ' 지역: ' + region;
+
+      fetch(`/plus/region-data?region=${region}`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('avg-price').innerText = ' 평균 전세가: ' + data.price + '만원';
+          const list = document.getElementById('savings-list');
+          list.innerHTML = '';
+
+          const seen = new Set();
+          data.products.forEach(p => {
+            const key = `${p.상품명}-${p.금융회사명}`;
+            if (seen.has(key)) return;
+            seen.add(key);
+
+            const total = p.월저축금 * p.기간;
+
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.innerHTML = `
+              <strong>${p.상품명}</strong> (${p["최고우대금리(%)"]}%) - ${p.금융회사명}<br/>
+              <span style="font-size: 0.9rem; color: #555;">
+                ${p.기간}개월간 매달 약 <strong>${p.월저축금}만원</strong> 저축<br/>
+                 총 저축 예상: <strong>${total}만원</strong>
+              </span>
+            `;
+            list.appendChild(li);
+          });
+        });
+    });
+  });
+});
+</script>
+{% endblock %}

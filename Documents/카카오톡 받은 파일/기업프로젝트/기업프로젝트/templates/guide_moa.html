@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block title %}가이드 모아{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background: url("{{ url_for('static', filename='Blue.png') }}") no-repeat right center;
+    background-size: contain;
+    background-color: #ffffff;
+    background-attachment: fixed;
+  }
+
+  .guide-container {
+    max-width: 1000px;
+    margin: 80px auto;
+    text-align: left;
+    padding-left: 60px;
+  }
+
+  .guide-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 40px;
+    color: #111;
+  }
+
+  .guide-cards {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+
+  .guide-card {
+    width: 220px;
+    height: 220px;
+    padding: 30px 20px;
+    border-radius: 20px;
+    background-color: #f8fffd;
+    border: 2px solid #b2f5ea;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    text-decoration: none;
+    color: #111;
+  }
+
+  .guide-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .guide-card i {
+    font-size: 3rem;
+    color: #00d8b0;
+    margin-bottom: 15px;
+  }
+
+  .guide-card span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: block;
+  }
+</style>
+
+<div class="guide-container">
+  <div class="guide-title"> 가이드 모아</div>
+
+  <div class="guide-cards">
+    <!-- 금융 계산기 -->
+    <a href="{{ url_for('plus_calculator') }}" class="guide-card">
+      <i class="fas fa-calculator"></i>
+      <span>금융 계산기</span>
+    </a>
+
+    <!-- 상품 비교하기 -->
+    <a href="{{ url_for('compare_savings') }}" class="guide-card">
+      <i class="fas fa-balance-scale"></i>
+      <span>상품 비교하기</span>
+    </a>
+  </div>
+</div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% endblock %}

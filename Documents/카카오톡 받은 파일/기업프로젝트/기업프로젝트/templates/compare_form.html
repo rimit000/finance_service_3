@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}한눈에 싹 MOA{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+<style>
+:root{--g:#00d8b0;--gl:#e6fffa}
+.divider{width:60px;height:4px;background:var(--g);margin:0 auto}
+.box{background:#fff;border:2px solid var(--gl);border-radius:12px}
+.btn-o{border-color:var(--g);color:var(--g)}
+.btn-check:checked+.btn-o,.btn-o:hover{background:var(--g);color:#fff}
+.scroll{height:120px;overflow-y:auto;border:1px solid #dee2e6;border-radius:6px;padding:6px}
+.item{padding:6px 10px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.item:hover{background:var(--gl)}
+.item.active{background:var(--gl);font-weight:600;color:var(--g)}
+.pill input{border:0;width:90px;text-align:right;background:var(--gl)}
+.result{border:2px solid var(--g);border-radius:8px;padding:22px}
+</style>
+
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <div class="divider mb-3"></div>
+    <h1 class="fw-bold"><span style="color:var(--g)">한눈에 싹</span> MOA</h1>
+  </div>
+
+  <form method="POST" id="compareForm">
+    <!-- 좌·우 모드 / 티어 hidden -->
+    <input type="hidden" name="mode_left"  id="mode_left"  value="list">
+    <input type="hidden" name="mode_right" id="mode_right" value="list">
+    <input type="hidden" name="tier_left"  id="tier_left"  value="all">
+    <input type="hidden" name="tier_right" id="tier_right" value="all">
+
+    <div class="row g-4 justify-content-center">
+
+      {% for side in ['left','right'] %}
+      <div class="col-12 col-lg-5">
+        <div class="box p-4">
+          <!-- ── ① 티어 선택 ── -->
+          <div class="btn-group w-100 mb-3" role="group">
+            <input type="radio" class="btn-check" name="{{ side }}_tier" id="{{ side }}_all"
+                   checked onclick="setTier('{{ side }}','all')">
+            <label class="btn btn-o" for="{{ side }}_all">전체</label>
+            <input type="radio" class="btn-check" name="{{ side }}_tier" id="{{ side }}_t1"
+                   onclick="setTier('{{ side }}','tier1')">
+            <label class="btn btn-o" for="{{ side }}_t1">1금융권</label>
+            <input type="radio" class="btn-check" name="{{ side }}_tier" id="{{ side }}_t2"
+                   onclick="setTier('{{ side }}','tier2')">
+            <label class="btn btn-o" for="{{ side }}_t2">2금융권</label>
+          </div>
+
+          <!-- ── ② 모드 선택 ── -->
+          <div class="btn-group w-100 mb-3" role="group">
+            <input type="radio" class="btn-check" name="{{ side }}_mode" id="{{ side }}_list"
+                   checked onclick="setMode('{{ side }}','list')">
+            <label class="btn btn-o" for="{{ side }}_list">목록에서 선택</label>
+            <input type="radio" class="btn-check" name="{{ side }}_mode" id="{{ side }}_direct"
+                   onclick="setMode('{{ side }}','direct')">
+            <label class="btn btn-o" for="{{ side }}_direct">금리 직접 입력</label>
+          </div>
+
+          <!-- ── 목록 선택 영역 ── -->
+          <div id="{{ side }}_list_block">
+            <input type="hidden" name="bank_{{ side }}"    id="bank_{{ side }}">
+            <input type="hidden" name="product_{{ side }}" id="product_{{ side }}">
+            <div class="scroll mb-2" id="bank_{{ side }}_list"></div>
+            <div class="scroll"     id="product_{{ side }}_list"></div>
+          </div>
+
+          <!-- ── 직접 입력 영역 ── -->
+          <div id="{{ side }}_rate_block" class="input-group d-none">
+            <span class="input-group-text">금리</span>
+            <input type="number" step="0.01" name="rate_{{ side }}" class="form-control text-end" placeholder=" ">
+            <span class="input-group-text">%</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ── 월 납입액 / 기간 ── -->
+    <div class="row g-2 justify-content-center my-4">
+      <div class="col-12 col-lg-10">
+        <div class="d-flex flex-wrap justify-content-center align-items-center pill
+                    border border-2 rounded-pill px-4 py-3">
+          <span class="me-2">월 적금액</span>
+          <input type="number" name="amount" required> <span class="ms-1 me-4">원</span>
+          <span class="me-2">납입 기간</span>
+          <input type="number" name="months" required> <span class="ms-1">개월</span>
+        </div>
+      </div>
+      <div class="text-center mt-3">
+        <button class="btn btn-lg px-5" style="background:var(--g);color:#fff">비교하기</button>
+      </div>
+    </div>
+  </form>
+
+  {% if result1 and result2 %}
+  <div class="row justify-content-center g-4">
+    {% for r in [result1, result2] %}
+    <div class="col-12 col-lg-4">
+      <div class="result">
+        <h5 class="mb-3">{{ r.금융회사명 }}<br>{{ r.상품명 }}</h5>
+        <p><strong>금리:</strong> {{ r.금리 }}%</p>
+        <p class="small mb-1">세전이자 {{ r.세전이자|format_currency }}</p>
+        <p class="small mb-1">이자과세 {{ r.이자과세|format_currency }}</p>
+        <p><strong>실수령액</strong> {{ r.실수령액|format_currency }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <p class="text-center fw-bold mt-3" style="color:var(--g)">
+     {{ better }} 의 상품이 {{ gap|format_currency }} 더 유리!
+  </p>
+  {% endif %}
+</div>
+
+<script>
+const banks = {{ bank_list|tojson }};          // 전체 은행 이름
+const bankTier = {{ bank_tier_map|tojson }};   // {은행: 'tier1'|'tier2'}
+const products = {{ product_map|tojson }};     // {은행: [상품...]}
+
+/* ---------- 공용 함수 ---------- */
+function makeItem(txt, cb){ const d=document.createElement('div');d.className='item';d.textContent=txt;d.onclick=cb;return d;}
+function clear(el){while(el.firstChild)el.removeChild(el.firstChild)}
+
+function populateBanks(side){
+  const tier = document.getElementById('tier_'+side).value;
+  const area = document.getElementById('bank_'+side+'_list'); clear(area);
+  banks.filter(b=> tier==='all' || bankTier[b]===tier)
+       .forEach(b=> area.appendChild(makeItem(b,()=>selectBank(side,b))));
+}
+function selectBank(side,b){
+  document.getElementById('bank_'+side).value=b;
+  [...document.querySelectorAll('#bank_'+side+'_list .item')]
+      .forEach(el=>el.classList.toggle('active',el.textContent===b));
+  populateProducts(side,b);
+}
+function populateProducts(side,b){
+  const area = document.getElementById('product_'+side+'_list'); clear(area);
+  (products[b]||[]).forEach(p=> area.appendChild(makeItem(p,()=>selectProd(side,p))));
+}
+function selectProd(side,p){
+  document.getElementById('product_'+side).value=p;
+  [...document.querySelectorAll('#product_'+side+'_list .item')]
+      .forEach(el=>el.classList.toggle('active',el.textContent===p));
+}
+
+/* ---------- 모드/티어 토글 ---------- */
+function setMode(side,mode){
+  document.getElementById('mode_'+side).value=mode;
+  const listB=document.getElementById(side+'_list_block');
+  const rateB=document.getElementById(side+'_rate_block');
+  if(mode==='direct'){
+    listB.classList.add('d-none'); rateB.classList.remove('d-none');
+    document.getElementById('bank_'+side).value='사용자 입력';
+    document.getElementById('product_'+side).value='사용자 입력 상품';
+  }else{
+    rateB.classList.add('d-none'); listB.classList.remove('d-none');
+    populateBanks(side);
+  }
+}
+function setTier(side,tier){
+  document.getElementById('tier_'+side).value=tier;
+  if(document.getElementById('mode_'+side).value==='list') populateBanks(side);
+}
+
+/* ---------- 초기 세팅 ---------- */
+document.addEventListener('DOMContentLoaded',()=>{
+  ['left','right'].forEach(side=>{ populateBanks(side); });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,622 @@
+{% extends 'base.html' %}
+{% block title %}대출 상품 목록{% endblock %}
+
+{% block content %}
+<!-- 스타일 정의 -->
+<style>
+  :root {
+    --moa-green: #00d8b0;
+    --moa-lightgreen: #b2f5ea;
+    --moa-dark: #020715;
+  }
+  .section-title {
+    color: var(--moa-dark);
+    border-bottom: 3px solid var(--moa-green);
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+  }
+  .filter-bar {
+    border: 2px solid var(--moa-lightgreen);
+    border-radius: 15px;
+    padding: 15px 25px;
+    background-color: #f8fffd;
+    margin-bottom: 30px;
+  }
+  .loan-type-explanation {
+    border: 2px solid var(--moa-lightgreen);
+    border-radius: 12px;
+    padding: 20px 30px;
+    margin-bottom: 30px;
+  }
+  .loan-table th, .loan-table td {
+    text-align: center;
+    vertical-align: middle;
+  }
+  .bank-logo {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+</style>
+
+<!-- 대출 비교 헤더 -->
+<div class="container my-5">
+  <h1 class="text-center fw-bold section-title">대출 다 모아</h1>
+  <p class="text-center text-muted mb-4">은행별 대출 상품을 손쉽게 비교해보세요</p>
+
+  <!-- 필터 입력 영역 -->
+  <div class="filter-bar d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="d-flex align-items-center gap-2">
+    <label for="amount" class="mb-0">최소 대출한도 (원):</label>
+    <input type="number"
+           id="amount"
+           name="amount"
+           class="form-control"
+           style="width: 180px;"
+           value="{{ input_amount or 1000000 }}">
+
+    <!-- ✅ 적용 버튼 추가 -->
+    <button type="button"
+            class="btn btn-outline-success"
+            onclick="applyFilter(getSelectedType(), document.getElementById('amount').value)">
+      적용
+    </button>
+  </div>
+    <!-- 필터 버튼 -->
+    <div class="d-flex flex-wrap gap-2">
+      {% for option in ['전체', '비상금대출', '새희망홀씨', '무직자대출', '사잇돌', '햇살론'] %}
+        <button type="button"
+                class="btn {% if option in selected_types or (not selected_types and option == '전체') %}btn-success{% else %}btn-outline-success{% endif %}"
+                onclick="applyFilter('{{ option }}', document.getElementById('amount').value)">
+          {{ option }}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- 필터 스크립트 -->
+  <script>
+  // 선택된 대출유형 버튼에 'btn-success' 클래스만 남도록
+  document.addEventListener("DOMContentLoaded", function () {
+    const typeButtons = document.querySelectorAll('.filter-bar .btn');
+
+    typeButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        // 모두 초기화
+        typeButtons.forEach(btn => {
+          btn.classList.remove('btn-success');
+          btn.classList.add('btn-outline-success');
+        });
+        // 현재 클릭한 버튼만 활성화
+        button.classList.remove('btn-outline-success');
+        button.classList.add('btn-success');
+      });
+    });
+  });
+
+  function applyFilter(type, amount) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('loanType', type);
+    url.searchParams.set('amount', amount || 1000000);
+    window.location.href = url.toString();
+  }
+
+  function getSelectedType() {
+    const activeBtn = document.querySelector('.filter-bar .btn-success');
+    return activeBtn ? activeBtn.innerText.trim() : '전체';
+  }
+</script>
+
+<!--- --------------------------------------------------------------------------- -->
+{% if selected_types and selected_types[0] != '전체' %}
+  <div class="loan-type-explanation mt-4">
+    {% if selected_types[0] == '비상금대출' %}
+      <style>
+        #loan-info-table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: transparent; /* 전체 배경 투명 */
+        }
+
+        #loan-info-table td,
+        #loan-info-table th {
+          border: none; /* 격자선 제거 */
+          padding: 10px;
+          text-align: center;
+          background-color: transparent; /* 각 셀 배경도 투명 */
+        }
+
+        /* 열 너비 지정 */
+        #loan-info-table td:nth-child(1),
+        #loan-info-table th:nth-child(1) {
+          width: 15%;
+        }
+        #loan-info-table td:nth-child(2),
+        #loan-info-table th:nth-child(2) {
+          width: 36%;
+        }
+        #loan-info-table td:nth-child(3),
+        #loan-info-table th:nth-child(3) {
+          width: 15%;
+        }
+
+        /* ✅ 박스 스타일 클래스 */
+        .highlight-box {
+          display: inline-block;
+          width: 100px; /* ✅ 원하는 너비로 고정 */
+          height: 40px; /* ✅ 원하는 높이로 고정 */
+          line-height: 40px; /* ✅ 수직 정렬을 위해 텍스트 높이에 맞춤 */
+          text-align: center;
+          border-radius: 10px;
+          background-color: #ffffff;
+          box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+          color: #5B9279;
+          font-weight: 600;
+          font-size: 16px;
+        }
+      </style>
+
+
+      <table class="dataframe loan-table" id="loan-info-table">
+        <thead>
+          <tr>
+            <th><div class="highlight-box">소액 비상금</div></th>
+            <th>금융권 비상금대출 상품</th>
+            <th></th>
+            <th>근로자 생활안정자금</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td>서울보증보험(주) 보험증권 발급 가능한 자</td>
+            <td><div class="highlight-box">대출 조건</div></td>
+            <td>3개월 이상 재직 근로자,<br>일용근로자 : 90일 이내 45일 이상 근무</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>일반적으로 300~500만원</td>
+            <td><div class="highlight-box">한도</div></td>
+            <td>용도에 따라 200~2,000만원</td>
+          </tr>
+        </tbody>
+      </table>
+
+
+          {% elif selected_types[0] == '새희망홀씨' %}
+      <style>
+        #loan-info-table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: transparent; /* 전체 배경 투명 */
+        }
+
+        #loan-info-table td,
+        #loan-info-table th {
+          border: none; /* 격자선 제거 */
+          padding: 10px;
+          text-align: center;
+          background-color: transparent; /* 각 셀 배경도 투명 */
+        }
+
+        /* 열 너비 지정 */
+        #loan-info-table td:nth-child(1),
+        #loan-info-table th:nth-child(1) {
+          width: 15%;
+        }
+        #loan-info-table td:nth-child(2),
+        #loan-info-table th:nth-child(2) {
+          width: 21%;
+        }
+        #loan-info-table td:nth-child(3),
+        #loan-info-table th:nth-child(3) {
+          width: 15%;
+        }
+
+
+        /* ✅ 박스 스타일 클래스 */
+        .highlight-box {
+          display: inline-block;
+          width: 100px; /* ✅ 원하는 너비로 고정 */
+          height: 40px; /* ✅ 원하는 높이로 고정 */
+          line-height: 40px; /* ✅ 수직 정렬을 위해 텍스트 높이에 맞춤 */
+          text-align: center;
+          border-radius: 10px;
+          background-color: #ffffff;
+          box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+          color: #5B9279;
+          font-weight: 600;
+          font-size: 16px;
+        }
+          .small-left {
+          font-size: 14px;
+          text-align: left;
+        }
+      </style>
+
+
+      <table class="dataframe loan-table" id="loan-info-table">
+        <thead>
+          <tr>
+            <th><div class="highlight-box">새희망홀씨</div></th>
+            <th colspan="2">새희망홀씨 (1금융권)</th>
+            <th></th>
+            <th colspan="2">새희망홀씨 금리우대 항목</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td>직장인</td>
+            <td>사업자</td>
+            <td><div class="highlight-box">분류</div></td>
+            <td>연 0.5%P</td>
+            <td>연 0.1%P</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td colspan="2">3,500만원 이하(신용점수 무관),<br>4,500만원 이하(신용평점 하위 20%)</td>
+            <td><div class="highlight-box">연 소득</div></td>
+            <td rowspan="2"><div class="small-left">· 기초생활수급권자<br>· 한부모가정<br>· 다문화가정<br>· 만 60세 이상 부모 부양자<br>· 3자녀 이상 부양자<br>· 장애인</div></td>
+            <td rowspan="2"><div class="small-left">· 청년층(만 29세 이하)<br>· 고령자(만 65세 이상)<br>· 금융교육이수자<br>· 일용직 근로자</div></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td colspan="2">3,000~3,500만원</td>
+            <td><div class="highlight-box">한도</div></td>
+          </tr>
+        </tbody>
+      </table>
+
+    {% elif selected_types[0] == '무직자대출' %}
+      <style>
+        #loan-info-table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: transparent; /* 전체 배경 투명 */
+        }
+
+        #loan-info-table td,
+        #loan-info-table th {
+          border: none; /* 격자선 제거 */
+          padding: 10px;
+          text-align: center;
+          background-color: transparent; /* 각 셀 배경도 투명 */
+        }
+
+        /* 열 너비 지정 */
+        #loan-info-table td:nth-child(1),
+        #loan-info-table th:nth-child(1) {
+          width: 15%;
+        }
+        #loan-info-table td:nth-child(2),
+        #loan-info-table th:nth-child(2) {
+          width: 36%;
+        }
+        #loan-info-table td:nth-child(3),
+        #loan-info-table th:nth-child(3) {
+          width: 15%;
+        }
+
+        /* ✅ 박스 스타일 클래스 */
+        .highlight-box {
+          display: inline-block;
+          width: 100px; /* ✅ 원하는 너비로 고정 */
+          height: 40px; /* ✅ 원하는 높이로 고정 */
+          line-height: 40px; /* ✅ 수직 정렬을 위해 텍스트 높이에 맞춤 */
+          text-align: center;
+          border-radius: 10px;
+          background-color: #ffffff;
+          box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+          color: #5B9279;
+          font-weight: 600;
+          font-size: 16px;
+        }
+
+        .small-left {
+          font-size: 14px;
+          text-align: left;
+        }
+      </style>
+
+
+      <table class="dataframe loan-table" id="loan-info-table">
+        <thead>
+          <tr>
+            <th><div class="highlight-box">무직자 대출</div></th>
+            <th>무직자 대출</th>
+            <th></th>
+            <th>무직자 대출 관련 정보</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td>서울보증보험(주) 보험증권 발급 가능한 자,<br>신용 및 사기 이력 없는 자</td>
+            <td><div class="highlight-box">대출 조건</div></td>
+            <td rowspan="2"><div class="small-left">· 대개 ‘비상금대출’을 통해,<br>&nbsp;&nbsp;무직자도 소액으로 여신 서비스 활용하는 방식<br>· 상환 기간은 대체로 1년이지만, 특별한 사정이 없다면<br>&nbsp;&nbsp;만기 연장이 가능한 경우가 많음<br>· 회생, 파산, 면책 사실 없어야 함</div></td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>50만원~300만원 한도</td>
+            <td><div class="highlight-box">한도</div></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+    {% elif selected_types[0] == '사잇돌' %}
+      <style>
+        #loan-info-table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: transparent; /* 전체 배경 투명 */
+        }
+
+        #loan-info-table td,
+        #loan-info-table th {
+          border: none; /* 격자선 제거 */
+          padding: 10px;
+          text-align: center;
+          background-color: transparent; /* 각 셀 배경도 투명 */
+        }
+
+        /* 열 너비 지정 */
+        #loan-info-table td:nth-child(1),
+        #loan-info-table th:nth-child(1) {
+          width: 15%;
+        }
+        #loan-info-table td:nth-child(2),
+        #loan-info-table th:nth-child(2) {
+          width: 21%;
+        }
+        #loan-info-table td:nth-child(3),
+        #loan-info-table th:nth-child(3) {
+          width: 15%;
+        }
+
+
+        /* ✅ 박스 스타일 클래스 */
+        .highlight-box {
+          display: inline-block;
+          width: 100px; /* ✅ 원하는 너비로 고정 */
+          height: 40px; /* ✅ 원하는 높이로 고정 */
+          line-height: 40px; /* ✅ 수직 정렬을 위해 텍스트 높이에 맞춤 */
+          text-align: center;
+          border-radius: 10px;
+          background-color: #ffffff;
+          box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+          color: #5B9279;
+          font-weight: 600;
+          font-size: 16px;
+        }
+          .small-left {
+          font-size: 14px;
+          text-align: left;
+        }
+      </style>
+
+
+      <table class="dataframe loan-table" id="loan-info-table">
+        <thead>
+          <tr>
+            <th><div class="highlight-box">사잇돌 대출</div></th>
+            <th colspan="2">1금융권 사잇돌대출</th>
+            <th></th>
+            <th colspan="2">저축은행권 사잇돌2대출</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td>직장인</td>
+            <td>사업자</td>
+            <td><div class="highlight-box">분류</div></td>
+            <td>직장인</td>
+            <td>사업자</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>1,500만원 이상</td>
+            <td>1,000만원 이상</td>
+            <td><div class="highlight-box">연 소득</div></td>
+            <td>1,200만원 이상</td>
+            <td>600만원 이상</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>3개월 이상</td>
+            <td>6개월 이상</td>
+            <td><div class="highlight-box">재직 기간</div></td>
+            <td>5개월 이상</td>
+            <td>4개월 이상</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td colspan="2">100~2,000만원</td>
+            <td><div class="highlight-box">한도</div></td>
+            <td colspan="2">100~3,000만원</td>
+          </tr>
+        </tbody>
+      </table>
+
+
+
+
+
+    {% elif selected_types[0] == '햇살론' %}
+      <style>
+        #loan-info-table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: transparent; /* 전체 배경 투명 */
+        }
+
+        #loan-info-table td,
+        #loan-info-table th {
+          border: none; /* 격자선 제거 */
+          padding: 10px;
+          text-align: center;
+          background-color: transparent; /* 각 셀 배경도 투명 */
+        }
+
+        /* 열 너비 지정 */
+        #loan-info-table td:nth-child(1),
+        #loan-info-table th:nth-child(1) {
+          width: 15%;
+        }
+        #loan-info-table td:nth-child(2),
+        #loan-info-table th:nth-child(2) {
+          width: 36%;
+        }
+        #loan-info-table td:nth-child(3),
+        #loan-info-table th:nth-child(3) {
+          width: 15%;
+        }
+
+        /* ✅ 박스 스타일 클래스 */
+        .highlight-box {
+          display: inline-block;
+          width: 100px; /* ✅ 원하는 너비로 고정 */
+          height: 40px; /* ✅ 원하는 높이로 고정 */
+          line-height: 40px; /* ✅ 수직 정렬을 위해 텍스트 높이에 맞춤 */
+          text-align: center;
+          border-radius: 10px;
+          background-color: #ffffff;
+          box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1);
+          color: #5B9279;
+          font-weight: 600;
+          font-size: 16px;
+        }
+      </style>
+
+
+      <table class="dataframe loan-table" id="loan-info-table">
+        <thead>
+          <tr>
+            <th><div class="highlight-box">햇살론</div></th>
+            <th>햇살론15</th>
+            <th></th>
+            <th>햇살론 최저신용자 특례보증</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td>3,500만원 이하, 개인신용평점 하위 20%</td>
+            <td><div class="highlight-box">연 소득</div></td>
+            <td>4,500만원 이하, 개인신용평점 하위 10%</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>일반보증 : 3개월 이상 재직/사업<br>직접보증 : 3개월 미만 재직</td>
+            <td><div class="highlight-box">재직 기간</div></td>
+            <td>3개월 이상 재직/사업</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td>최대 2,000만원</td>
+            <td><div class="highlight-box">한도</div></td>
+            <td>최대 1,000만원</td>
+          </tr>
+        </tbody>
+      </table>
+
+    {% endif %}
+  </div>
+{% endif %}
+
+
+
+
+  <!-- 대출 상품 목록 -->
+  {% if products %}
+  <div class="table-responsive">
+    <table class="table table-bordered loan-table">
+      <thead>
+        <tr>
+          <th>은행</th>
+          <th>상품명</th>
+          <th>최저 금리</th>
+          <th>자세히 보기</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        {% set uid = (p['상품명'] + p['금융회사명']) | replace(' ', '') | urlencode %}
+        <tr>
+          <td><img src="{{ url_for('static', filename=p['logo']) }}" class="bank-logo"> {{ p['금융회사명'] }}</td>
+          <td>{{ p['상품명'] }}</td>
+          <td>{{ p['최저 금리(%)'] }}</td>
+          <td>
+            <button class="btn btn-outline-success btn-sm" data-bs-toggle="collapse" data-bs-target="#collapse{{ uid }}">
+              보기
+            </button>
+          </td>
+        </tr>
+        <tr class="collapse" id="collapse{{ uid }}">
+          <td colspan="5">
+            <div class="bg-light p-3 rounded border border-success text-start">
+              <p><strong>▶대출 한도:</strong> {{ p.get('대출한도', '정보 없음') }}</p>
+              <p><strong>▶상환 방식:</strong> {{ p.get('상환 방식', '정보 없음') }}</p>
+              <p><strong>▶가입 대상:</strong> {{ p.get('가입대상', '정보 없음') }}</p>
+              <p><strong>▶대출 기간:</strong> {{ p.get('저축기간(개월)', '정보 없음') }}개월</p>
+              <div class="text-end">
+                <button class="btn btn-sm btn-outline-secondary" onclick="bootstrap.Collapse.getOrCreateInstance(document.getElementById('collapse{{ uid }}')).hide()">
+                  닫기
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- 페이지네이션 -->
+  <nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+      {% for page_num in range(1, total_pages + 1) %}
+      <li class="page-item {% if page_num == current_page %}active{% endif %}">
+        <a class="page-link" href="?page={{ page_num }}{% for t in selected_types %}&loanType={{ t }}{% endfor %}&amount={{ input_amount or '' }}">{{ page_num }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  </nav>
+</div>
+  <div class="row alert alert-light border border-secondary-subtle py-3 mb-4" role="alert">
+    <div class="col-md-6">
+      <h5 class="fw-bold text-dark mb-2">대출 거절 사유 안내</h5>
+      <ul class="mb-0">
+        <li><strong>신용정보로 인한 거절:</strong>
+          <ul class="mb-1">
+            <li>현재 연체 여부</li>
+            <li>과거 연체 이력</li>
+          </ul>
+        </li>
+        <li><strong>기타 사유로 인한 거절:</strong>
+          <ul class="mb-0">
+            <li>대출상품 가입 조건 미충족</li>
+            <li>채무상환능력 부족</li>
+            <li>담보 부족</li>
+            <li>연체 이력 등</li>
+            <li>기타 대출취급 기준 미충족</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-6 border-start">
+      <h5 class="fw-bold text-dark mb-2">⚠️ 유의사항</h5>
+      <ul class="mb-0">
+        <li>※ 대출 시 귀하의 신용도에 따라 대출 조건이 달라질 수 있습니다.</li>
+        <li>※ 과도한 대출은 개인 신용등급 하락의 원인이 될 수 있습니다.</li>
+        <li>※ 계약 체결 전 상품 설명서 및 약관을 반드시 확인하시기 바랍니다.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}모아플러스{% endblock %}
+
+{% block content %}
+<style>
+  body {
+    background: url("{{ url_for('static', filename='Top (1).png') }}") no-repeat center top;
+    background-size: cover;
+    background-attachment: fixed;
+  }
+
+  .moa-container {
+    text-align: center;
+    padding: 180px 20px 60px;
+  }
+
+  .moa-title {
+    font-size: 3.8rem;
+    font-weight: 800;
+    color: #111;
+  }
+
+  .moa-bar {
+    width: 80px;
+    height: 6px;
+    background-color: #00d8b0;
+    margin: 20px auto 30px;
+    border-radius: 3px;
+  }
+
+  .moa-subtext {
+    font-size: 1.2rem;
+    color: #666;
+    margin-bottom: 40px;
+    line-height: 1.6;
+  }
+
+  .feature-box {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    background: #fff;
+    border-radius: 10px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  }
+
+  .feature-item {
+    width: 200px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 12px;
+  }
+
+  .feature-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  }
+
+  .feature-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    text-align: center;
+  }
+
+  .feature-link img {
+    height: 60px;
+    margin-bottom: 16px;
+  }
+
+  .feature-link p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 0;
+  }
+
+  .moa-footer {
+    background: #f6f8f9;
+    padding: 60px 20px;
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+    margin-top: 80px;
+  }
+</style>
+
+<div class="moa-container">
+  <div class="moa-bar"></div>
+  <div class="moa-title">MOA PLUS</div>
+  <div class="moa-subtext">
+    첫걸음부터 완료까지 단계별 가이드로<br>
+    당신의 목표를 현실로 만드는 맞춤형 금융 여정
+  </div>
+
+  <div class="feature-box">
+    <div class="feature-item">
+      <a href="{{ url_for('terms_home') }}" class="feature-link">
+        <img src="{{ url_for('static', filename='dict.png') }}" alt="금융">
+        <p>금융, 이제는 쉽고 재미있게</p>
+      </a>
+    </div>
+    <div class="feature-item">
+      <a href="{{ url_for('plus_youth_policy') }}" class="feature-link">
+        <img src="{{ url_for('static', filename='money.png') }}" alt="청년 정책">
+        <p>청년 금융, 기회를 잡다</p>
+      </a>
+    </div>
+    <div class="feature-item">
+      <a href="{{ url_for('guide_moa') }}" class="feature-link">
+        <img src="{{ url_for('static', filename='dollar.png') }}" alt="계산기">
+        <p>한눈에 비교하기 쉬운 상품</p>
+      </a>
+    </div>
+    <div class="feature-item">
+      <a href="{{ url_for('roadmap') }}" class="feature-link">
+        <img src="{{ url_for('static', filename='clock.png') }}" alt="여행자금">
+        <p>당신의 미래를 모으는 시간</p>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
