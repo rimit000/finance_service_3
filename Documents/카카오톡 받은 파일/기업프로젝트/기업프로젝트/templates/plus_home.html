@@ -4,35 +4,37 @@
 {% block content %}
 <style>
   body {
-    background: url("{{ url_for('static', filename='Top (1).png') }}") no-repeat center top;
-    background-size: cover;
-    background-attachment: fixed;
+    background: url("{{ url_for('static', filename='Top.png') }}") no-repeat center top;
+    background-size: contain;
+    background-position: 20% 0%;
   }
 
   .moa-container {
+    font-family: 'NoonnuBasicGothic', sans-serif;
     text-align: center;
     padding: 180px 20px 60px;
   }
 
   .moa-title {
-    font-size: 3.8rem;
-    font-weight: 800;
+    font-size: 5rem;
+    font-weight: 700;
     color: #111;
   }
 
   .moa-bar {
-    width: 80px;
-    height: 6px;
-    background-color: #00d8b0;
+    width: 58px;
+    height: 11px;
+    background-color: #8AE4D7;
     margin: 20px auto 30px;
-    border-radius: 3px;
   }
 
   .moa-subtext {
-    font-size: 1.2rem;
-    color: #666;
+    font-family: 'NoonnuBasicGothic', sans-serif;
+    font-size: 1.5rem;
+    color: #717171;
     margin-bottom: 40px;
-    line-height: 1.6;
+    /* line-height: 1.6; */
+    letter-spacing: 1.1px;
   }
 
   .feature-box {
