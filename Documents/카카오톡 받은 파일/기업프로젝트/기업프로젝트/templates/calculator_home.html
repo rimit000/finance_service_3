@@ -1,7 +1,57 @@
 {% extends 'base.html' %}
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+/>
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='style.css') }}"
+/>
 {% block title %}내 상품, 이자 얼MOA?{% endblock %}
 
 {% block content %}
+<style>
+  .moa-header {
+    background: white;
+    padding: 80px 20px 20px;
+    text-align: center;
+    font-family: 'NoonnuBasicGothic', sans-serif;
+  }
+
+  .moa-header h1 {
+    font-size: 5rem;
+    font-weight: 700;
+    color: #00C4A8;
+    letter-spacing: 1.5px;
+  }
+
+  .moa-header h1 span {
+    color: #8AE2BB;
+    font-weight: 700;
+  }
+
+  .moa-header p {
+    font-size: 1.5rem;
+    color: #717171;
+    margin-top: 10px;
+    letter-spacing: 1.1px;
+  }
+
+  .moa-bar {
+    width: 53px;
+    height: 10px;
+    background-color: #8AE4D7;
+    margin: 20px auto 30px;
+  }
+</style>
+
+<!-- 상단 제목 영역 -->
+<div class="moa-header">
+  <div class="moa-bar"></div>
+  <h1><span>내 상품,</span> 이자 얼MOA?</h1>
+  <p>내가 가진 금융 상품, 여기서 바로 이자 계산 끝!</p>
+</div>
+
 <div class="container py-5" data-bs-theme="auto">
     <h1 class="text-center fw-bold mb-5 text-primary-emphasis">내 상품, 이자 얼MOA?</h1>
 
