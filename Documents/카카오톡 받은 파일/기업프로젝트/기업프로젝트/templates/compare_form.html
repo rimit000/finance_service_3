@@ -5,7 +5,47 @@
 
 <style>
 :root{--g:#00d8b0;--gl:#e6fffa}
-.divider{width:60px;height:4px;background:var(--g);margin:0 auto}
+{% block content %}
+<style>
+  :root {
+    --moa-green: #00d8b0;
+    --moa-lightgreen: #8AE2BB;
+    --moa-dark: #020715;
+    --g:#00d8b0;
+    --gl:#e6fffa;
+  }
+
+  .moa-header {
+    background: white;
+    padding: 80px 20px 20px;
+    text-align: center;
+    font-family: 'NoonnuBasicGothic', sans-serif;
+  }
+
+  .moa-header h1 {
+    font-size: 5rem;
+    font-weight: 700;
+    color: #00d8b0;
+    letter-spacing: 1.5px;
+  }
+
+  .moa-header h1 span {
+    color: #8AE2BB;
+  }
+
+  .moa-header p {
+    font-size: 1.5rem;
+    color: #717171;
+    margin-top: 10px;
+    letter-spacing: 1.1px;
+  }
+
+  .moa-bar {
+    width: 53px;
+    height: 10px;
+    background-color: #8AE4D7;
+    margin: 20px auto 30px;
+  }
 .box{background:#fff;border:2px solid var(--gl);border-radius:12px}
 .btn-o{border-color:var(--g);color:var(--g)}
 .btn-check:checked+.btn-o,.btn-o:hover{background:var(--g);color:#fff}
@@ -18,9 +58,13 @@
 </style>
 
 <div class="container py-5">
-  <div class="text-center mb-5">
-    <div class="divider mb-3"></div>
-    <h1 class="fw-bold"><span style="color:var(--g)">한눈에 싹</span> MOA</h1>
+  <div class="moa-header">
+    <div class="moa-bar"></div>
+    <h1><span>한눈에 싹</span> MOA</h1>
+    <p class="moa-subtitle">
+      예·적금, 가입 전 비교는 필수!<br>
+      MOA플러스에서 수익률 높은 상품을 똑똑하게 찾아보세요.
+    </p>
   </div>
 
   <form method="POST" id="compareForm">
