@@ -92,14 +92,6 @@
       box-shadow: none !important;
       margin-left: -1px;
     }
-    #amountInput {
-      border-radius: 4px;
-      text-align: left !important;
-    }
-    .currency-symbol {
-      color: #00C4A8;
-      font-weight: 500;
-    }
 
     /* 대출 유형 필터 버튼 스타일 */
     .filter-bar {
@@ -261,6 +253,8 @@
       background-color: transparent;
     }
 
+
+
     .highlight-box {
       display: inline-block;
       width: 100px;
@@ -293,26 +287,13 @@
     <!-- 필터 카드(가로 바) -->
     <div class="filter-card mb-2">
       <div class="filter-bar">
-        <!-- 대출 금액 입력창 -->
-        <div>
-          <label for="amountInput" class="form-label">대출 금액</label>
-          <div class="input-group" style="width: 200px;">
-            <input
-              type="text"
-              id="amountInput"
-              class="form-control"
-              value="{{ input_amount or '1,000,000' }}"
-              inputmode="numeric"
-            />
-            <span class="input-group-text currency-symbol">₩</span>
-          </div>
-        </div>
+
 
         <!-- 필터 버튼들 -->
         <div class="loan-type-buttons">
           {% for option in ['전체', '비상금대출', '새희망홀씨', '무직자대출', '사잇돌', '햇살론'] %}
             <button type="button" class="btn {% if option in selected_types or (not selected_types and option == '전체') %}btn-success{% else %}btn-outline-success{% endif %}"
-              onclick="applyFilter('{{ option }}', document.getElementById('amountInput').value)">
+              onclick="applyFilter('{{ option }}')">
               {{ option }}
             </button>
           {% endfor %}
@@ -624,10 +605,10 @@
     let allProducts        = [];
 
     // 필터 적용 함수
-    function applyFilter(type, amount) {
+    function applyFilter(type) {
       const url = new URL(window.location.href);
       url.searchParams.set('loanType', type);
-      url.searchParams.set('amount', amount || 1000000);
+      url.searchParams.delete('amount');
       window.location.href = url.toString();
     }
 
@@ -639,15 +620,10 @@
 
     // 상품 불러오기
     function loadProducts() {
-      const rawAmount = parseFloat(
-        document.getElementById("amountInput").value.replace(/,/g, "")
-      );
-      const amount = isNaN(rawAmount) ? 1000000 : rawAmount;
-      
+
       selectedLoanType = getSelectedType();
       
       let query = `loanType=${encodeURIComponent(selectedLoanType)}`;
-      query += `&amount=${amount}`;
 
       fetch(`/api/{{ product_type_url }}?${query}`)
         .then(response => response.json())
@@ -776,26 +752,6 @@
 
     // 문서 준비 후 이벤트 바인딩
     $(document).ready(() => {
-      // 예치금 입력 자동 콤마 포맷팅 (커서 위치 보정 포함)
-      const $amountInput = $('#amountInput');
-      $amountInput.on('input', function(e) {
-        const el = this;
-        const original = el.value;
-        const start    = el.selectionStart;
-        const numOnly  = original.replace(/[^0-9]/g, '');
-
-        if (numOnly === '') {
-          el.value = '';
-          return;
-        }
-        const formatted = parseInt(numOnly, 10).toLocaleString('ko-KR');
-        el.value = formatted;
-
-        // 커서 위치 보정
-        const newLen = formatted.length;
-        const oldLen = original.length;
-        el.selectionStart = el.selectionEnd = start + (newLen - oldLen);
-      });
 
       loadProducts();
     });
