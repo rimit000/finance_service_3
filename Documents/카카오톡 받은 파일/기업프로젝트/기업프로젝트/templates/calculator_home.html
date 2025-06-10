@@ -12,6 +12,7 @@
 {% block content %}
 <style>
   .moa-header {
+    transform: translateY(-1cm);
     background: white;
     padding: 80px 20px 20px;
     text-align: center;
@@ -60,11 +61,11 @@
         <div class="col-md-4">
             <div class="card h-100 border-info shadow-sm bg-body-secondary">
                 <div class="card-body">
-                    <h4 class="card-title text-info text-center fw-bold">📘 단리 계산기</h4>
+                    <h4 class="card-title text-info text-center fw-bold">예금 계산기</h4>
                     <form id="simpleInterestForm">
-                        <input type="number" class="form-control my-2" placeholder="월 납입금" name="monthly">
-                        <input type="number" class="form-control my-2" placeholder="연이율 (%)" name="rate">
-                        <input type="number" class="form-control my-2" placeholder="개월 수" name="months">
+                        <input type="number" class="form-control my-2" placeholder="예치 금액" name="monthly">
+                        <input type="number" class="form-control my-2" placeholder="연 이자율" name="rate">
+                        <input type="number" class="form-control my-2" placeholder="예금 기간(월)" name="months">
                         <button class="btn btn-outline-info w-100 mt-2 fw-semibold" type="button" onclick="calcSimple()">계산하기</button>
                         <p class="mt-3 text-center fw-semibold" id="simpleResult"></p>
                     </form>
@@ -76,11 +77,11 @@
         <div class="col-md-4">
             <div class="card h-100 border-success shadow-sm bg-body-secondary">
                 <div class="card-body">
-                    <h4 class="card-title text-success text-center fw-bold">📗 복리 계산기</h4>
+                    <h4 class="card-title text-success text-center fw-bold">적금 계산기</h4>
                     <form id="compoundInterestForm">
-                        <input type="number" class="form-control my-2" placeholder="월 납입금" name="monthly">
-                        <input type="number" class="form-control my-2" placeholder="연이율 (%)" name="rate">
-                        <input type="number" class="form-control my-2" placeholder="개월 수" name="months">
+                        <input type="number" class="form-control my-2" placeholder="월 납입액" name="monthly">
+                        <input type="number" class="form-control my-2" placeholder="연 이자율" name="rate">
+                        <input type="number" class="form-control my-2" placeholder="적립 기간" name="months">
                         <button class="btn btn-outline-success w-100 mt-2 fw-semibold" type="button" onclick="calcCompound()">계산하기</button>
                         <p class="mt-3 text-center fw-semibold" id="compoundResult"></p>
                     </form>
@@ -92,11 +93,11 @@
         <div class="col-md-4">
             <div class="card h-100 border-danger shadow-sm bg-body-secondary">
                 <div class="card-body">
-                    <h4 class="card-title text-danger text-center fw-bold">📕 대출 계산기</h4>
+                    <h4 class="card-title text-danger text-center fw-bold">대출 계산기</h4>
                     <form id="loanForm">
-                        <input type="number" class="form-control my-2" placeholder="대출금 (만원)" name="loan">
-                        <input type="number" class="form-control my-2" placeholder="연이율 (%)" name="rate">
-                        <input type="number" class="form-control my-2" placeholder="기간 (개월)" name="months">
+                        <input type="number" class="form-control my-2" placeholder="대출 금액" name="loan">
+                        <input type="number" class="form-control my-2" placeholder="대출 금리" name="rate">
+                        <input type="number" class="form-control my-2" placeholder="대출 기간(월)" name="months">
                         <select class="form-select my-2" name="type">
                             <option value="equal_payment">원리금균등</option>
                             <option value="equal_principal">원금균등</option>
