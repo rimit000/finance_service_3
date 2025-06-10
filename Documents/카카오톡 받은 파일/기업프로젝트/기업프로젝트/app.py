@@ -104,7 +104,11 @@ def clean_loan_data(file):
     return df
 
 
-loan_files = ['새희망홀씨_정리완료.csv','소액_비상금대출_정리완료.csv','무직자대출_정리완료.csv','사잇돌_정리완료.csv','햇살론_정제완료_v3.csv']
+loan_files = ['대출_새희망홀씨.csv',
+              '대출_소액_비상금대출.csv',
+              '대출_무직자대출.csv',
+              '대출_사잇돌.csv',
+              '대출_햇살론.csv']
 loan_data = pd.concat([clean_loan_data(f) for f in loan_files], ignore_index=True)
 
 def classify_loan_type(name):
