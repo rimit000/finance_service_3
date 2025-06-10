@@ -104,34 +104,49 @@ def clean_loan_data(file):
     return df
 
 
-loan_files = ['대출_새희망홀씨.csv',
-              '대출_소액_비상금대출.csv',
-              '대출_무직자대출.csv',
-              '대출_사잇돌.csv',
-              '대출_햇살론.csv']
-loan_data = pd.concat([clean_loan_data(f) for f in loan_files], ignore_index=True)
+### 대출
 
-def classify_loan_type(name):
-    name = str(name).lower()
-    name = re.sub(r'[^가-힣a-z0-9]', '', name)  # 괄호, 공백, 특수문자 제거
+loan_files = [
+    '새희망홀씨_정리완료.csv',
+    '소액_비상금대출_정리완료.csv',
+    '무직자대출_정리완료.csv',
+    '사잇돌_정리완료.csv',
+    '햇살론_정제완료_v3.csv'
+]
 
-    if '햇살론_' in name :
-        return '햇살론'
-    elif '비상금' in name :
-        return '비상금대출'
-    elif '새희망홀씨' in name:
-        return '새희망홀씨'
-    elif '사잇돌' in name:
-        return '사잇돌'
-    elif '신용대출' in name or '참신한' in name or '위풍' in name or '뉴플랜' in name:
-        return '무직자대출'
-    else:
-        if '햇살' in name:
-            return '햇살론'
-        return '기타'
+keyword_map = {
+    '새희망홀씨': '새희망홀씨',
+    '비상금'   : '비상금대출',
+    '무직자'   : '무직자대출',
+    '사잇돌'   : '사잇돌',
+    '햇살론'   : '햇살론',
+}
 
-loan_data['대출유형'] = loan_data['상품명'].apply(classify_loan_type)
+def get_loan_type_from_filename(filename: str) -> str:
+    """
+    파일명에 포함된 키워드로 대출유형을 판단해 반환합니다.
+    매칭되는 키워드가 없으면 None을 반환(또는 예외 발생)합니다.
+    """
+    fname = filename.lower()                   # 1) 대소문자 구분 제거
+    for kw, label in keyword_map.items():      # 2) 키워드 순차 검사
+        if kw in fname:
+            return label
+    # 3) 매칭 실패 시 처리 방법 선택
+    # return None            # 방법 A: None 반환
+    raise ValueError(f"정의되지 않은 대출유형: {filename}")   # 방법 B: 즉시 오류
+
+
+
+# 각 파일에 대출종류를 추가하면서 데이터 결합
+loan_dataframes = []
+for filename in loan_files:
+    df = clean_loan_data(filename)
+    df['대출유형'] = get_loan_type_from_filename(filename)
+    loan_dataframes.append(df)
+
+loan_data = pd.concat(loan_dataframes, ignore_index=True)
 loan_data["logo"] = loan_data["금융회사명"].apply(logo_filename)
+
 # 지역 기본 필터 함수
 def filter_products(df, period, bank, region):
     if period:
@@ -143,46 +158,86 @@ def filter_products(df, period, bank, region):
         df = df[df['지역'] == region]
     return df
 
-def parse_loan_limit(limit):
-    limit = str(limit).replace(',', '').strip()
-    if '억원'   in limit: return int(float(limit.replace('억원',   '')) * 100_000_000)
-    if '천만원' in limit: return int(float(limit.replace('천만원', '')) * 10_000_000)
-    if '백만원' in limit: return int(float(limit.replace('백만원', '')) * 1_000_000)
-    if '만원'   in limit: return int(float(limit.replace('만원',   '')) * 10_000)
-    return int(float(limit)) if limit.isdigit() else 0
 
-loan_data['대출한도정수'] = loan_data['대출한도'].apply(parse_loan_limit).astype(int)
 
+# ✔ 대출 라우트
 @app.route('/loans')
 def loans_page():
-    # ① 파라미터 수집 ― 템플릿과 이름 맞추기
     selected_types = request.args.getlist('loanType')
-    amount         = request.args.get('amount', type=int)   # ← 변경
-    page           = request.args.get('page', 1, type=int)
-
+    input_amount = request.args.get('amount', type=int)
+    
     df = loan_data.copy()
-
-    # ② 대출한도 필터
-    if amount:
-        df = df[df['대출한도정수'] >= amount]
-
-    # ③ 유형 필터
+    # 이미 파일 로딩시 대출유형이 설정되어 있으므로 상품유형을 대출유형으로 설정
+    df['상품유형'] = df['대출유형']
+    
+    # ✅ 로그 확인
+    print("✔ 대출유형 분포:")
+    print(df['상품유형'].value_counts())  # 햇살론, 기타 등 몇 개인지 찍힘
+    logging.info(df['상품유형'].value_counts())
+    
+    # ✅ 금액이 있으면 계산금액 컬럼 추가
+    if input_amount:
+        def compute_total(row):
+            try:
+                # 🔧 금리 문자열에서 % 제거 및 공백 제거
+                rate_str = str(row['최저 금리(%)']).replace('%', '').strip()
+                rate = float(rate_str) / 100
+                return int(input_amount * (1 + rate))
+            except Exception as e:
+                print("계산 오류:", e, "| 금리 값:", row['최저 금리(%)'])
+                return None
+        df['계산금액'] = df.apply(compute_total, axis=1)
+    else:
+        df['계산금액'] = None
+    
+    # ✅ 필터링
     if selected_types and '전체' not in selected_types:
-        df = df[df['대출유형'].isin(selected_types)]        # 이미 전처리된 컬럼 사용
-
-    # ④ 페이지네이션
-    page_size   = 15
-    total_pages = max(1, (len(df) + page_size - 1) // page_size)
-    start, end  = (page-1)*page_size, page*page_size
-
+        filtered_df = df[df['상품유형'].isin(selected_types)]
+    else:
+        filtered_df = df
+    
+    # ✅ 페이지네이션
+    page = request.args.get('page', 1, type=int)
+    page_size = 15
+    start = (page - 1) * page_size
+    end = start + page_size
+    total_pages = (len(filtered_df) + page_size - 1) // page_size
+    
     return render_template(
         'loans_list.html',
-        products       = df.iloc[start:end].to_dict('records'),
-        selected_types = selected_types or ['전체'],
-        input_amount   = amount,
-        current_page   = page,
-        total_pages    = total_pages
+        products=filtered_df.iloc[start:end].to_dict('records'),
+        selected_types=selected_types,
+        input_amount=input_amount,
+        current_page=page,
+        total_pages=total_pages,
+        product_type='대출',
+        product_type_url='loans'
     )
+
+
+
+@app.route('/api/loans')
+def api_loans():
+    loan_type = request.args.get('loanType', '전체')
+    amount    = request.args.get('amount', type=int, default=1000000)
+
+    df = loan_data.copy()
+    if loan_type != '전체':
+        df = df[df['대출유형'] == loan_type]
+
+    # (금액이 있으면 계산금액 컬럼 추가)
+    if amount:
+        rate_series = (
+            df['최저 금리(%)']
+              .astype(str).str.replace('%','').str.strip().astype(float) / 100
+        )
+        df['계산금액'] = (amount * (1 + rate_series)).round().astype(int)
+
+    # 필요하면 정렬·페이지네이션도 여기서 처리
+    return jsonify(products=df.to_dict('records'))
+
+
+
 
 # ✔ 금융용어사전 로드 및 초성 기준
 terms_df = pd.read_excel('통계용어사전.xlsx')
