@@ -3,10 +3,47 @@
 
 {% block content %}
 <style>
+  :root {
+
+  --moa-green: #00C4A8;
+  --moa-light: #8AE2BB;
+  --moa-dark: #020715;
+}
+/* 타이틀----------------------------------------------------------------- */
+  .moa-header {
+    transform: translateY(-1cm);
+    background: white;
+    padding: 80px 20px 20px;
+    text-align: center;
+    font-family: 'NoonnuBasicGothic', sans-serif;
+  }
+  .moa-header .moa-bar {
+    width: 53px;
+    height: 10px;
+    background-color: var(--moa-light);
+    margin: 0 auto 30px;
+  }
+  .moa-header h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--moa-green);
+    letter-spacing: 1.5px;
+  }
+  .moa-header h1 span {
+    color: var(--moa-light);
+  }
+  .moa-header p {
+    font-size: 1.5rem;
+    color: #717171;
+    margin-top: 10px;
+    letter-spacing: 1.1px;
+  }
+/* ----------------------------------------------------------------- */
+
   body {
     background-color: #f4f9f5;
     padding: 40px 20px;
-    font-family: 'Noto Sans KR', sans-serif;
+    font-family: 'NoonnuBasicGothic', sans-serif;
   }
 
   .row {
@@ -19,10 +56,12 @@
   #mapdiv {
     width: 100%;
     max-width: 700px;
-    background: #fff;
+    background: #ffffff;
     padding: 80px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1.5px solid;
+    border-color: #e0e5f3;
+    box-shadow: 7px 7px 15px rgba(0, 0, 0, 0.05);
   }
 
   svg {
@@ -46,7 +85,7 @@
   }
 
   .region-label {
-    font-family: 'Nanum Gothic', sans-serif;
+    font-family: 'NoonnuBasicGothic', sans-serif;
     font-size: 13px;
     font-weight: bold;
     pointer-events: none;
@@ -55,8 +94,10 @@
   .col-lg-4 {
     background-color: #ffffff;
     padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border-radius: 12px;
+    border: 1.5px solid;
+    border-color: #e0e5f3;
+    box-shadow: 7px 7px 15px rgba(0, 0, 0, 0.05);
     max-width: 400px;
     flex: 1;
   }
@@ -121,7 +162,15 @@
     }
   }
 </style>
+<!-- ------------------------------------------------------------------------------contents -->
+<!-- 타이틀 -->
+<div class="moa-header">
+  <div class="moa-bar"></div>
+  <h1><span>HOUSE</span> MOA</h1>
+  <p>집 살돈, 여기서 모아봐 !</p>
+</div>
 
+<!-- 우측 정보 -->
 <div class="row">
   <div class="col-lg-8">
     <div id="mapdiv">
@@ -137,7 +186,7 @@
 </div>
 
 <div class="region-tooltip" id="tooltip"></div>
-
+<!--------------------------------------------------------------------------------- 자바스크립트 -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const paths = document.querySelectorAll('svg path, polyline');
@@ -163,10 +212,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     path.addEventListener('click', function () {
       if (selectedPath) {
-        selectedPath.style.fill = '#ccc';
+        selectedPath.style.fill = '#F8F8F8';
       }
 
-      path.style.fill = '#555';
+      path.style.fill = '#DEE2E6';
       selectedPath = path;
 
       const region = title.replace("특별시", "").replace("광역시", "").replace(" 원", "").replace(" 도", "").trim();
