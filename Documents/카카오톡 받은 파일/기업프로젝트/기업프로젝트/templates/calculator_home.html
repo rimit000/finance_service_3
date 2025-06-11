@@ -99,7 +99,8 @@
 
   .btn-fill-dark {
     font-family: 'NoonnuBasicGothic', sans-serif;
-    height: 45px;
+    width: 90%;
+    height: 45.5px;
     font-size: 25px;
     --bs-btn-bg: #8AE2BB;
     --bs-btn-border-color: none !important;
@@ -182,7 +183,7 @@
                   <label for="simple-months">예금 기간(개월)</label>
                   <input type="number" id="simple-months" name="months" class="form-control" min="0">
                 </div>
-                <button type="button" class="btn btn-info btn-fill-dark w-100" onclick="depositCal()">계산하기</button>
+                <button type="button" class="btn btn-info btn-fill-dark d-block mx-auto d-block mx-auto" onclick="depositCal()">계산하기</button>
               </form>
             </div>
           </div>
@@ -249,7 +250,7 @@
                   <label for="compound-months">목표 기간(개월)</label>
                   <input type="number" id="compound-months" name="months" class="form-control" min="0" />
                 </div>      
-                <button type="button" class="btn btn-info btn-fill-dark w-100" onclick="SavingsCal()">계산하기</button>
+                <button type="button" class="btn btn-info btn-fill-dark d-block mx-auto" onclick="SavingsCal()">계산하기</button>
               
               </form>
             </div>
@@ -334,7 +335,7 @@
                 <input type="number" id="monthly-months" name="months" class="form-control" min="0"/>
               </div>
 
-              <button type="button" class="btn btn-info btn-fill-dark w-100" onclick="SavingsGoal()">계산하기</button>
+              <button type="button" class="btn btn-info btn-fill-dark d-block mx-auto" onclick="SavingsGoal()">계산하기</button>
             </form>
           </div>
         </div>
@@ -432,7 +433,7 @@
               </select>
             </div>
 
-            <button type="button" class="btn btn-info btn-fill-dark w-100 fw-semibold" onclick="calcLoan()"> 계산하기</button>
+            <button type="button" class="btn btn-info btn-fill-dark d-block mx-auto" onclick="calcLoan()"> 계산하기</button>
           </form>
 
         </div>
