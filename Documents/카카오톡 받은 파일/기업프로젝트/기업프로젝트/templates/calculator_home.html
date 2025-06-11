@@ -53,13 +53,16 @@
     transform: translateY(-1cm);
     justify-content: center;
     border-bottom: none;
+    white-space: nowrap;     
     font-family: 'NoonnuBasicGothic', sans-serif;
+    /* overflow-x: auto; */
   }
   .nav-tabs .nav-link {
     color: #717171;
     font-size: 1.5rem;
     border: none;
-    padding: 0.5rem 8rem;
+    white-space: nowrap;     
+    padding: 0.5rem 7.5rem;
   }
   .nav-tabs .nav-link.active {
     color: var(--moa-green);
@@ -68,6 +71,7 @@
 
 
   .calc-card {
+    width: auto !important;
     border-width: var(--card-border-width) !important;
     border-style: solid !important;
     border-radius: var(--card-border-radius) !important;
@@ -82,43 +86,43 @@
     color: #251C1C !important;
     margin-bottom: 0.7cm;
     font-size: 1.8rem;
+    font-family: 'NoonnuBasicGothic', sans-serif;
   }
 
   .calc-card.info { border-color: var(--card-border-info) !important; }
 
   .btn-fill-dark {
+    font-family: 'NoonnuBasicGothic', sans-serif;
     height: 45px;
     font-size: 25px;
     --bs-btn-bg: #8AE2BB;
     --bs-btn-border-color: none !important;
     --bs-btn-color: #020715;
+    --bs-btn-hover-bg: #8AE2BB;
   }
 
-    .result-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 2rem;
-    font-size: 1rem;
-    /* 테이블이 가로로 넘칠 때 스크롤 */
-    overflow-x: auto;
-    }
+  .calc-card + table,
+  .calc-card + table + table {
+    width: auto !important;
+    max-width: 600px;
+    margin: 2rem auto;
+  }
+  .result-table {
+    width: auto !important;
+    border-collapse:collapse;
+    margin-top:2rem;
+    font-size:1rem; font-family: 'NoonnuBasicGothic', sans-serif;
+  }
 
-    .result-table th,
-    .result-table td {
-    border: 1px solid #ccc;
-    padding: .5rem 1.5rem;
-    text-align: center;       
-    white-space: nowrap;      
-    word-break: keep-all;   
-    }
+  .result-table th, .result-table td {
+    border:1px solid #ccc; padding:.5rem 1.5rem;
+    text-align:center; white-space:nowrap; 
+  }
+  .result-table th { background:#e6e6e6; }
 
-    .result-table th {
-    background: #ccc;
-    }
 
 </style>
 
-<!-- 상단 헤더 -->
 <div class="moa-header">
   <div class="moa-bar"></div>
   <h1><span>내 상품,</span> 이자 얼MOA?</h1>
@@ -126,250 +130,688 @@
 </div>
 
 <div class="container py-5" data-bs-theme="auto">
-  <!-- 탭 메뉴 -->
   <ul class="nav nav-tabs mb-4" id="calcTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="simple-tab" data-bs-toggle="tab" data-bs-target="#simple" type="button">예금</button>
+    <li class="nav-item">
+      <button class="nav-link active" id="tab-simple" data-bs-toggle="tab" data-bs-target="#simple">예금</button>
     </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="compound-tab" data-bs-toggle="tab" data-bs-target="#compound" type="button">적금</button>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-compound-mature" data-bs-toggle="tab" data-bs-target="#compound-mature">적금 만기</button>
     </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="loan-tab" data-bs-toggle="tab" data-bs-target="#loan" type="button">대출</button>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-compound-monthly" data-bs-toggle="tab" data-bs-target="#compound-monthly">적금 월 불입</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-loan" data-bs-toggle="tab" data-bs-target="#loan">대출</button>
     </li>
   </ul>
-
-  <div class="tab-content">
-    <!-- 예금 계산기 -->
-    <div class="tab-pane fade show active" id="simple" role="tabpanel">
+<!-- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
+<div class="tab-content">
+    
+    <!-- 예금 -->
+    <div class="tab-pane fade show active" id="simple">
       <div class="row justify-content-center">
         <div class="col-md-6">
 
-          <!-- 입력 폼 카드 -->
-          <div class="card calc-card info">
+          <div class="card calc-card info" >
             <div class="card-body">
-              <h4 class="card-title text-right fw-bold">예금 계산기</h4>
-              <form id="simpleInterestForm">
-                <input type="number" class="form-control my-2" placeholder="예치 금액" name="principal">
-                <input type="number" class="form-control my-2" placeholder="연 이자율(%)" name="rate">
-                <input type="number" class="form-control my-2" placeholder="예금 기간(월)" name="months">
-                <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcSimple()">계산하기</button>
+              <h4 class="card-title text-right">예금 계산기</h4>
+              <form id="simpleInterestForm" class="mb-4">
+                <div class="mb-3">
+                  <label for="simple-principal">예치 금액(원)</label>
+                  <input type="number" id="simple-principal" name="principal" class="form-control" min="0">
+                </div>
+                <div class="mb-3">
+                  <label for="simple-rate">연 이자율(%)</label>
+                  <input type="number" id="simple-rate" name="rate" class="form-control" step="0.01" min="0">
+                </div>
+                <div class="mb-3">
+                  <label for="simple-months">예금 기간(개월)</label>
+                  <input type="number" id="simple-months" name="months" class="form-control" min="0">
+                </div>
+                <button type="button" class="btn btn-info btn-fill-dark w-100" onclick="calcSimple()">계산하기</button>
               </form>
-              <p class="mt-3 text-center fw-semibold" id="simpleResult"></p>
             </div>
           </div>
+          
+               <table class="table table-bordered text-center mx-auto mb-4" style="width:auto; max-width:600px;">
+                <thead><tr>
+                  <th>예치금액(원)</th><th>예치기간</th><th>예금금리</th>
+                </tr></thead>
+                <tbody><tr>
+                  <td id="summaryPrincipal">—</td>
+                  <td id="summaryMonths">—</td>
+                  <td id="summaryRate">—</td>
+                </tr></tbody>
+              </table>
 
-          <!-- 결과 테이블 -->
-          <div id="simpleResultTable" class="mt-4">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>구분</th>
-                  <th>월납입액 합계(원)</th>
-                  <th>이자(세전, 원)</th>
-                  <th>이자(세후, 원)</th>
-                  <th>만기지급액(원)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>일반 (<span id="taxNormalRate">15.4</span>%)</td>
-                  <td id="normalPrincipal">0</td>
-                  <td id="normalInterestBefore">0</td>
-                  <td id="normalInterestAfter">0</td>
-                  <td id="normalMature">0</td>
-                </tr>
-                <tr>
-                  <td>비과세 (0.0%)</td>
-                  <td id="nonePrincipal">0</td>
-                  <td id="noneInterestBefore">0</td>
-                  <td id="noneInterestAfter">0</td>
-                  <td id="noneMature">0</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+              <table class="result-table ms-auto mb-4" style="width:auto; max-width:600px;">
+                <thead><tr>
+                  <th>구분</th><th>월납입액 (원)</th><th>이자(세전, 원)</th><th>이자(세후, 원)</th><th>만기지급액(원)</th>
+                </tr></thead>
+                <tbody>
+                  <tr>
+                    <td>일반 (<span id="taxNormalRate">15.4</span>%)</td>
+                    <td id="normalPrincipal">0</td>
+                    <td id="normalInterestBefore">0</td>
+                    <td id="normalInterestAfter">0</td>
+                    <td id="normalMature">0</td>
+                  </tr>
+                  <tr>
+                    <td>비과세 (0.0%)</td>
+                    <td id="nonePrincipal">0</td>
+                    <td id="noneInterestBefore">0</td>
+                    <td id="noneInterestAfter">0</td>
+                    <td id="noneMature">0</td>
+                  </tr>
+                </tbody>
+              </table>
 
         </div>
       </div>
     </div>
 
-    <!-- 적금 계산기 -->
-    <div class="tab-pane fade" id="compound" role="tabpanel">
-      <div class="row justify-content-center">
-        <div class="col-md-6">
 
-          <!-- 입력 폼 카드 -->
+  <!-- 적금 만기 -->
+  <div class="tab-pane fade" id="compound-mature" role="tabpanel" aria-labelledby="tab-compound-mature">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+
           <div class="card calc-card info">
             <div class="card-body">
-              <h4 class="card-title text-right fw-bold">적금 계산기</h4>
-              <form id="compoundInterestForm">
-                <input type="number" class="form-control my-2" placeholder="월 납입액" name="monthly">
-                <input type="number" class="form-control my-2" placeholder="연 이자율(%)" name="rate">
-                <input type="number" class="form-control my-2" placeholder="적립 기간(월)" name="months">
-                <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcCompound()">계산하기</button>
+              <h4 class="card-title text-right">적금 만기 계산</h4>
+              <form id="compoundMatureForm" class="mb-4">
+                <div class="mb-3">
+                  <label for="compound-monthly-deposit">월 납입액(원)</label>
+                  <input type="number" id="compound-monthly-deposit" name="monthly" class="form-control" min="0"/>
+                </div>
+                <div class="mb-3">
+                  <label for="compound-rate">연 이자율(%)</label>
+                  <input
+                    type="number"
+                    id="compound-rate"
+                    name="rate"
+                    class="form-control"
+                    step="0.01"
+                    min="0"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="compound-months">목표 기간(개월)</label>
+                  <input
+                    type="number"
+                    id="compound-months"
+                    name="months"
+                    class="form-control"
+                    min="0"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-info btn-fill-dark w-100"
+                  onclick="calcCompoundMature()"
+                >
+                  계산하기
+                </button>
               </form>
-              <p class="mt-3 text-center fw-semibold" id="compoundResult"></p>
             </div>
-          </div>
+                  </div>
 
-          <!-- 결과 테이블 -->
-          <div id="compoundResultTable" class="mt-4">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>구분</th>
-                  <th>월납입액 합계(원)</th>
-                  <th>이자(세전, 원)</th>
-                  <th>이자(세후, 원)</th>
-                  <th>만기지급액(원)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>일반 (<span id="compoundTaxRate">15.4</span>%)</td>
-                  <td id="compoundNormalPrincipal">0</td>
-                  <td id="compoundInterestBefore">0</td>
-                  <td id="compoundInterestAfter">0</td>
-                  <td id="compoundMature">0</td>
-                </tr>
-                <tr>
-                  <td>비과세 (0.0%)</td>
-                  <td id="compoundNonePrincipal">0</td>
-                  <td id="compoundNoneInterestBefore">0</td>
-                  <td id="compoundNoneInterestAfter">0</td>
-                  <td id="compoundNoneMature">0</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                <table class="table table-bordered text-center mx-auto mb-4" style="width:auto; max-width:600px;">
+                  <thead>
+                    <tr>
+                      <th>월납입액(원)</th>
+                      <th>목표 기간</th>
+                      <th>연 이자율</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td id="summaryCompoundPrincipal">—</td>
+                      <td id="summaryCompoundMonths">—</td>
+                      <td id="summaryCompoundRate">—</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <table class="result-table">
+                  <thead>
+                    <tr>
+                      <th>구분</th>
+                      <th>월납입액 합계(원)</th>
+                      <th>이자(세전, 원)</th>
+                      <th>이자(세후, 원)</th>
+                      <th>만기지급액(원)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>일반 (<span id="compoundTaxRate">15.4</span>%)</td>
+                      <td id="compoundNormalPrincipal">0</td>
+                      <td id="compoundInterestBefore">0</td>
+                      <td id="compoundInterestAfter">0</td>
+                      <td id="compoundMature">0</td>
+                    </tr>
+                    <tr>
+                      <td>비과세 (0.0%)</td>
+                      <td id="compoundNonePrincipal">0</td>
+                      <td id="compoundNoneInterestBefore">0</td>
+                      <td id="compoundNoneInterestAfter">0</td>
+                      <td id="compoundNoneMature">0</td>
+                    </tr>
+                  </tbody>
+                </table>
 
         </div>
       </div>
     </div>
 
-    <!-- 대출 계산기 -->
-    <div class="tab-pane fade" id="loan" role="tabpanel">
-      <div class="row justify-content-center">
-        <div class="col-md-6">
 
-          <!-- 입력 폼 카드 -->
-          <div class="card calc-card info">
-            <div class="card-body">
-              <h4 class="card-title text-right fw-bold">대출 계산기</h4>
-              <form id="loanForm">
-                <input type="number" class="form-control my-2" placeholder="대출 금액" name="loan">
-                <input type="number" class="form-control my-2" placeholder="대출 금리(%)" name="rate">
-                <input type="number" class="form-control my-2" placeholder="대출 기간(월)" name="months">
-                <select class="form-select my-2" name="type">
-                  <option value="equal_payment">원리금균등</option>
-                  <option value="equal_principal">원금균등</option>
-                  <option value="bullet">만기일시상환</option>
-                </select>
-                <button class="btn btn-info btn-fill-dark w-100 mt-2 fw-semibold" type="button" onclick="calcLoan()">계산하기</button>
-              </form>
-              <p class="mt-3 text-center fw-semibold" id="loanResult"></p>
+
+<!-- 적금 월 불입 탭 -->
+<div
+  class="tab-pane fade"
+  id="compound-monthly"
+  role="tabpanel"
+  aria-labelledby="tab-compound-monthly"
+>
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+
+      <!-- 1) 입력 폼 카드 -->
+      <div class="card calc-card info">
+        <div class="card-body">
+          <h4 class="card-title text-right">적금 월불입 계산</h4>
+          <form id="compoundMonthlyForm" class="mb-4">
+            <div class="mb-3">
+              <label for="monthly-target">만기 목표 금액(원)</label>
+              <input
+                type="number"
+                id="monthly-target"
+                name="target"
+                class="form-control"
+                min="0"
+              />
             </div>
-          </div>
-
-          <!-- 결과 테이블 -->
-          <div id="loanResultTable" class="mt-4">
-            <table class="result-table">
-              <thead>
-                <tr>
-                  <th>회차</th>
-                  <th>상환금(원)</th>
-                  <th>납입원금(원)</th>
-                  <th>이자(원)</th>
-                  <th>납입원금 누계(원)</th>
-                  <th>잔금(원)</th>
-                </tr>
-              </thead>
-              <tbody id="loanScheduleBody">
-                <!-- JS로 채워집니다 -->
-              </tbody>
-            </table>
-          </div>
-
+            <div class="mb-3">
+              <label for="monthly-rate">연 이자율(%)</label>
+              <input
+                type="number"
+                id="monthly-rate"
+                name="rate"
+                class="form-control"
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="monthly-months">목표 기간(개월)</label>
+              <input
+                type="number"
+                id="monthly-months"
+                name="months"
+                class="form-control"
+                min="0"
+              />
+            </div>
+            <button
+              type="button"
+              class="btn btn-info btn-fill-dark w-100"
+              onclick="calcCompoundMonthly()"
+            >
+              계산하기
+            </button>
+          </form>
         </div>
       </div>
+
+        <!-- 2) 요약표 -->
+        <table class="table table-bordered text-center mx-auto mb-4" style="width:auto; max-width:600px;">
+          <thead>
+            <tr>
+              <th>만기 목표(원)</th>
+              <th>목표 기간</th>
+              <th>연 이자율(%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="summaryMonthlyTarget">—</td>
+              <td id="summaryMonthlyMonths">—</td>
+              <td id="summaryMonthlyRate">—</td>
+            </tr>
+          </tbody>
+        </table>
+
+
+        <table class="result-table ms-auto mb-4" style="width:auto; max-width:600px;">
+          <thead>
+            <tr>
+              <th>구분</th>
+              <th>필요월납입액(원)</th>
+              <th>투자원금(원)</th>
+              <th>이자(세전, 원)</th>
+              <th>이자(세후, 원)</th>
+              <th>만기지급액(원)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>일반 (<span id="compoundMonthlyTaxRate">15.4</span>%)</td>
+              <td id="compoundMonthlyDeposit">0</td>
+              <td id="compoundMonthlyTotalDeposit">0</td>
+              <td id="compoundMonthlyInterestBefore">0</td>
+              <td id="compoundMonthlyInterestAfter">0</td>
+              <td id="compoundMonthlyMature">0</td>
+            </tr>
+            <tr>
+              <td>비과세 (0.0%)</td>
+              <td id="compoundMonthlyNoneDeposit">0</td>
+              <td id="compoundMonthlyNoneTotalDeposit">0</td>
+              <td id="compoundMonthlyNoneInterestBefore">0</td>
+              <td id="compoundMonthlyNoneInterestAfter">0</td>
+              <td id="compoundMonthlyNoneMature">0</td>
+            </tr>
+          </tbody>
+        </table>
     </div>
   </div>
 </div>
 
+<!-- 대출 탭 -->
+<div
+  class="tab-pane fade"
+  id="loan"
+  role="tabpanel"
+  aria-labelledby="tab-loan"
+>
+  <div class="row justify-content-center">
+    <div class="col-md-6">
 
-<script type="text/javascript" src="https://simg.wooribank.com/js/mall/caculator_new.js?1362234790000"></script>
+      <!-- 1) 입력 폼 카드 -->
+      <div class="card calc-card info mb-4">
+        <div class="card-body">
+          <h4 class="card-title text-right">대출 계산기</h4>
+          <form id="loanForm">
+            <div class="mb-3">
+              <label for="loan-amount" class="form-label">대출 원금(원)</label>
+              <input
+                type="number"
+                id="loan-amount"
+                name="loan"
+                class="form-control"
+                placeholder="대출 금액"
+                min="0"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="loan-rate" class="form-label">연 이자율(%)</label>
+              <input
+                type="number"
+                id="loan-rate"
+                name="rate"
+                class="form-control"
+                placeholder="대출 금리"
+                step="0.01"
+                min="0"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="loan-grace">거치 기간(개월)</label>
+              <input type="number" id="loan-grace" name="grace" class="form-control" min="0" value="0"/>
+            </div>
+            
+            <div class="mb-3">
+              <label for="loan-months" class="form-label">대출 기간(개월)</label>
+              <input
+                type="number"
+                id="loan-months"
+                name="months"
+                class="form-control"
+                placeholder="대출 기간"
+                min="1"
+              />
+            </div>
+            
+            <div class="mb-3">
+              <label for="loan-type" class="form-label">상환 방식</label>
+              <select id="loan-type" name="type" class="form-select">
+                <option value="equal_payment">원리금균등</option>
+                <option value="equal_principal">원금균등</option>
+                <option value="bullet">만기일시상환</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              class="btn btn-info btn-fill-dark w-100 fw-semibold"
+              onclick="calcLoan()"
+            >
+              계산하기
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- 2) 입력 요약표 -->
+      <div class="mb-4">
+        <table class="table table-bordered text-center">
+          <thead class="table-light">
+            <tr>
+              <th>상환방식</th>
+              <th>대출원금(원)</th>
+              <th>대출기간</th>
+              <th>거치 기간</th>
+              <th>이자율</th>
+              <th>월평균이자(원)</th>
+              <th>총 이자액(원)</th>
+              <th>원금+이자 합계(원)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="summaryLoanType">—</td>
+              <td id="summaryLoanPrincipal">—</td>
+              <td id="summaryLoanMonths">—</td>
+              <td id="summaryLoanGrace">—</td>
+              <td id="summaryLoanRate">—</td>
+              <td id="summaryLoanMonthlyInt">—</td>
+              <td id="summaryLoanTotalInt">—</td>
+              <td id="summaryLoanTotalPay">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 3) 스케줄 테이블 -->
+      <div id="loanScheduleWrapper">
+        <table class="result-table">
+          <thead>
+            <tr>
+              <th>회차</th>
+              <th>상환금(원)</th>
+              <th>납입원금(원)</th>
+              <th>이자(원)</th>
+              <th>누적납입원금(원)</th>
+              <th>잔금(원)</th>
+            </tr>
+          </thead>
+          <tbody id="loanScheduleBody">
+            <!-- JS로 채웁니다 -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
 function calcSimple() {
-    const form = document.forms["simpleInterestForm"];
-    const m = parseFloat(form["monthly"].value);
-    const r = parseFloat(form["rate"].value) / 100;
-    const n = parseFloat(form["months"].value);
+  const form       = document.forms['simpleInterestForm'];
+  const principal  = parseFloat(form['principal'].value) || 0;
+  const rateAnnual = (parseFloat(form['rate'].value) || 0) / 100;
+  const months     = parseFloat(form['months'].value) || 0;
 
-    const totalInterest = m * n * r * (n + 1) / (2 * 12);
-    const totalPrincipal = m * n;
-    const totalPreTax = totalPrincipal + totalInterest;
-    const tax = totalInterest * 0.154;
-    const totalAfterTax = totalPrincipal + (totalInterest - tax);
+  // 1) 입력 요약표 채우기 (이자방식 컬럼 제거)
+  document.getElementById('summaryPrincipal').innerText = principal.toLocaleString();
+  document.getElementById('summaryMonths').innerText   = months + '개월';
+  document.getElementById('summaryRate').innerText     = (rateAnnual*100).toFixed(2) + '%';
 
-    document.getElementById("simpleResult").innerText =
-        `세전 수령액: ${Math.round(totalPreTax).toLocaleString()}원, 세후 수령액: ${Math.round(totalAfterTax).toLocaleString()}원`;
+  // 2) 이자 계산 (단리)
+  const totalInterest  = principal * rateAnnual * (months/12);
+  const totalPreTax    = principal + totalInterest;
+  const taxAmount      = totalInterest * 0.154;
+  const totalAfterTax  = principal + (totalInterest - taxAmount);
+
+  // 3) 결과표 채우기
+  document.getElementById('normalPrincipal').innerText       = principal.toLocaleString();
+  document.getElementById('normalInterestBefore').innerText = Math.round(totalInterest).toLocaleString();
+  document.getElementById('normalInterestAfter').innerText  = Math.round(totalInterest - taxAmount).toLocaleString();
+  document.getElementById('normalMature').innerText         = Math.round(totalAfterTax).toLocaleString();
+
+  document.getElementById('nonePrincipal').innerText        = principal.toLocaleString();
+  document.getElementById('noneInterestBefore').innerText  = Math.round(totalInterest).toLocaleString();
+  document.getElementById('noneInterestAfter').innerText   = Math.round(totalInterest).toLocaleString();
+  document.getElementById('noneMature').innerText          = Math.round(principal + totalInterest).toLocaleString();
 }
+</script>
 
-function calcCompound() {
-    const form = document.forms["compoundInterestForm"];
-    const m = parseFloat(form["monthly"].value);
-    const r = parseFloat(form["rate"].value) / 12 / 100;
-    const n = parseInt(form["months"].value);
+<script>
+// 적금 계산 함수 - 단리로 변경
+function calcCompoundMature() {
+  const form        = document.forms['compoundMatureForm'];
+  const monthly     = parseFloat(form['monthly'].value) || 0;
+  const annualRate  = parseFloat(form['rate'].value) || 0;
+  const months      = parseFloat(form['months'].value) || 0;
 
-    let totalInterest = 0;
-    for (let i = 0; i < n; i++) {
-        totalInterest += m * (Math.pow(1 + r, n - i) - 1);
-    }
-    const totalPrincipal = m * n;
-    const totalPreTax = totalPrincipal + totalInterest;
-    const tax = totalInterest * 0.154;
-    const totalAfterTax = totalPrincipal + (totalInterest - tax);
+  // 총 납입액
+  const totalDeposit = monthly * months;
 
-    document.getElementById("compoundResult").innerText =
-        `세전 수령액: ${Math.round(totalPreTax).toLocaleString()}원, 세후 수령액: ${Math.round(totalAfterTax).toLocaleString()}원`;
+  // 1) 요약표 채우기 (이자방식 컬럼 제거)
+  document.getElementById('summaryCompoundPrincipal').innerText = monthly.toLocaleString();
+  document.getElementById('summaryCompoundMonths').innerText   = months + '개월';
+  document.getElementById('summaryCompoundRate').innerText     = annualRate.toFixed(2) + '%';
+
+  // 2) 단리 이자 계산
+  // 각 월별 납입액에 대해 단리로 계산
+  let totalInterest = 0;
+  for (let i = 1; i <= months; i++) {
+    const remainingMonths = months - i + 1; // 해당 납입액이 적용받을 개월 수
+    const monthlyInterest = monthly * (annualRate / 100) * (remainingMonths / 12);
+    totalInterest += monthlyInterest;
+  }
+  
+  const taxAmount      = totalInterest * 0.154;
+  const afterTaxInterest = totalInterest - taxAmount;
+  const totalAfterTax  = totalDeposit + afterTaxInterest;
+
+  // 3) 결과표 채우기
+  document.getElementById('compoundNormalPrincipal').innerText       = totalDeposit.toLocaleString();
+  document.getElementById('compoundInterestBefore').innerText     = Math.round(totalInterest).toLocaleString();
+  document.getElementById('compoundInterestAfter').innerText      = Math.round(afterTaxInterest).toLocaleString();
+  document.getElementById('compoundMature').innerText            = Math.round(totalAfterTax).toLocaleString();
+
+  document.getElementById('compoundNonePrincipal').innerText      = totalDeposit.toLocaleString();
+  document.getElementById('compoundNoneInterestBefore').innerText = Math.round(totalInterest).toLocaleString();
+  document.getElementById('compoundNoneInterestAfter').innerText  = Math.round(totalInterest).toLocaleString();
+  document.getElementById('compoundNoneMature').innerText        = Math.round(totalDeposit + totalInterest).toLocaleString();
 }
+</script>
 
+<script>
+// 목표금액 달성을 위한 월납입액 계산 - 단리로 변경
+function calcCompoundMonthly() {
+  const form       = document.forms['compoundMonthlyForm'];
+  const target     = parseFloat(form['target'].value)    || 0;   // 만기 목표
+  const annualRate = parseFloat(form['rate'].value)      || 0;   // 연 이자율(%)
+  const months     = parseInt(form['months'].value, 10)  || 0;   // 개월 수
+  const taxRate    = 0.154;                                    // 15.4% 세율
+
+  if (months <= 0) return;
+
+  // 단리 계산을 위한 이자 계수 계산
+  // 각 월별 납입액이 받을 수 있는 총 이자율의 합
+  let totalInterestFactor = 0;
+  for (let i = 1; i <= months; i++) {
+    const remainingMonths = months - i + 1;
+    totalInterestFactor += (annualRate / 100) * (remainingMonths / 12);
+  }
+
+  // (1) 비과세 월납입액 계산
+  const depositExempt = target / (months + totalInterestFactor);
+
+  // (2) 일반(과세) 월납입액 계산
+  const depositGeneral = target / (months + totalInterestFactor * (1 - taxRate));
+
+  // (3) 각종 금액 계산
+  const investGen      = depositGeneral * months;
+  const interestGen    = depositGeneral * totalInterestFactor;
+  const afterTaxGen    = interestGen * (1 - taxRate);
+  const maturityGen    = investGen + afterTaxGen;
+
+  const investEx       = depositExempt * months;
+  const interestEx     = depositExempt * totalInterestFactor;
+  const maturityEx     = investEx + interestEx;
+
+  // —— 요약표 채우기 (이자방식 컬럼 제거) —— //
+  document.getElementById('summaryMonthlyTarget').innerText = target.toLocaleString();
+  document.getElementById('summaryMonthlyMonths').innerText = months + '개월';
+  document.getElementById('summaryMonthlyRate').innerText   = annualRate.toFixed(2) + '%';
+
+  // —— 결과표 채우기 —— //
+  // 일반
+  document.getElementById('compoundMonthlyDeposit').innerText           = Math.round(depositGeneral).toLocaleString();
+  document.getElementById('compoundMonthlyTotalDeposit').innerText      = Math.round(investGen).toLocaleString();
+  document.getElementById('compoundMonthlyInterestBefore').innerText    = Math.round(interestGen).toLocaleString();
+  document.getElementById('compoundMonthlyInterestAfter').innerText     = Math.round(afterTaxGen).toLocaleString();
+  document.getElementById('compoundMonthlyMature').innerText           = Math.round(maturityGen).toLocaleString();
+
+  // 비과세
+  document.getElementById('compoundMonthlyNoneDeposit').innerText        = Math.round(depositExempt).toLocaleString();
+  document.getElementById('compoundMonthlyNoneTotalDeposit').innerText   = Math.round(investEx).toLocaleString();
+  document.getElementById('compoundMonthlyNoneInterestBefore').innerText = Math.round(interestEx).toLocaleString();
+  document.getElementById('compoundMonthlyNoneInterestAfter').innerText  = Math.round(interestEx).toLocaleString();
+  document.getElementById('compoundMonthlyNoneMature').innerText         = Math.round(maturityEx).toLocaleString();
+}
+</script>
+<script>
 function calcLoan() {
-    const form = document.forms["loanForm"];
-    const P = parseFloat(form["loan"].value) * 10000;
-    const annualRate = parseFloat(form["rate"].value);
-    const r = annualRate / 12 / 100;
-    const n = parseInt(form["months"].value);
-    const type = form["type"].value;
+  const form    = document.forms['loanForm'];
+  const P       = parseFloat(form['loan'].value)       || 0;    // 대출원금
+  const annualR = parseFloat(form['rate'].value)       || 0;    // 연이자율(%)
+  const months  = parseInt(form['months'].value, 10)   || 0;    // 대출기간(개월)
+  const grace   = parseInt(form['grace'].value, 10)    || 0;    // 거치기간(개월)
+  const type    = form['type'].value;                         // 상환 방식
+  const r       = annualR / 12 / 100;                         // 월 이자율
 
-    let totalRepayment = 0;
-    let totalInterest = 0;
+  // 1) summary 채우기
+  document.getElementById('summaryLoanType').innerText      =
+    type === 'equal_payment'   ? '원리금균등'
+  : type === 'equal_principal' ? '원금균등'
+  :                               '만기일시상환';
+  document.getElementById('summaryLoanPrincipal').innerText = P.toLocaleString();
+  document.getElementById('summaryLoanMonths').innerText    = months + '개월';
+  document.getElementById('summaryLoanGrace').innerText     = grace + '개월';
+  document.getElementById('summaryLoanRate').innerText      = annualR.toFixed(2) + '%';
 
-    if (type === "equal_payment") {
-        const A = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
-        totalRepayment = A * n;
-        totalInterest = totalRepayment - P;
-        document.getElementById("loanResult").innerText =
-            ` 매월 상환금: ${Math.round(A).toLocaleString()}원, 총이자: ${Math.round(totalInterest).toLocaleString()}원, 총상환액: ${Math.round(totalRepayment).toLocaleString()}원`;
-    } else if (type === "equal_principal") {
-        let total = 0;
-        const principalPart = P / n;
-        for (let i = 0; i < n; i++) {
-            const interestPart = (P - (principalPart * i)) * r;
-            total += principalPart + interestPart;
-        }
-        totalRepayment = total;
-        totalInterest = total - P;
-        document.getElementById("loanResult").innerText =
-            ` 초기 상환금: ${Math.round(principalPart + P * r).toLocaleString()}원, 총이자: ${Math.round(totalInterest).toLocaleString()}원, 총상환액: ${Math.round(totalRepayment).toLocaleString()}원`;
-    } else if (type === "bullet") {
-        const monthlyInterest = P * r;
-        totalInterest = monthlyInterest * n;
-        totalRepayment = P + totalInterest;
-        document.getElementById("loanResult").innerText =
-            ` 매월 이자: ${Math.round(monthlyInterest).toLocaleString()}원, 총이자: ${Math.round(totalInterest).toLocaleString()}원, 총상환액: ${Math.round(totalRepayment).toLocaleString()}원`;
+  // 2) 스케줄 테이블 계산
+  const tbody = document.getElementById('loanScheduleBody');
+  tbody.innerHTML = '';
+  
+  let remaining = P;
+  let accumPrincipal = 0;
+  let totalInterest = 0;
+  let monthlyPayment = 0;
+  let monthlyPrincipal = 0;
+
+  // 원리금균등상환의 경우 고정 월납입액 계산
+  let fixedMonthlyPayment = 0;
+  if (type === 'equal_payment') {
+    const n = months - grace;
+    if (n > 0 && r > 0) {
+      fixedMonthlyPayment = P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+    } else if (n > 0) {
+      fixedMonthlyPayment = P / n; // 무이자인 경우
     }
+  }
+
+  // 원금균등상환의 경우 고정 월원금상환액 계산
+  let fixedMonthlyPrincipal = 0;
+  if (type === 'equal_principal') {
+    const n = months - grace;
+    if (n > 0) {
+      fixedMonthlyPrincipal = P / n;
+    }
+  }
+
+  // 스케줄 계산
+  for (let i = 1; i <= months; i++) {
+    let principal = 0;  // 원금상환액
+    let interest = 0;   // 이자
+    let payment = 0;    // 월 납입액
+
+    if (type === 'bullet') {
+      // 만기일시상환
+      interest = remaining * r;
+      if (i === months) {
+        principal = remaining;
+      } else {
+        principal = 0;
+      }
+      payment = principal + interest;
+      
+    } else if (i <= grace) {
+      // 거치기간: 이자만 납부
+      interest = remaining * r;
+      principal = 0;
+      payment = interest;
+      
+    } else if (type === 'equal_principal') {
+      // 원금균등상환: 고정 원금 + 변동 이자
+      // 마지막 회차에서는 남은 잔액 전부 상환
+      if (i === months) {
+        principal = remaining;
+      } else {
+        principal = fixedMonthlyPrincipal;
+      }
+      interest = remaining * r;
+      payment = principal + interest;
+      
+    } else if (type === 'equal_payment') {
+      // 원리금균등상환: 고정 납입액 = 변동 원금 + 변동 이자
+      interest = remaining * r;
+      principal = fixedMonthlyPayment - interest;
+      payment = fixedMonthlyPayment;
+      
+      // 마지막 회차에서 잔액 조정 (반올림 오차 처리)
+      if (i === months && Math.abs(principal - remaining) < 1) {
+        principal = remaining;
+        payment = principal + interest;
+      }
+    }
+
+    // 잔액 업데이트 (음수가 되지 않도록)
+    remaining = Math.max(0, remaining - principal);
+    accumPrincipal += principal;
+    totalInterest += interest;
+
+    // Summary용 값 설정
+    if (type === 'bullet') {
+      if (i === 1) {
+        monthlyPayment = interest;
+        monthlyPrincipal = 0;
+      }
+    } else if (i === grace + 1) {
+      monthlyPayment = payment;
+      monthlyPrincipal = principal;
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${i}</td>
+      <td>${Math.round(payment).toLocaleString()}</td>
+      <td>${principal > 0 ? Math.round(principal).toLocaleString() : '0'}</td>
+      <td>${Math.round(interest).toLocaleString()}</td>
+      <td>${accumPrincipal > 0 ? Math.round(accumPrincipal).toLocaleString() : '-'}</td>
+      <td>${Math.round(remaining).toLocaleString()}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // 3) 총 상환액 계산
+  const totalPayment = P + totalInterest;
+
+  // 4) Summary 표 채우기
+  // 월평균이자가 아닌 월납입원금을 표시
+  if (type === 'bullet') {
+    document.getElementById('summaryLoanMonthlyInt').innerText = Math.round(P * r).toLocaleString();
+  } else if (type === 'equal_principal') {
+    document.getElementById('summaryLoanMonthlyInt').innerText = Math.round(fixedMonthlyPrincipal).toLocaleString();
+  } else if (type === 'equal_payment') {
+    document.getElementById('summaryLoanMonthlyInt').innerText = Math.round(fixedMonthlyPayment).toLocaleString();
+  }
+  
+  document.getElementById('summaryLoanTotalInt').innerText   = Math.round(totalInterest).toLocaleString();
+  document.getElementById('summaryLoanTotalPay').innerText   = Math.round(totalPayment).toLocaleString();
 }
 </script>
 {% endblock %}
