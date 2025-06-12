@@ -354,7 +354,12 @@
           </select>
         </div>
         <div class="col-md-2 col-sm-4">
-          <label for="amountInput" class="form-label">예치금 입력</label>
+          <label for="amountInput" class="form-label">
+            {%- if product_type == '예금' -%}예치금 입력
+            {%- elif product_type == '적금' -%}월 납입금 입력
+            {%- else -%}금액 입력
+            {%- endif -%}
+          </label> 
           <div class="input-group">
             <input
               type="text"
