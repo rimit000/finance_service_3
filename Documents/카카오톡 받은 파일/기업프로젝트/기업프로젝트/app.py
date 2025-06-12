@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
+import random
 import re
 from urllib.parse import unquote
 import logging
@@ -7,8 +8,6 @@ import os
 import pdfkit
 from flask import make_response
 app = Flask(__name__)
-
-
 
 # ============================================
 # 1. 공통 유틸 – 은행 로고 경로 -----------------------------------
@@ -24,21 +23,47 @@ def logo_filename(bank_name):
     return f"bank_logos/{filename}" if filename else "bank_logos/default.png"
 
 # ✔ 예금/적금 데이터 로드
-deposit_tier1 = pd.read_csv('예금_1금융권_포함.csv')
-deposit_tier2 = pd.read_csv('예금_2금융권.csv')
-savings_tier1 = pd.read_csv('적금_1금융권_포함.csv')
-savings_tier2 = pd.read_csv('적금_2금융권.csv')
+try:
+    deposit_tier1 = pd.read_csv('예금_1금융권_포함.csv')
+    deposit_tier2 = pd.read_csv('예금_2금융권.csv')
+    savings_tier1 = pd.read_csv('적금_1금융권_포함.csv')
+    savings_tier2 = pd.read_csv('적금_2금융권.csv')
+    print("✅ CSV 파일 로드 성공")
+except Exception as e:
+    print(f"❌ CSV 파일 로드 실패: {e}")
+    # 빈 DataFrame으로 초기화
+    deposit_tier1 = pd.DataFrame()
+    deposit_tier2 = pd.DataFrame()
+    savings_tier1 = pd.DataFrame()
+    savings_tier2 = pd.DataFrame()
 
-tier1_list = sorted({*deposit_tier1['금융회사명'].unique(),
-                     *savings_tier1['금융회사명'].unique()})
-tier2_list = sorted({*deposit_tier2['금융회사명'].unique(),
-                     *savings_tier2['금융회사명'].unique()})
+# 안전한 unique 리스트 생성
+def safe_get_unique(df, column):
+    try:
+        if not df.empty and column in df.columns:
+            return sorted(df[column].dropna().unique())
+        return []
+    except:
+        return []
+
+tier1_list = sorted(set(
+    safe_get_unique(deposit_tier1, '금융회사명') + 
+    safe_get_unique(savings_tier1, '금융회사명')
+))
+tier2_list = sorted(set(
+    safe_get_unique(deposit_tier2, '금융회사명') + 
+    safe_get_unique(savings_tier2, '금융회사명')
+))
+
 # ✔ 지역 컬럼 매핑 추가
 def normalize_name(name):
-    s = str(name)
-    s = re.sub(r'[㈜\s\-()]', '', s)  # 괄호, 공백, 하이픈 제거
-    s = s.replace('저축은행', '').replace('은행', '').lower()
-    return s
+    try:
+        s = str(name)
+        s = re.sub(r'[㈜\s\-()]', '', s)  # 괄호, 공백, 하이픈 제거
+        s = s.replace('저축은행', '').replace('은행', '').lower()
+        return s
+    except:
+        return str(name)
 
 region_map_raw = {
     # 1금융권
@@ -68,114 +93,188 @@ region_map_raw = {
     '한성저축은행':'서울','한화저축은행':'서울','흥국저축은행':'서울'
 }
 region_map = {normalize_name(k): v for k, v in region_map_raw.items()}
+
 # 로고 매핑 딕셔너리 생성
-logo_df = pd.read_csv('logo_bank.csv')
-bank_logo_map = dict(zip(logo_df['은행명'], logo_df['로고파일명']))
+try:
+    logo_df = pd.read_csv('logo_bank.csv')
+    bank_logo_map = dict(zip(logo_df['은행명'], logo_df['로고파일명']))
+    print("✅ 로고 매핑 로드 성공")
+except Exception as e:
+    print(f"❌ 로고 매핑 로드 실패: {e}")
+    bank_logo_map = {}
 
+# 안전한 컬럼 추가 함수
+def safe_add_columns(df, df_name):
+    try:
+        print(f"{df_name} 처리 시작")
+        
+        if df.empty:
+            print(f"{df_name}이 비어있습니다")
+            return
+            
+        print(f"{df_name} 컬럼:", df.columns.tolist())
+        
+        if '금융회사명' in df.columns:
+            df['정제명'] = df['금융회사명'].apply(normalize_name)
+            df['지역'] = df['정제명'].map(region_map).fillna('기타')
+            df['logo'] = df['금융회사명'].apply(logo_filename)
+            print(f"{df_name} 컬럼 추가 완료")
+        else:
+            print(f"{df_name}에 금융회사명 컬럼이 없습니다")
+            df['지역'] = '기타'
+            df['logo'] = 'default.png'
+    except Exception as e:
+        print(f"{df_name} 처리 중 오류: {e}")
+        if not df.empty:
+            df['지역'] = '기타'
+            df['logo'] = 'default.png'
 
-# 예금/적금 데이터에 정제명, 지역, 로고 추가
-for df in [deposit_tier1, deposit_tier2, savings_tier1, savings_tier2]:
-    df['정제명'] = df['금융회사명'].apply(normalize_name)
-    df['지역'] = df['정제명'].map(region_map).fillna('기타')
-    df['logo'] = df['금융회사명'].apply(logo_filename)  # ✅ 로고 경로 추가
+# 각 데이터프레임에 안전하게 컬럼 추가
+safe_add_columns(deposit_tier1, "deposit_tier1")
+safe_add_columns(deposit_tier2, "deposit_tier2") 
+safe_add_columns(savings_tier1, "savings_tier1")
+safe_add_columns(savings_tier2, "savings_tier2")
 
-# 정제명 & 지역 컬럼 삽입
-for df in [deposit_tier1, deposit_tier2, savings_tier1, savings_tier2]:
-    df['정제명'] = df['금융회사명'].apply(normalize_name)
-    df['지역'] = df['정제명'].map(region_map).fillna('기타')
-    df["logo"]  = df["금융회사명"].apply(logo_filename)
 def clean_loan_data(file):
-    df = pd.read_csv(file)
-    df = df.rename(columns=lambda x: x.strip())
-    df = df.rename(columns={
-        '금리': '최저 금리(%)',
-        '한도': '대출한도',
-        '상환 방식': '상환 방식',  
-        '가입 대상': '가입대상',
-        '만기이자': '만기이자',
-        '저축기간(개월)': '저축기간(개월)'
-    })
-    required = ['금융회사명', '상품명', '최저 금리(%)', '대출한도', '상환 방식', '가입대상', '저축기간(개월)', '만기이자']
-    for c in required:
-        if c not in df:
-            df[c] = '정보 없음'
-    df.dropna(subset=['금융회사명', '상품명'], inplace=True)
-    df.fillna('정보 없음', inplace=True)
-    return df
+    try:
+        df = pd.read_csv(file)
+        df = df.rename(columns=lambda x: x.strip())
+        df = df.rename(columns={
+            '금리': '최저 금리(%)',
+            '한도': '대출한도',
+            '상환 방식': '상환 방식',  
+            '가입 대상': '가입대상',
+            '만기이자': '만기이자',
+            '저축기간(개월)': '저축기간(개월)'
+        })
+        required = ['금융회사명', '상품명', '최저 금리(%)', '대출한도', '상환 방식', '가입대상', '저축기간(개월)', '만기이자']
+        for c in required:
+            if c not in df:
+                df[c] = '정보 없음'
+        df.dropna(subset=['금융회사명', '상품명'], inplace=True)
+        df.fillna('정보 없음', inplace=True)
+        return df
+    except Exception as e:
+        print(f"대출 데이터 정리 오류: {e}")
+        return pd.DataFrame()
 
-
-### 대출
-
+# 대출 파일 목록
 loan_files = [
-    '대출_새희망홀씨.csv',
-    '대출_소액_비상금대출.csv',
-    '대출_무직자대출.csv',
-    '대출_사잇돌.csv',
-    '대출_햇살론.csv'
+    '새희망홀씨_정리완료.csv',
+    '소액_비상금대출_정리완료.csv',
+    '무직자대출_정리완료.csv',
+    '사잇돌_정리완료.csv',
+    '햇살론_정제완료_v3.csv'
 ]
 
-keyword_map = {
-    '새희망홀씨': '새희망홀씨',
-    '비상금'   : '비상금대출',
-    '무직자'   : '무직자대출',
-    '사잇돌'   : '사잇돌',
-    '햇살론'   : '햇살론',
-}
+# 수창 버전의 데이터 전처리 방식 적용
+try:
+    loan_data = pd.concat(
+        [clean_loan_data(f) for f in loan_files if os.path.exists(f)], 
+        ignore_index=True
+    )
+    print("✅ 대출 데이터 로드 성공")
+except Exception as e:
+    print(f"❌ 대출 데이터 로드 실패: {e}")
+    loan_data = pd.DataFrame()
 
-def get_loan_type_from_filename(filename: str) -> str:
-    """
-    파일명에 포함된 키워드로 대출유형을 판단해 반환합니다.
-    매칭되는 키워드가 없으면 None을 반환(또는 예외 발생)합니다.
-    """
-    fname = filename.lower()                   # 1) 대소문자 구분 제거
-    for kw, label in keyword_map.items():      # 2) 키워드 순차 검사
-        if kw in fname:
-            return label
-    # 3) 매칭 실패 시 처리 방법 선택
-    # return None            # 방법 A: None 반환
-    raise ValueError(f"정의되지 않은 대출유형: {filename}")   # 방법 B: 즉시 오류
+def classify_loan_type(name):
+    """상품명을 기반으로 대출유형을 분류합니다."""
+    try:
+        if pd.isna(name):
+            return '기타'
+        
+        name = str(name).lower()
+        
+        # 특수문자 제거 전에 먼저 햇살론_ 체크
+        if '햇살론_' in name:
+            return '햇살론'
+        
+        # 비상금대출 키워드 확장
+        if any(keyword in name for keyword in ['비상금', '소액대출', '간편대출', '스피드대출', '여성비상금', 'fi비상금', 'fi 비상금']):
+            return '비상금대출'
+        
+        # 무직자대출 키워드 확장 (순서 중요!)
+        if any(keyword in name for keyword in ['신용대출', '대환대출', '카드대출', '가계신용대출', '위풍', '뉴플랜', '참신한']):
+            return '무직자대출'
+        
+        # 특수문자 제거
+        name_clean = re.sub(r'[^가-힣a-z0-9]', '', name)
+        
+        if '새희망홀씨' in name_clean:
+            return '새희망홀씨'
+        elif '사잇돌' in name_clean:
+            return '사잇돌'
+        elif '햇살' in name_clean or '햇살론' in name_clean:
+            return '햇살론'
+        # 추가 비상금대출 키워드 (특수문자 제거 후)
+        elif any(keyword in name_clean for keyword in ['비상금', '소액대출', '간편대출', '스피드대출', '여성비상금', 'fi비상금']):
+            return '비상금대출'
+        # 추가 무직자대출 키워드 (특수문자 제거 후)
+        elif any(keyword in name_clean for keyword in ['신용대출', '대환대출', '카드대출', '가계신용대출', '위풍', '뉴플랜', '참신한']):
+            return '무직자대출'
+        # 접근 경로나 정보 없음은 무시
+        elif name_clean in ['모바일인터넷영업점', '모바일웹app', '정보없음']:
+            return '기타'
+        else:
+            # 디버깅을 위해 분류되지 않은 상품명 출력
+            print(f"분류 실패: '{name}' -> 기타")
+            return '기타'
+    except:
+        return '기타'
 
+# 상품명 기반으로 대출유형 분류
+if not loan_data.empty:
+    loan_data['대출유형'] = loan_data['상품명'].apply(classify_loan_type)
 
+    # 컬럼명 매핑 추가
+    # dtype 오류 방지를 위해 먼저 object로 변환
+    loan_data['최저 금리(%)'] = loan_data['최저 금리(%)'].astype(str)
+    loan_data['금리'] = loan_data['최저 금리(%)'] + '%'  # 금리에 % 추가
+    loan_data['금융권'] = loan_data['금융회사명'].apply(lambda x: '1금융권' if any(bank in str(x) for bank in ['은행', 'KB', '신한', '우리', 'SC', 'BNK', '부산', 'iM뱅크']) else '2금융권')
+    loan_data['대출조건'] = loan_data.get('상환 방식', '정보 없음')  # 대출조건은 상환방식으로
+    loan_data['상환방법'] = loan_data.get('상환 방식', '정보 없음')
+    loan_data['대출기간'] = loan_data.get('저축기간(개월)', '정보 없음')
+    loan_data['가입대상'] = loan_data.get('가입대상', '정보 없음')  # 가입대상은 그대로
 
-# 각 파일에 대출종류를 추가하면서 데이터 결합
-loan_dataframes = []
-for filename in loan_files:
-    df = clean_loan_data(filename)
-    df['대출유형'] = get_loan_type_from_filename(filename)
-    loan_dataframes.append(df)
+    # 기존 logo 설정
+    loan_data["logo"] = loan_data["금융회사명"].apply(logo_filename)
 
-loan_data = pd.concat(loan_dataframes, ignore_index=True)
-loan_data["logo"] = loan_data["금융회사명"].apply(logo_filename)
+    # 분류 결과 확인 (디버깅용)
+    print("✔ 대출유형 분포:")
+    print(loan_data['대출유형'].value_counts())
 
-# 지역 기본 필터 함수
-def filter_products(df, period, bank, region):
-    if period:
-        df = df[df['저축기간(개월)'] == int(period)]
-    if bank:
-        keys = bank.split('|')
-        df = df[df['금융회사명'].isin(keys)]
-    if region:
-        df = df[df['지역'] == region]
-    return df
-
-
-
-# ✔ 대출 라우트
+# 동림 버전의 메인 대출 페이지 라우트
 @app.route('/loans')
 def loans_page():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '대출', 'current': True}
+    ]
     selected_types = request.args.getlist('loanType')
     input_amount = request.args.get('amount', type=int)
+    
+    if loan_data.empty:
+        return render_template('loans_list.html',
+                             breadcrumb=breadcrumb,
+                             products=[],
+                             selected_types=selected_types,
+                             input_amount=input_amount,
+                             current_page=1,
+                             total_pages=1,
+                             product_type='대출',
+                             product_type_url='loans')
     
     df = loan_data.copy()
     # 이미 파일 로딩시 대출유형이 설정되어 있으므로 상품유형을 대출유형으로 설정
     df['상품유형'] = df['대출유형']
     
-    # ✅ 로그 확인
+    # 로그 확인
     print("✔ 대출유형 분포:")
     print(df['상품유형'].value_counts())  # 햇살론, 기타 등 몇 개인지 찍힘
     logging.info(df['상품유형'].value_counts())
     
-    # ✅ 금액이 있으면 계산금액 컬럼 추가
+    # 금액이 있으면 계산금액 컬럼 추가
     if input_amount:
         def compute_total(row):
             try:
@@ -190,13 +289,13 @@ def loans_page():
     else:
         df['계산금액'] = None
     
-    # ✅ 필터링
+    # 필터링 (모든 상품 표시)
     if selected_types and '전체' not in selected_types:
         filtered_df = df[df['상품유형'].isin(selected_types)]
     else:
-        filtered_df = df
+        filtered_df = df  # 모든 상품 표시
     
-    # ✅ 페이지네이션
+    # 페이지네이션
     page = request.args.get('page', 1, type=int)
     page_size = 15
     start = (page - 1) * page_size
@@ -205,6 +304,7 @@ def loans_page():
     
     return render_template(
         'loans_list.html',
+        breadcrumb=breadcrumb,
         products=filtered_df.iloc[start:end].to_dict('records'),
         selected_types=selected_types,
         input_amount=input_amount,
@@ -214,56 +314,81 @@ def loans_page():
         product_type_url='loans'
     )
 
-
-
+# 동림 버전의 API 엔드포인트
 @app.route('/api/loans')
 def api_loans():
-    loan_type = request.args.get('loanType', '전체')
-    amount    = request.args.get('amount', type=int, default=1000000)
+    try:
+        loan_type = request.args.get('loanType', '전체')
+        amount    = request.args.get('amount', type=int, default=1000000)
 
-    df = loan_data.copy()
-    if loan_type != '전체':
-        df = df[df['대출유형'] == loan_type]
+        if loan_data.empty:
+            return jsonify(products=[])
 
-    # (금액이 있으면 계산금액 컬럼 추가)
-    if amount:
-        rate_series = (
-            df['최저 금리(%)']
-              .astype(str).str.replace('%','').str.strip().astype(float) / 100
-        )
-        df['계산금액'] = (amount * (1 + rate_series)).round().astype(int)
+        df = loan_data.copy()
+        
+        if loan_type != '전체':
+            df = df[df['대출유형'] == loan_type]
+        # 전체 조회 시 모든 상품 포함
 
-    # 필요하면 정렬·페이지네이션도 여기서 처리
-    return jsonify(products=df.to_dict('records'))
+        # (금액이 있으면 계산금액 컬럼 추가)
+        if amount:
+            rate_series = (
+                df['최저 금리(%)']
+                  .astype(str).str.replace('%','').str.strip().astype(float) / 100
+            )
+            df['계산금액'] = (amount * (1 + rate_series)).round().astype(int)
 
+        # 필요하면 정렬·페이지네이션도 여기서 처리
+        return jsonify(products=df.to_dict('records'))
+    except Exception as e:
+        print(f"대출 API 오류: {e}")
+        return jsonify(products=[])
 
+# 금융용어사전 로드 및 초성 기준
+try:
+    terms_df = pd.read_excel('통계용어사전.xlsx')
+    print("✅ 금융용어사전 로드 성공")
+except Exception as e:
+    print(f"❌ 금융용어사전 로드 실패: {e}")
+    terms_df = pd.DataFrame(columns=['용어', '설명'])
 
-
-# ✔ 금융용어사전 로드 및 초성 기준
-terms_df = pd.read_excel('통계용어사전.xlsx')
 def get_initial_consonant(word):
-    if not word: return ''
-    c = word[0]
-    if '가' <= c <= '힣':
-        cho=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
-        return cho[(ord(c)-ord('가'))//588]
-    return 'A-Z' if re.match(r'[A-Za-z]', c) else c
-terms_df['초성'] = terms_df['용어'].apply(get_initial_consonant)
+    try:
+        if not word: return ''
+        c = word[0]
+        if '가' <= c <= '힣':
+            cho=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ']
+            return cho[(ord(c)-ord('가'))//588]
+        return 'A-Z' if re.match(r'[A-Za-z]', c) else c
+    except:
+        return ''
 
-car_df = pd.read_csv('naver_car_prices.csv')
+if not terms_df.empty:
+    terms_df['초성'] = terms_df['용어'].apply(get_initial_consonant)
+
+try:
+    car_df = pd.read_csv('naver_car_prices.csv')
+    print("✅ 자동차 가격 데이터 로드 성공")
+except Exception as e:
+    print(f"❌ 자동차 가격 데이터 로드 실패: {e}")
+    car_df = pd.DataFrame()
 
 # 필터 유틸 함수
 def filter_products(df, period, bank, region):
-    if period:
-        df = df[df['저축기간(개월)'] == int(period)]
-    if bank:
-        keys = bank.split('|')
-        df = df[df['금융회사명'].isin(keys)]
-    if region:
-        df = df[df['지역'] == region]
-    return df
+    try:
+        if period:
+            df = df[df['저축기간(개월)'] == int(period)]
+        if bank:
+            keys = bank.split('|')
+            df = df[df['금융회사명'].isin(keys)]
+        if region and '지역' in df.columns:
+            df = df[df['지역'] == region]
+        return df
+    except Exception as e:
+        print(f"필터 처리 오류: {e}")
+        return df
 
-# ✔ 홈
+# ✔ 홈 (브레드크럼 없음)
 @app.route('/')
 def home():
     return render_template('home_menu.html')
@@ -271,242 +396,431 @@ def home():
 # ✔ 예금 라우트
 @app.route('/deposits')
 def deposits_page():
-    periods = sorted(pd.concat([deposit_tier1, deposit_tier2])['저축기간(개월)'].unique())
-    banks = {
-        '1금융권': sorted(deposit_tier1['금융회사명'].unique()),
-        '2금융권': sorted(deposit_tier2['금융회사명'].unique())
-    }
-    regions = sorted(pd.concat([deposit_tier1, deposit_tier2])['지역'].unique())
-    return render_template('filter_page.html', product_type='예금', product_type_url='deposits', periods=periods, banks=banks, regions=regions)
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '예금', 'current': True}
+    ]
+    
+    try:
+        periods = sorted(pd.concat([deposit_tier1, deposit_tier2])['저축기간(개월)'].unique())
+    except:
+        periods = [6, 12, 24, 36]
+    
+    try:
+        banks = {
+            '1금융권': sorted(deposit_tier1['금융회사명'].unique()),
+            '2금융권': sorted(deposit_tier2['금융회사명'].unique())
+        }
+    except:
+        banks = {'1금융권': [], '2금융권': []}
+    
+    # 지역은 일단 고정값으로 처리
+    regions = ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '기타']
+    
+    return render_template('filter_page.html',
+                           breadcrumb=breadcrumb, 
+                           product_type='예금', 
+                           product_type_url='deposits', 
+                           periods=periods, 
+                           banks=banks, 
+                           regions=regions)
 
 @app.route('/deposits/detail/<bank>/<product_name>')
 def deposits_detail(bank, product_name):
     bank = unquote(bank)
     product_name = unquote(product_name)
+    
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '예금', 'url': '/deposits'},
+        {'name': f'{bank} {product_name}', 'current': True}
+    ]
 
-    df = pd.concat([deposit_tier1, deposit_tier2])
-    matched = df[(df['상품명'] == product_name) & (df['금융회사명'] == bank)]
+    try:
+        df = pd.concat([deposit_tier1, deposit_tier2])
+        matched = df[(df['상품명'] == product_name) & (df['금융회사명'] == bank)]
 
-    if matched.empty:
-        return "상품을 찾을 수 없습니다.", 404
+        if matched.empty:
+            return "상품을 찾을 수 없습니다.", 404
 
-    prod = matched.iloc[0]
-    return render_template('product_detail.html', product=prod, product_type='예금', product_type_url='deposits')
+        prod = matched.iloc[0]
+        return render_template('product_detail.html',
+                               breadcrumb=breadcrumb, 
+                               product=prod, 
+                               product_type='예금', 
+                               product_type_url='deposits')
+    except Exception as e:
+        print(f"예금 상세 페이지 오류: {e}")
+        return "오류가 발생했습니다.", 500
 
 @app.route('/api/deposits')
 def api_deposits():
-    period = request.args.get('period')
-    bank = request.args.get('bank')
-    region = request.args.get('region')
+    try:
+        period = request.args.get('period')
+        bank = request.args.get('bank')
+        region = request.args.get('region')
 
-    data = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True)
-    filtered = filter_products(data, period, bank, region)
+        data = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True)
+        filtered = filter_products(data, period, bank, region)
 
-    # ✅ 중복 제거: 상품명 + 금융회사명 기준
-    filtered = filtered.drop_duplicates(subset=['상품명', '금융회사명'])
+        # 중복 제거: 상품명 + 금융회사명 기준
+        filtered = filtered.drop_duplicates(subset=['상품명', '금융회사명'])
 
-    products = filtered.sort_values(by='최고우대금리(%)', ascending=False).to_dict('records')
-    return jsonify({'products': products, 'total': len(products)})
+        products = filtered.sort_values(by='최고우대금리(%)', ascending=False).to_dict('records')
+        return jsonify({'products': products, 'total': len(products)})
+    except Exception as e:
+        print(f"예금 API 오류: {e}")
+        return jsonify({'products': [], 'total': 0})
 
 # ✔ 적금 라우트
 @app.route('/savings')
 def savings_page():
-    periods = sorted(pd.concat([savings_tier1, savings_tier2])['저축기간(개월)'].unique())
-    banks = {
-        '1금융권': sorted(savings_tier1['금융회사명'].unique()),
-        '2금융권': sorted(savings_tier2['금융회사명'].unique())
-    }
-    regions = sorted(pd.concat([savings_tier1, savings_tier2])['지역'].unique())
-    return render_template('filter_page.html', product_type='적금', product_type_url='savings', periods=periods, banks=banks, regions=regions)
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '적금', 'current': True}
+    ]
+    
+    try:
+        periods = sorted(pd.concat([savings_tier1, savings_tier2])['저축기간(개월)'].unique())
+    except:
+        periods = [6, 12, 24, 36]
+    
+    try:
+        banks = {
+            '1금융권': sorted(savings_tier1['금융회사명'].unique()),
+            '2금융권': sorted(savings_tier2['금융회사명'].unique())
+        }
+    except:
+        banks = {'1금융권': [], '2금융권': []}
+    
+    # 지역은 일단 고정값으로 처리
+    regions = ['서울', '부산', '대구', '인천', '광주', '대전', '울산', '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주', '기타']
+    
+    return render_template('filter_page.html',
+                           breadcrumb=breadcrumb, 
+                           product_type='적금', 
+                           product_type_url='savings', 
+                           periods=periods, 
+                           banks=banks, 
+                           regions=regions)
 
 @app.route('/savings/detail/<bank>/<product_name>')
 def savings_detail(bank, product_name):
     bank = unquote(bank)
     product_name = unquote(product_name)
+    
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '적금', 'url': '/savings'},
+        {'name': f'{bank} {product_name}', 'current': True}
+    ]
 
-    df = pd.concat([savings_tier1, savings_tier2])
-    matched = df[(df['상품명'] == product_name) & (df['금융회사명'] == bank)]
+    try:
+        df = pd.concat([savings_tier1, savings_tier2])
+        matched = df[(df['상품명'] == product_name) & (df['금융회사명'] == bank)]
 
-    if matched.empty:
-        return "상품을 찾을 수 없습니다.", 404
+        if matched.empty:
+            return "상품을 찾을 수 없습니다.", 404
 
-    prod = matched.iloc[0]
-    return render_template('product_detail.html', product=prod, product_type='적금', product_type_url='savings')
+        prod = matched.iloc[0]
+        return render_template('product_detail.html',
+                               breadcrumb=breadcrumb, 
+                               product=prod, 
+                               product_type='적금', 
+                               product_type_url='savings')
+    except Exception as e:
+        print(f"적금 상세 페이지 오류: {e}")
+        return "오류가 발생했습니다.", 500
 
 @app.route('/api/savings')
 def api_savings():
-    period = request.args.get('period')
-    bank = request.args.get('bank')
-    region = request.args.get('region')
+    try:
+        period = request.args.get('period')
+        bank = request.args.get('bank')
+        region = request.args.get('region')
 
-    print("🔍 적금 요청 - 기간:", period, "| 은행:", bank, "| 지역:", region)
+        print("적금 요청 - 기간:", period, "| 은행:", bank, "| 지역:", region)
 
-    data = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
-    print("전체 적금 상품 수:", len(data))
+        data = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
+        print("전체 적금 상품 수:", len(data))
 
-    filtered = filter_products(data, period, bank, region)
-    print("필터 후 적금 수:", len(filtered))
+        filtered = filter_products(data, period, bank, region)
+        print("필터 후 적금 수:", len(filtered))
 
-    filtered = filtered.drop_duplicates(subset=['상품명', '금융회사명'])
+        filtered = filtered.drop_duplicates(subset=['상품명', '금융회사명'])
 
-    # ✅ NaN 처리 필수!
-    filtered = filtered.fillna("정보 없음")
+        # NaN 처리 필수!
+        filtered = filtered.fillna("정보 없음")
 
-    products = filtered.sort_values(by='최고우대금리(%)', ascending=False).to_dict('records')
-    return jsonify({'products': products, 'total': len(products)})
-
+        products = filtered.sort_values(by='최고우대금리(%)', ascending=False).to_dict('records')
+        return jsonify({'products': products, 'total': len(products)})
+    except Exception as e:
+        print(f"적금 API 오류: {e}")
+        return jsonify({'products': [], 'total': 0})
 
 @app.route('/loans/detail/<product_name>')
 def loans_detail(product_name):
-    prod = loan_data[loan_data['상품명'] == product_name].iloc[0]
-    return render_template('product_detail.html', product=prod, product_type='대출', product_type_url='loans')
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '대출', 'url': '/loans'},
+        {'name': product_name, 'current': True}
+    ]
+    try:
+        if loan_data.empty:
+            return "대출 데이터가 없습니다.", 404
+        prod = loan_data[loan_data['상품명'] == product_name].iloc[0]
+        return render_template('product_detail.html',
+                               breadcrumb=breadcrumb, 
+                               product=prod, 
+                               product_type='대출', 
+                               product_type_url='loans')
+    except Exception as e:
+        print(f"대출 상세 페이지 오류: {e}")
+        return "대출 상품을 찾을 수 없습니다.", 404
 
 @app.route('/api/product_detail/<product_type>/<product_key>')
 def api_product_detail(product_type, product_key):
-    product_key = unquote(product_key)
-    product_name, bank_name = product_key.split('--')
+    try:
+        product_key = unquote(product_key)
+        product_name, bank_name = product_key.split('--')
 
-    # 데이터프레임 선택
-    if product_type == 'deposits':
-        df = pd.concat([deposit_tier1, deposit_tier2])
-    elif product_type == 'savings':
-        df = pd.concat([savings_tier1, savings_tier2])
-    elif product_type == 'loans':
-        df = loan_data
-    else:
-        return "잘못된 product_type입니다.", 400
+        # 데이터프레임 선택
+        if product_type == 'deposits':
+            df = pd.concat([deposit_tier1, deposit_tier2])
+        elif product_type == 'savings':
+            df = pd.concat([savings_tier1, savings_tier2])
+        elif product_type == 'loans':
+            df = loan_data
+        else:
+            return "잘못된 product_type입니다.", 400
 
-    # 상품 검색
-    matched = df[(df['상품명'] == product_name) & (df['금융회사명'] == bank_name)]
-    if matched.empty:
-        return "상품을 찾을 수 없습니다.", 404
+        # 상품 검색
+        matched = df[(df['상품명'] == product_name) & (df['금융회사명'] == bank_name)]
+        if matched.empty:
+            return "상품을 찾을 수 없습니다.", 404
 
-    product = matched.iloc[0]
-    return render_template('product_modal.html', product=product, product_type=product_type)
+        product = matched.iloc[0]
+        return render_template('product_modal.html', product=product, product_type=product_type)
+    except Exception as e:
+        print(f"상품 상세 API 오류: {e}")
+        return "오류가 발생했습니다.", 500
 
 @app.route('/savings/page/<int:page>')
 def savings_page_list(page):
-    page_size = 15
-    df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
-    total_products = len(df)
-    total_pages = (total_products + page_size - 1) // page_size
-    start = (page - 1) * page_size
-    end = start + page_size
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '적금', 'url': '/savings'},
+        {'name': f'{page}페이지', 'current': True}
+    ]
+    
+    try:
+        page_size = 15
+        df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
+        total_products = len(df)
+        total_pages = (total_products + page_size - 1) // page_size
+        start = (page - 1) * page_size
+        end = start + page_size
 
-    page_products = df.iloc[start:end].to_dict('records')
-    return render_template(
-        'products_list.html',
-        product_type='적금',
-        product_type_url='savings',
-        products=page_products,
-        current_page=page,
-        total_pages=total_pages
-    )
+        page_products = df.iloc[start:end].to_dict('records')
+        return render_template(
+            'products_list.html',
+            breadcrumb=breadcrumb,
+            product_type='적금',
+            product_type_url='savings',
+            products=page_products,
+            current_page=page,
+            total_pages=total_pages
+        )
+    except Exception as e:
+        print(f"적금 페이지 리스트 오류: {e}")
+        return render_template(
+            'products_list.html',
+            breadcrumb=breadcrumb,
+            product_type='적금',
+            product_type_url='savings',
+            products=[],
+            current_page=page,
+            total_pages=1
+        )
 
 @app.route('/deposits/page/<int:page>')
 def deposits_page_list(page):
-    page_size = 15
-    df = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True)
-    total_products = len(df)
-    total_pages = (total_products + page_size - 1) // page_size
-    start = (page - 1) * page_size
-    end = start + page_size
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': '예금', 'url': '/deposits'},
+        {'name': f'{page}페이지', 'current': True}
+    ]
+    
+    try:
+        page_size = 15
+        df = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True)
+        total_products = len(df)
+        total_pages = (total_products + page_size - 1) // page_size
+        start = (page - 1) * page_size
+        end = start + page_size
 
-    page_products = df.iloc[start:end].to_dict('records')
-    return render_template(
-        'products_list.html',
-        product_type='예금',
-        product_type_url='deposits',
-        products=page_products,
-        current_page=page,
-        total_pages=total_pages
-    )
-
+        page_products = df.iloc[start:end].to_dict('records')
+        return render_template(
+            'products_list.html',
+            breadcrumb=breadcrumb,
+            product_type='예금',
+            product_type_url='deposits',
+            products=page_products,
+            current_page=page,
+            total_pages=total_pages
+        )
+    except Exception as e:
+        print(f"예금 페이지 리스트 오류: {e}")
+        return render_template(
+            'products_list.html',
+            breadcrumb=breadcrumb,
+            product_type='예금',
+            product_type_url='deposits',
+            products=[],
+            current_page=page,
+            total_pages=1
+        )
 
 # ✔ 모아플러스 홈
 @app.route('/plus')
-def plus_home(): return render_template('plus_home.html')
+def plus_home():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'current': True}
+    ]
+    return render_template('plus_home.html', breadcrumb=breadcrumb)
 
 # ✔ 모아플러스 - 금융사전
 @app.route('/plus/terms')
 def terms_home():
-    query = request.args.get('query', '').strip()
-    initial = request.args.get('initial', '').strip()
-    selected = request.args.get('selected', '').strip()
-    page = int(request.args.get('page', 1))
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '금융, 이제는 쉽고 재미있게', 'current': True}
+    ]
+    
+    try:
+        query = request.args.get('query', '').strip()
+        initial = request.args.get('initial', '').strip()
+        selected = request.args.get('selected', '').strip()
+        page = int(request.args.get('page', 1))
 
-    if query:
-        filtered = terms_df[terms_df['용어'].str.contains(query)]
-        category = f"검색결과: {query}"
-    elif initial:
-        filtered = terms_df[terms_df['초성'] == initial]
-        category = initial
-    else:
-        filtered = terms_df.copy()
-        category = "전체"
+        # 필터링 로직을 먼저 처리
+        if query:
+            filtered = terms_df[terms_df['용어'].str.contains(query, na=False)]
+            category = f"검색결과: {query}"
+        elif initial:
+            filtered = terms_df[terms_df['초성'] == initial]
+            category = initial
+        else:
+            filtered = terms_df.copy()
+            category = "전체"
 
-    filtered = filtered[['용어', '설명']].sort_values('용어')
-    terms = filtered.to_dict('records')
+        filtered = filtered[['용어', '설명']].sort_values('용어')
+        terms = filtered.to_dict('records')
 
-    # 페이징 처리
-    page_size = 15
-    total_pages = (len(terms) + page_size - 1) // page_size
-    start = (page - 1) * page_size
-    end = start + page_size
+        # 페이징 처리
+        page_size = 15
+        total_pages = (len(terms) + page_size - 1) // page_size
+        start = (page - 1) * page_size
+        end = start + page_size
 
-    selected_term = None
-    if selected:
-        selected_term = next((t for t in terms if t['용어'] == selected), None)
+        # 선택된 용어 처리 - 필터링된 결과에서만 찾기
+        selected_term = None
+        if selected:
+            # 필터링된 terms에서 선택된 용어 찾기
+            selected_term = next((t for t in terms if t['용어'] == selected), None)
+        
+        # 선택된 용어가 없거나 필터링된 결과에 없으면 랜덤 선택
+        if not selected_term and terms:
+            selected_term = random.choice(terms)
+            selected = selected_term['용어']
 
-    return render_template(
-        'terms_home.html',
-        categories=sorted(terms_df['초성'].unique()),
-        terms=terms,
-        category=category,
-        query=query,
-        selected=selected,
-        selected_term=selected_term,
-        current_page=page,
-        total_pages=total_pages,
-        start=start,
-        end=end
-    )
+        categories = sorted(terms_df['초성'].unique()) if not terms_df.empty else []
+
+        return render_template(
+            'terms_home.html',
+            breadcrumb=breadcrumb,
+            categories=categories,
+            terms=terms,
+            category=category,
+            query=query,
+            initial=initial,
+            selected=selected,
+            selected_term=selected_term,
+            current_page=page,
+            total_pages=total_pages,
+            end=end
+        )
+    except Exception as e:
+        print(f"금융용어사전 오류: {e}")
+        return render_template(
+            'terms_home.html',
+            breadcrumb=breadcrumb,
+            categories=[],
+            terms=[],
+            category="전체",
+            query="",
+            initial="",
+            selected="",
+            selected_term=None,
+            current_page=1,
+            total_pages=1,
+            end=0
+        )
+
 @app.route('/plus/youth')
-def plus_youth_policy(): return render_template('youth_policy.html')
+def plus_youth_policy():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '청년 금융, 기회를 잡다', 'current': True}
+    ]
+    return render_template('youth_policy.html', breadcrumb=breadcrumb)
 
 @app.route('/plus/calculator')
-def plus_calculator(): return render_template('calculator_home.html')
+def plus_calculator():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '한눈에 비교하기 쉬운 상품', 'url': '/guide'},
+        {'name': '내 상품, 이자얼MOA?', 'current': True}
+    ]
+    return render_template('calculator_home.html', breadcrumb=breadcrumb)
 
 @app.route('/plus/region-data')
 def region_data():
-    region = request.args.get('region')
-    region = region.replace("특별시", "").replace("광역시", "").replace("도", "").strip()
+    try:
+        region = request.args.get('region')
+        region = region.replace("특별시", "").replace("광역시", "").replace("도", "").strip()
 
-    house_df = pd.read_csv('주택_시도별_보증금.csv')
-    avg_prices = house_df.groupby('시도')['가격'].mean().round(1).to_dict()
-    price = avg_prices.get(region, '정보없음')
+        house_df = pd.read_csv('주택_시도별_보증금.csv')
+        avg_prices = house_df.groupby('시도')['가격'].mean().round(1).to_dict()
+        price = avg_prices.get(region, '정보없음')
 
-    savings = pd.concat([savings_tier1, savings_tier2])
-    top_savings = savings[savings['지역'] == region].sort_values(by='최고우대금리(%)', ascending=False).head(5)
+        savings = pd.concat([savings_tier1, savings_tier2])
+        top_savings = savings[savings['지역'] == region].sort_values(by='최고우대금리(%)', ascending=False).head(5)
 
-    product_list = []
-    for _, row in top_savings.iterrows():
-        기간 = row.get('저축기간(개월)', 12)
-        try:
-            기간 = int(기간)
-            월저축금 = int((price * 10000) / 기간 / 10000)  # 만원 단위
-        except:
-            월저축금 = '계산불가'
-        product_list.append({
-            '상품명': row['상품명'],
-            '금융회사명': row['금융회사명'],
-            '최고우대금리(%)': row['최고우대금리(%)'],
-            '기간': 기간,
-            '월저축금': 월저축금
-        })
+        product_list = []
+        for _, row in top_savings.iterrows():
+            기간 = row.get('저축기간(개월)', 12)
+            try:
+                기간 = int(기간)
+                월저축금 = int((price * 10000) / 기간 / 10000)  # 만원 단위
+            except:
+                월저축금 = '계산불가'
+            product_list.append({
+                '상품명': row['상품명'],
+                '금융회사명': row['금융회사명'],
+                '최고우대금리(%)': row['최고우대금리(%)'],
+                '기간': 기간,
+                '월저축금': 월저축금
+            })
 
-    return jsonify({'price': price, 'products': product_list})
-
+        return jsonify({'price': price, 'products': product_list})
+    except Exception as e:
+        print(f"지역 데이터 오류: {e}")
+        return jsonify({'price': '정보없음', 'products': []})
 
 @app.template_filter('extract_rate')
 def extract_rate(val):
@@ -518,244 +832,474 @@ def extract_rate(val):
 # ✔ car-roadmap 라우트에 적금 가입 가능 기간도 추가
 @app.route('/plus/car-roadmap')
 def car_roadmap():
-    # 평균가 계산
-    grouped = car_df.groupby(['차종', '모델명'])['평균가'].mean().round(0).astype(int).reset_index()
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
+        {'name': 'CAR MOA', 'current': True}
+    ]
+    
+    try:
+        # 평균가 계산
+        grouped = car_df.groupby(['차종', '모델명'])['평균가'].mean().round(0).astype(int).reset_index()
 
-    # 이미지 매핑 딕셔너리
-    image_map = {
-        '레이': 'ray.png',
-        '캐스퍼': 'kester.png',
-        '모닝': 'moring.png',
-        '기아 K3': 'kia_k3.png',
-        '현대 아반떼': 'avante.png',
-        '현대 쏘나타': 'sonata.png',
-        '르노코리아 XM3': 'renault_xm3.png',
-        '현대 코나': 'kona.png',
-        '기아 셀토스': 'seltos.png',
-    }
+        # 이미지 매핑 딕셔너리
+        image_map = {
+            '레이': 'ray.png',
+            '캐스퍼': 'kester.png',
+            '모닝': 'moring.png',
+            '기아 K3': 'kia_k3.png',
+            '현대 아반떼': 'avante.png',
+            '현대 쏘나타': 'sonata.png',
+            '르노코리아 XM3': 'renault_xm3.png',
+            '현대 코나': 'kona.png',
+            '기아 셀토스': 'seltos.png',
+        }
 
-    # car_list 구성
-    car_list = []
-    for _, row in grouped.iterrows():
-        name = row['모델명']
-        car_list.append({
-            '카테고리': row['차종'],
-            '모델명': name,
-            '평균가격': row['평균가'],
-            '이미지파일명': image_map.get(name, 'default.png')
-        })
+        # car_list 구성
+        car_list = []
+        for _, row in grouped.iterrows():
+            name = row['모델명']
+            car_list.append({
+                '카테고리': row['차종'],
+                '모델명': name,
+                '평균가격': row['평균가'],
+                '이미지파일명': image_map.get(name, 'default.png')
+            })
 
-    savings_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
-    savings_df = savings_df.dropna(subset=['상품명', '금융회사명', '최고우대금리(%)', '저축기간(개월)'])
-    savings_df['금리'] = savings_df['최고우대금리(%)'].astype(float)
-    savings_df['기간'] = savings_df['저축기간(개월)'].astype(int)
-    savings_products = savings_df[['상품명', '금융회사명', '금리', '기간']].drop_duplicates().to_dict('records')
-    period_options = sorted(savings_df['기간'].unique().tolist())
+        savings_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
+        savings_df = savings_df.dropna(subset=['상품명', '금융회사명', '최고우대금리(%)', '저축기간(개월)'])
+        savings_df['금리'] = savings_df['최고우대금리(%)'].astype(float)
+        savings_df['기간'] = savings_df['저축기간(개월)'].astype(int)
+        savings_products = savings_df[['상품명', '금융회사명', '금리', '기간']].drop_duplicates().to_dict('records')
+        period_options = sorted(savings_df['기간'].unique().tolist())
 
-    return render_template('car_roadmap.html',
-                           car_list=car_list,
-                           savings_products=savings_products,
-                           period_options=period_options)
-
+        return render_template('car_roadmap.html',
+                               breadcrumb=breadcrumb,
+                               car_list=car_list,
+                               savings_products=savings_products,
+                               period_options=period_options)
+    except Exception as e:
+        print(f"자동차 로드맵 오류: {e}")
+        return render_template('car_roadmap.html',
+                               breadcrumb=breadcrumb,
+                               car_list=[],
+                               savings_products=[],
+                               period_options=[])
 
 @app.route('/plus/region')
 def plus_region_map():
-    return render_template('region_map.html')
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
+        {'name': 'HOUSE MOA', 'current': True}
+    ]
+    return render_template('region_map.html', breadcrumb=breadcrumb)
 
 @app.route('/plus/travel', methods=['GET'])
 def travel_home():
-    travel_df = pd.read_csv('travel.csv')
-    cities = travel_df['도시'].tolist()
-    return render_template('travel_select.html', cities=cities)
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
+        {'name': 'TRIP MOA', 'current': True}
+    ]
+    
+    try:
+        travel_df = pd.read_csv('travel.csv')
+        cities = travel_df['도시'].tolist()
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
+    except Exception as e:
+        print(f"여행 데이터 로드 오류: {e}")
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
 
 @app.route('/plus/travel-plan', methods=['GET', 'POST'])
 def travel_plan():
-    travel_df = pd.read_csv("travel.csv")
-    cities = travel_df['도시'].tolist()
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
+        {'name': 'TRIP MOA', 'current': True}
+    ]
+    
+    try:
+        travel_df = pd.read_csv("travel.csv")
+        cities = travel_df['도시'].tolist()
 
-    if request.method == 'POST':
-        selected_city = request.form['city']
-        months = int(request.form['months'])
+        if request.method == 'POST':
+            selected_city = request.form['city']
+            months = int(request.form['months'])
 
-        # 선택된 도시의 정보 필터링
-        info = travel_df[travel_df['도시'] == selected_city].iloc[0]
+            # 선택된 도시의 정보 필터링
+            info = travel_df[travel_df['도시'] == selected_city].iloc[0]
 
-        total_cost = int(info['총예상경비'])
-        monthly_saving = total_cost // months
+            total_cost = int(info['총예상경비'])
+            monthly_saving = total_cost // months
 
-        travel_plan = {
-            'city': selected_city,
-            'country': info['국가'],
-            'theme': info['테마'],
-            'reason': info['추천이유'],
-            'days': info['추천일정'],
-            'airfare': int(info['예상항공료']),
-            'accommodation': int(info['숙박비']),
-            'food': int(info['식비']),
-            'total': total_cost,
-            'monthly': monthly_saving
-        }
+            travel_plan = {
+                'city': selected_city,
+                'country': info['국가'],
+                'theme': info['테마'],
+                'reason': info['추천이유'],
+                'days': info['추천일정'],
+                'airfare': int(info['예상항공료']),
+                'accommodation': int(info['숙박비']),
+                'food': int(info['식비']),
+                'total': total_cost,
+                'monthly': monthly_saving
+            }
 
-        selected_months = months
+            selected_months = months
 
-        # 추천 적금 상품: 기간 일치 + 금리 높은 순으로 상위 5개
-        savings_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
-        recommended_products = savings_df[savings_df['저축기간(개월)'] == months] \
-            .sort_values(by='최고우대금리(%)', ascending=False) \
-            .drop_duplicates(subset=['상품명', '금융회사명']) \
-            .head(5).to_dict('records')
-        
-        return render_template('travel_result.html',
-                city=travel_plan['city'],
-                country=travel_plan['country'],
-                theme=travel_plan['theme'],
-                reason=travel_plan['reason'],
-                days=travel_plan['days'],
-                airfare=travel_plan['airfare'],
-                accommodation=travel_plan['accommodation'],
-                food=travel_plan['food'],
-                total_cost=travel_plan['total'],
-                months=selected_months,
-                monthly_saving=travel_plan['monthly'],
-                products=recommended_products
-            )
+            # 추천 적금 상품: 기간 일치 + 금리 높은 순으로 상위 5개
+            savings_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
+            recommended_products = savings_df[savings_df['저축기간(개월)'] == months] \
+                .sort_values(by='최고우대금리(%)', ascending=False) \
+                .drop_duplicates(subset=['상품명', '금융회사명']) \
+                .head(5).to_dict('records')
+            
+            return render_template('travel_result.html',
+                    city=travel_plan['city'],
+                    country=travel_plan['country'],
+                    theme=travel_plan['theme'],
+                    reason=travel_plan['reason'],
+                    days=travel_plan['days'],
+                    airfare=travel_plan['airfare'],
+                    accommodation=travel_plan['accommodation'],
+                    food=travel_plan['food'],
+                    total_cost=travel_plan['total'],
+                    months=selected_months,
+                    monthly_saving=travel_plan['monthly'],
+                    products=recommended_products
+                )
 
-    # GET 요청일 때는 도시 리스트만 넘겨서 폼 렌더링
-    return render_template('travel_select.html', cities=cities)
+        # GET 요청일 때는 도시 리스트만 넘겨서 폼 렌더링
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
+    except Exception as e:
+        print(f"여행 계획 오류: {e}")
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
+
 # =========================================
 # 적금‧예금 비교 결과 계산 헬퍼
-#   df          : (필터링된) 예금/적금 DataFrame
-#   mode        : 'list'  → 목록에서 선택
-#                 'direct'→ 사용자가 금리를 직접 입력
-#   bank, prod  : 은행명, 상품명  (mode=='list'일 때 사용)
-#   manual_rate : 직접 입력 금리(%, mode=='direct'일 때 사용)
-#   amount      : 월 납입액(원)
-#   months      : 총 납입 기간(개월)
-# -----------------------------------------
-def build_result(df, mode, bank, prod, manual_rate, amount, months):
-    """
-    두 상품(또는 사용자 입력 금리)의 세후 실수령액을 계산해
-    사전에 정의된 딕셔너리 형태로 반환한다.
-    """
-    # ---------- ① 사용자가 금리를 직접 입력한 경우 ----------
-    if mode == 'direct':
-        rate = manual_rate / 100            # % → 소수
-        before_tax = amount * months + amount * (months + 1) / 2 * rate / 12
-        tax   = before_tax * 0.154          # 15.4 % 이자과세
-        after = round(before_tax - tax)
+# =========================================
 
-        return dict(
-            금융회사명 = '사용자 입력',
-            상품명    = '사용자 입력 상품',
-            금리     = manual_rate,
-            세전이자  = round(before_tax - amount * months),
-            이자과세  = round(tax),
-            실수령액  = after
-        )
+def safe_float_conversion(value, default=0.0):
+    """안전한 float 변환 함수"""
+    if pd.isna(value):
+        return default
+    try:
+        if isinstance(value, str):
+            # 문자열에서 숫자만 추출
+            import re
+            numbers = re.findall(r'\d+\.?\d*', str(value))
+            if numbers:
+                return float(numbers[0])
+        return float(value)
+    except (ValueError, TypeError):
+        return default
 
-        # ② 목록에서 선택한 경우 ― 빈 DF 체크!
-    matched = df[(df['금융회사명'] == bank) & (df['상품명'] == prod)]
+def calculate_interest_with_tax(principal, rate, months, is_savings=True):
+    """이자 계산 및 세금 적용 함수"""
+    try:
+        monthly_rate = rate / 100 / 12
+        total_principal = principal * months  # 총 납입액
+        
+        if is_savings:
+            # 적금: 매월 납입
+            if monthly_rate == 0:
+                total_amount = total_principal
+            else:
+                # 적금 복리 계산
+                total_amount = principal * (((1 + monthly_rate) ** months - 1) / monthly_rate) * (1 + monthly_rate)
+        else:
+            # 예금: 일시납입
+            total_amount = total_principal * (1 + monthly_rate) ** months
+        
+        # 세전 이자 계산
+        gross_interest = total_amount - total_principal
+        
+        # 이자 과세 계산 (15.4%)
+        tax_rate = 0.154
+        interest_tax = gross_interest * tax_rate
+        
+        # 세후 이자 계산
+        net_interest = gross_interest - interest_tax
+        
+        # 실수령액 계산
+        final_amount = total_principal + net_interest
+        
+        return {
+            '총납입액': total_principal,
+            '세전이자': gross_interest,
+            '이자과세': interest_tax,
+            '세후이자': net_interest,
+            '실수령액': final_amount
+        }
+            
+    except Exception as e:
+        print(f"이자 계산 중 오류: {e}")
+        total_principal = principal * months
+        return {
+            '총납입액': total_principal,
+            '세전이자': 0,
+            '이자과세': 0,
+            '세후이자': 0,
+            '실수령액': total_principal
+        }
 
-    if matched.empty:
-        # ❗ 매칭 실패 시, 기본값 반환 ― 에러 대신 사용자에게 알림용
-        return dict(
-            금융회사명 = bank or '선택 안 됨',
-            상품명    = prod or '선택 안 됨',
-            금리     = 0,
-            세전이자  = 0,
-            이자과세  = 0,
-            실수령액  = 0
-        )
+def get_bank_logo(bank_name):
+    """은행명으로 로고 파일명을 찾습니다."""
+    # 정확한 매칭 시도
+    if bank_name in bank_logo_map:
+        return bank_logo_map[bank_name]
+    
+    # 부분 매칭 시도 (은행명이 포함된 경우)
+    for logo_bank, logo_file in bank_logo_map.items():
+        if bank_name in logo_bank or logo_bank in bank_name:
+            return logo_file
+    
+    # 특별한 경우 처리
+    bank_mapping = {
+        '카카오뱅크': 'kakaobank.png',
+        '토스뱅크': 'toss.png',
+        '케이뱅크': 'kbank.png',
+        'iM뱅크': 'imbank.png',
+        '아이엠뱅크': 'imbank.png',
+        '국민은행': 'kb.png',
+        'KB국민은행': 'kb.png',
+        '신한은행': 'shinhan.png',
+        '우리은행': 'woori.png',
+        '하나은행': 'keb.png',
+        '농협은행': 'nh.png',
+        '기업은행': 'ibk.png',
+        'IBK기업은행': 'ibk.png'
+    }
+    
+    return bank_mapping.get(bank_name, None)
 
-    row   = matched.iloc[0]
-    rate  = float(row.get('최고우대금리(%)', 0)) / 100
-    before_tax = amount * months + amount * (months + 1) / 2 * rate / 12
-    tax   = before_tax * 0.154
-    after = round(before_tax - tax)
+def build_result(df, mode, bank_name, product_name, manual_rate, amount, months):
+    """결과 생성 함수"""
+    try:
+        if mode == 'manual':
+            # 직접 입력 모드
+            is_savings = '적금' in request.form.get('product_type', 'savings')
+            calc_result = calculate_interest_with_tax(amount, manual_rate, months, is_savings)
+            
+            return {
+                '금융회사명': '직접입력',
+                '상품명': f'직접입력 ({manual_rate}%)',
+                '금리': manual_rate,
+                '로고파일명': None,
+                **calc_result
+            }
+        else:
+            # 목록 선택 모드
+            if df.empty or not bank_name or not product_name:
+                calc_result = calculate_interest_with_tax(amount, 0, months, True)
+                return {
+                    '금융회사명': bank_name or '선택없음',
+                    '상품명': product_name or '선택없음',
+                    '금리': 0.0,
+                    '로고파일명': get_bank_logo(bank_name) if bank_name else None,
+                    **calc_result
+                }
+            
+            # 상품 찾기
+            product_data = df[
+                (df['금융회사명'] == bank_name) & 
+                (df['상품명'] == product_name)
+            ]
+            
+            if product_data.empty:
+                calc_result = calculate_interest_with_tax(amount, 0, months, True)
+                return {
+                    '금융회사명': bank_name,
+                    '상품명': product_name,
+                    '금리': 0.0,
+                    '로고파일명': get_bank_logo(bank_name),
+                    **calc_result
+                }
+            
+            # 금리 추출 (최고우대금리 우선)
+            rate = 0.0
+            if '최고우대금리(%)' in product_data.columns:
+                rate = safe_float_conversion(product_data['최고우대금리(%)'].iloc[0])
+            elif '기본금리(%)' in product_data.columns:
+                rate = safe_float_conversion(product_data['기본금리(%)'].iloc[0])
+            elif '최고우대금리' in product_data.columns:
+                rate = safe_float_conversion(product_data['최고우대금리'].iloc[0])
+            elif '기본금리' in product_data.columns:
+                rate = safe_float_conversion(product_data['기본금리'].iloc[0])
+            
+            # 상품 타입 판단
+            is_savings = request.form.get('product_type', 'savings') == 'savings'
+            calc_result = calculate_interest_with_tax(amount, rate, months, is_savings)
+            
+            return {
+                '금융회사명': bank_name,
+                '상품명': product_name,
+                '금리': rate,
+                '로고파일명': get_bank_logo(bank_name),
+                **calc_result
+            }
+            
+    except Exception as e:
+        print(f"결과 생성 중 오류: {e}")
+        calc_result = calculate_interest_with_tax(amount, 0, months, True)
+        return {
+            '금융회사명': bank_name or '오류',
+            '상품명': product_name or '오류',
+            '금리': 0.0,
+            '로고파일명': get_bank_logo(bank_name) if bank_name else None,
+            **calc_result
+        }
 
-    return dict(
-        금융회사명 = row['금융회사명'],
-        상품명    = row['상품명'],
-        금리     = row['최고우대금리(%)'],
-        세전이자  = round(before_tax - amount * months),
-        이자과세  = round(tax),
-        실수령액  = after
-    )
+def create_product_map():
+    """상품 맵 생성 함수"""
+    try:
+        product_map = {}
+        
+        # 예금 상품 맵
+        deposit_df = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True)
+        if not deposit_df.empty and '금융회사명' in deposit_df.columns and '상품명' in deposit_df.columns:
+            deposit_grouped = deposit_df.groupby('금융회사명')['상품명'].apply(
+                lambda x: x.dropna().unique().tolist()
+            ).to_dict()
+            product_map['deposit'] = deposit_grouped
+        else:
+            product_map['deposit'] = {}
+        
+        # 적금 상품 맵
+        savings_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
+        if not savings_df.empty and '금융회사명' in savings_df.columns and '상품명' in savings_df.columns:
+            savings_grouped = savings_df.groupby('금융회사명')['상품명'].apply(
+                lambda x: x.dropna().unique().tolist()
+            ).to_dict()
+            product_map['savings'] = savings_grouped
+        else:
+            product_map['savings'] = {}
+        
+        return product_map
+        
+    except Exception as e:
+        print(f"상품 맵 생성 중 오류: {e}")
+        return {'deposit': {}, 'savings': {}}
 
-# -------------------------------------------------
 @app.route('/plus/compare', methods=['GET', 'POST'], endpoint='compare_savings')
 def compare_savings():
-    # ---------- 1) POST : 폼 제출 ----------
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '한눈에 비교하기 쉬운 상품', 'url': '/guide'},
+        {'name': '한눈에 싹 MOA', 'current': True}
+    ]
+    """상품 비교 페이지"""
+    
     if request.method == 'POST':
-        product_type = request.form.get('product_type', 'savings')   # 예금 / 적금
-        # 좌·우 패널 hidden 필드
-        mode_l  = request.form['mode_left']      # list | direct
-        mode_r  = request.form['mode_right']
-        tier_l  = request.form['tier_left']      # all | tier1 | tier2
-        tier_r  = request.form['tier_right']
-        rate_l  = float(request.form.get('rate_left',  '0') or 0)
-        rate_r  = float(request.form.get('rate_right', '0') or 0)
-        bank_l  = request.form['bank_left']
-        bank_r  = request.form['bank_right']
-        prod_l  = request.form['product_left']
-        prod_r  = request.form['product_right']
-        amount  = int(request.form['amount'])
-        months  = int(request.form['months'])
-
-        # ➊ 예금/적금 데이터프레임 준비
-        base_df = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True) \
-                    if product_type == 'deposits' else \
-                  pd.concat([savings_tier1, savings_tier2], ignore_index=True)
-
-        # ➋ 티어 필터링(좌·우 각각)
-        df_l = base_df.copy()
-        if tier_l == 'tier1': df_l = df_l[df_l['금융회사명'].isin(tier1_list)]
-        if tier_l == 'tier2': df_l = df_l[df_l['금융회사명'].isin(tier2_list)]
-
-        df_r = base_df.copy()
-        if tier_r == 'tier1': df_r = df_r[df_r['금융회사명'].isin(tier1_list)]
-        if tier_r == 'tier2': df_r = df_r[df_r['금융회사명'].isin(tier2_list)]
-
-        # ➌ 결과 계산
-        res1 = build_result(df_l, mode_l, bank_l, prod_l, rate_l, amount, months)
-        res2 = build_result(df_r, mode_r, bank_r, prod_r, rate_r, amount, months)
-
-        gap    = abs(res1['실수령액'] - res2['실수령액'])
-        better = res1['금융회사명'] if res1['실수령액'] > res2['실수령액'] else res2['금융회사명']
-
-        # ➍ 템플릿 공통 자료(은행‧상품 목록, 티어 매핑)
-        grouped = base_df.groupby('금융회사명')['상품명'].unique().apply(list).to_dict()
-        bank_list      = sorted(base_df['금융회사명'].unique())
-        bank_tier_map  = {b: ('tier1' if b in tier1_list else 'tier2') for b in bank_list}
-
+        try:
+            # 폼 데이터 추출
+            product_type = request.form.get('product_type', 'savings')
+            
+            # 좌·우 패널 데이터
+            mode_l = request.form.get('mode_left', 'list')
+            mode_r = request.form.get('mode_right', 'list')
+            tier_l = request.form.get('tier_left', 'all')
+            tier_r = request.form.get('tier_right', 'all')
+            
+            # 금리 (직접입력 모드용)
+            rate_l = safe_float_conversion(request.form.get('rate_left', '0'))
+            rate_r = safe_float_conversion(request.form.get('rate_right', '0'))
+            
+            # 은행 및 상품
+            bank_l = request.form.get('bank_left', '')
+            bank_r = request.form.get('bank_right', '')
+            prod_l = request.form.get('product_left', '')
+            prod_r = request.form.get('product_right', '')
+            
+            # 계산 조건
+            amount = int(request.form.get('amount', 100000))
+            months = int(request.form.get('months', 12))
+            
+            # 데이터프레임 선택
+            if product_type == 'deposit':
+                base_df = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True)
+            else:
+                base_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
+            
+            # 티어 필터링
+            df_l = base_df.copy()
+            if tier_l == 'tier1':
+                df_l = df_l[df_l['금융회사명'].isin(tier1_list)]
+            elif tier_l == 'tier2':
+                df_l = df_l[df_l['금융회사명'].isin(tier2_list)]
+            
+            df_r = base_df.copy()
+            if tier_r == 'tier1':
+                df_r = df_r[df_r['금융회사명'].isin(tier1_list)]
+            elif tier_r == 'tier2':
+                df_r = df_r[df_r['금융회사명'].isin(tier2_list)]
+            
+            # 결과 계산
+            res1 = build_result(df_l, mode_l, bank_l, prod_l, rate_l, amount, months)
+            res2 = build_result(df_r, mode_r, bank_r, prod_r, rate_r, amount, months)
+            
+            # 비교 결과
+            gap = abs(res1['실수령액'] - res2['실수령액'])
+            better = res1['금융회사명'] if res1['실수령액'] > res2['실수령액'] else res2['금융회사명']
+            
+            # 템플릿용 데이터 준비
+            product_map = create_product_map()
+            bank_list = sorted(list(set(tier1_list + tier2_list)))
+            bank_tier_map = {b: ('tier1' if b in tier1_list else 'tier2') for b in bank_list}
+            
+            return render_template(
+                    'compare_form.html',
+                    breadcrumb=breadcrumb,
+                    product_map=product_map,
+                    bank_list=bank_list,
+                    bank_tier_map=bank_tier_map,
+                    result1=res1,
+                    result2=res2,
+                    gap=gap,
+                    better=better
+                )
+        except Exception as e:
+            print(f"POST 처리 중 오류: {e}")
+            # 오류 발생 시 기본 GET 처리로 fallback
+            pass
+        
+    # GET 요청 처리
+    try:
+        product_map = create_product_map()
+        bank_list = sorted(list(set(tier1_list + tier2_list)))
+        bank_tier_map = {b: ('tier1' if b in tier1_list else 'tier2') for b in bank_list}
+        
         return render_template(
             'compare_form.html',
-            product_map    = grouped,
-            bank_list      = bank_list,
-            bank_tier_map  = bank_tier_map,
-            result1=res1,  result2=res2,
-            gap=gap,       better=better
+            breadcrumb=breadcrumb,
+            product_map=product_map,
+            bank_list=bank_list,
+            bank_tier_map=bank_tier_map,
+            result1=None,
+            result2=None,
+            gap=None,
+            better=None
         )
-
-    # ---------- 2) GET : 빈 폼 ----------
-    selected_type = request.args.get('type', 'savings')            # 기본 = 적금
-    base_df = pd.concat([deposit_tier1, deposit_tier2], ignore_index=True) \
-                if selected_type == 'deposits' else \
-              pd.concat([savings_tier1, savings_tier2], ignore_index=True)
-
-    grouped = base_df.groupby('금융회사명')['상품명'].unique().apply(list).to_dict()
-    bank_list     = sorted(base_df['금융회사명'].unique())
-    bank_tier_map = {b: ('tier1' if b in tier1_list else 'tier2') for b in bank_list}
-
-    return render_template(
-        'compare_form.html',
-        product_map   = grouped,
-        bank_list     = bank_list,
-        bank_tier_map = bank_tier_map,
-        result1=None, result2=None, gap=None, better=None
-    )
-
-
+        
+    except Exception as e:
+        print(f"GET 처리 중 오류: {e}")
+        return render_template(
+            'compare_form.html',
+            breadcrumb=breadcrumb,
+            product_map={},
+            bank_list=[],
+            bank_tier_map={},
+            result1=None,
+            result2=None,
+            gap=None,
+            better=None
+        )
 
 @app.template_filter('format_currency')
 def format_currency(value, symbol='₩'):
@@ -763,65 +1307,80 @@ def format_currency(value, symbol='₩'):
         return f"{symbol}{int(value):,}"
     except:
         return value
+
 @app.route('/plus/compare/pdf', methods=['POST'])
 def download_pdf():
-    bank1 = request.form['bank1']
-    product1 = request.form['product1']
-    bank2 = request.form['bank2']
-    product2 = request.form['product2']
-    amount = int(request.form['amount'])
-    months = int(request.form['months'])
-    product_type = request.form.get('product_type', 'savings')
+    try:
+        bank1 = request.form['bank1']
+        product1 = request.form['product1']
+        bank2 = request.form['bank2']
+        product2 = request.form['product2']
+        amount = int(request.form['amount'])
+        months = int(request.form['months'])
+        product_type = request.form.get('product_type', 'savings')
 
-    df = pd.concat([deposit_tier1, deposit_tier2] if product_type == 'deposits' else [savings_tier1, savings_tier2])
-    item1 = df[(df['금융회사명'] == bank1) & (df['상품명'] == product1)].iloc[0]
-    item2 = df[(df['금융회사명'] == bank2) & (df['상품명'] == product2)].iloc[0]
+        df = pd.concat([deposit_tier1, deposit_tier2] if product_type == 'deposits' else [savings_tier1, savings_tier2])
+        item1 = df[(df['금융회사명'] == bank1) & (df['상품명'] == product1)].iloc[0]
+        item2 = df[(df['금융회사명'] == bank2) & (df['상품명'] == product2)].iloc[0]
 
-    def calc_total(item):
-        try:
-            rate = float(item['최고우대금리(%)']) / 100
-        except:
-            rate = 0.0
-        before_tax = amount * months + amount * (months + 1) / 2 * rate / 12
-        tax = before_tax * 0.154
-        after_tax = before_tax - tax
-        return {
-            '상품명': item['상품명'],
-            '금융회사명': item['금융회사명'],
-            '금리': item['최고우대금리(%)'],
-            '세전이자': round(before_tax - amount * months),
-            '이자과세': round(tax),
-            '세후이자': round(after_tax - amount * months),
-            '실수령액': round(after_tax)
-        }
+        def calc_total(item):
+            try:
+                rate = float(item['최고우대금리(%)']) / 100
+            except:
+                rate = 0.0
+            before_tax = amount * months + amount * (months + 1) / 2 * rate / 12
+            tax = before_tax * 0.154
+            after_tax = before_tax - tax
+            return {
+                '상품명': item['상품명'],
+                '금융회사명': item['금융회사명'],
+                '금리': item['최고우대금리(%)'],
+                '세전이자': round(before_tax - amount * months),
+                '이자과세': round(tax),
+                '세후이자': round(after_tax - amount * months),
+                '실수령액': round(after_tax)
+            }
 
-    result1 = calc_total(item1)
-    result2 = calc_total(item2)
-    gap = abs(result1['실수령액'] - result2['실수령액'])
-    better = result1['금융회사명'] if result1['실수령액'] > result2['실수령액'] else result2['금융회사명']
+        result1 = calc_total(item1)
+        result2 = calc_total(item2)
+        gap = abs(result1['실수령액'] - result2['실수령액'])
+        better = result1['금융회사명'] if result1['실수령액'] > result2['실수령액'] else result2['금융회사명']
 
-    rendered = render_template("compare_pdf.html", result1=result1, result2=result2, gap=gap, better=better)
+        rendered = render_template("compare_pdf.html", result1=result1, result2=result2, gap=gap, better=better)
 
-    # ✅ wkhtmltopdf 경로 지정 (윈도우 기준)
-    path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
-    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+        # ✅ wkhtmltopdf 경로 지정 (윈도우 기준)
+        path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+        config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
-    pdf = pdfkit.from_string(rendered, False, configuration=config)
+        pdf = pdfkit.from_string(rendered, False, configuration=config)
 
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'attachment; filename=compare_result.pdf'
-    return response
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=compare_result.pdf'
+        return response
+    except Exception as e:
+        print(f"PDF 생성 오류: {e}")
+        return "PDF 생성 중 오류가 발생했습니다.", 500
 
 # 상품을 모아 페이지
 @app.route('/plus/roadmap')
 def roadmap():
-    return render_template('plus_roadmap.html')
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'current': True}
+    ]
+    return render_template('plus_roadmap.html', breadcrumb=breadcrumb)
 
 # 가이드 모아 페이지
 @app.route('/guide')
 def guide_moa():
-    return render_template('guide_moa.html')
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '한눈에 비교하기 쉬운 상품', 'current': True}
+    ]
+    return render_template('guide_moa.html', breadcrumb=breadcrumb)
 
 if __name__ == '__main__':
     app.run(debug=True)
