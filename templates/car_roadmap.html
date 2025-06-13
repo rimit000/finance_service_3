@@ -2,211 +2,343 @@
 {% block title %}CAR MOA{% endblock %}
 
 {% block content %}
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <style>
-  .car-section-title {
-    color: #111;
-    font-weight: 800;
-    font-size: 2.5rem;
-    text-align: center;
-    margin-bottom: 20px;
+    /* ---------------- 공통 변수 & 기본 폰트 ---------------- */
+    :root {
+        --moa-green: #8AE4D7;   
+        --moa-dark:  #020715;
+        --moa-muted: #717171;
+        --moa-border:#E0E5F3;
+        --moa-hover: #E0E5F3;
+    }
+    
+    body, .container {
+        font-family:'NoonnuBasicGothic', sans-serif;
+    }
+
+    /* -------------------- 상단 헤더 영역 -------------------- */
+    .moa-header {
+        background: white;
+        text-align: center;
+        padding: 20px;
+        font-family: 'NoonnuBasicGothic', sans-serif;
+    }
+    
+    .moa-header .moa-bar {
+        width: 53px;
+        height: 10px;
+        background-color: #8AE4D7;
+        margin: 20px auto 30px;
+    }
+    
+    .moa-header h1 {
+        font-size: 3.75rem; /* 60px */
+        font-weight: 600;
+        color: #020715;
+        letter-spacing: 1.2px;
+        margin-bottom: 10px;
+    }
+    
+    .moa-header p {
+        font-size: 1.25rem;
+        color: #717171;
+        letter-spacing: 0.5px;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    /* -------------------- 필터 버튼 영역 -------------------- */
+    button.btn-outline-success {
+        background-color: #fffdfd;
+        border-radius: 4px;
+        border-color: #fffdfd !important;
+        color: #717171 !important;
+        box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
+        height: 48px;
+        align-items: center;
+        padding: 0 4px;
+    }
+
+    button.btn-outline-success:hover {
+        background-color: #fffdfd !important;
+        color: #00C4A8 !important;
+        box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
+    }
+
+    button.btn.btn-outline-success.active {
+        background-color: #fffdfd !important;
+        color: #00C4A8 !important;
+        transform: translateY(1px);
+        box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
+    }
+
+    /* -------------------- 차 이미지 들어가있는 박스 -------------------- */
+    .card {
+        margin-top: auto;
+        border: none;
+        box-shadow: 0 0 8px rgba(184,180,180,0.5), 3px 3px 4px rgba(0,0,0,0.25);  
+        border-radius:0;
+        background-color: #FFFFFF;
+    }
+    
+    .car-img {
+        width: 90%;         
+        height: 200px;       
+        object-fit: contain;   
+        border-radius: 10px;
+        margin-bottom: 15px;
+        align-self: center; 
+    }
+
+    .carousel-control-btn {
+        width: 50px;         
+        height: 50px;       
+        padding: 0;          
+        font-size: 1.5rem;   
+        line-height: 50px;   
+        text-align: center;  
+    }
+
+    /* -------------------- 페이지 누르면 적금추천 뜨는 박스 -------------------- */
+    .recommend-list {
+        padding-left: 0;
+    }
+    
+    .recommend-list li {
+        border:#fffdfd;
+        background-color: rgb(227, 240, 229, 0.5);
+        border-radius: 8px;
+        box-shadow: 0 0 8px rgba(184,180,180,0.25), 3px 3px 4px rgba(0,0,0,0.25); 
+        padding: 15px;
+        list-style: none;
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+    
+    .filtered-section { 
+        display: none; 
+    }
+    
+    .all-section { 
+        display: flex; 
+        flex-wrap: wrap; }
+    
+
+    .col-md-5 {
+    font-size:1.3rem !important;
+    white-space: nowrap;
   }
-  .car-subtext {
-    text-align: center;
-    color: #666;
-    font-size: 1rem;
-    margin-bottom: 40px;
-  }
-  .car-img {
-    width: 100%;
-    max-height: 300px;
-    object-fit: contain;
-    border-radius: 10px;
-    margin-bottom: 15px;
-  }
-  .recommend-list {
-    padding-left: 0;
-  }
-  .recommend-list li {
-    margin-bottom: 10px;
-    border: 1px solid #b2f5ea;
-    background-color: #f9fdfd;
-    border-radius: 10px;
-    padding: 10px;
-    list-style: none;
-  }
-  .filtered-section { display: none; }
-  .all-section { display: flex; flex-wrap: wrap; }
+    .col-md-5.form-select {width: 20px;}
+
+    .col-md-4.text-center > h3 {
+      color: #00C4A8;
+      margin: 1.5rem 0 !important;   
+      font-size: 2.5rem;  
+      white-space: nowrap;
+    }
+    .col-md-4.text-center > p {
+      color:#434040;
+      font-size: 1.5rem;   
+      white-space: nowrap; 
+      margin: 1.5rem 0;
+      font-weight: 100;
+    }
 </style>
 
 <div class="container my-5">
-  <h1 class="car-section-title"> CAR MOA</h1>
-  <p class="car-subtext">한눈에 보는 중고차 시세, 모아 플러스 중고차 모아보기</p>
-
-  <div class="d-flex justify-content-center gap-3 my-4">
-    <button class="btn btn-outline-success px-4" onclick="filterByBox('전체')">전체</button>
-    <button class="btn btn-outline-success px-4" onclick="filterByBox('경차')">소형(경차)</button>
-    <button class="btn btn-outline-success px-4" onclick="filterByBox('세단')">세단</button>
-    <button class="btn btn-outline-success px-4" onclick="filterByBox('소형 SUV')">SUV</button>
-  </div>
-
-  {% set global_counter = namespace(value=0) %}
-  {% for category in ['경차', '세단', '소형 SUV'] %}
-  <div class="mb-5 car-section filtered-section" data-category="{{ category }}">
-    <h4 class="text-center fw-bold my-4 category-title">{{ category }}</h4>
-    <div id="carousel{{ category }}" class="carousel slide" data-bs-touch="false" data-bs-interval="false">
-      <div class="carousel-inner">
-        {% for car in car_list if car['카테고리'] == category %}
-        {% set idx = global_counter.value %}
-        {% set global_counter.value = global_counter.value + 1 %}
-        <div class="carousel-item {% if loop.first %}active{% endif %}">
-          <div class="d-flex align-items-center justify-content-center">
-            <button class="btn btn-outline-secondary me-3" type="button" onclick="prevSlide('carousel{{ category }}')">←</button>
-            <div class="text-center w-75 mx-auto">
-              <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" class="car-img" alt="{{ car['모델명'] }}">
-              <h3 class="mt-4">{{ car['모델명'] }}</h3>
-              <p> 평균 가격: <strong>{{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
-              <label for="months{{ idx }}">⏱ 목표 기간:</label>
-              <select id="months{{ idx }}" class="form-select w-50 mx-auto my-2" data-price="{{ car['평균가격'] }}" onchange="calculateAndRecommend(this, {{ car['평균가격'] }}, {{ idx }})">
-                <option disabled>선택</option>
-                {% for period in period_options if period != 1 and period != 3 %}
-                <option value="{{ period }}">{{ period }}개월</option>
-                {% endfor %}
-              </select>
-              <p> 월 저축액: <span class="monthly-saving" id="monthly{{ idx }}">-</span></p>
-              <p class="total-saving">총 저축 예상 금액: <span id="total{{ idx }}">-</span></p>
-              <div class="recommended-savings" id="recommend{{ idx }}">-</div>
-            </div>
-            <button class="btn btn-outline-secondary ms-3" type="button" onclick="nextSlide('carousel{{ category }}')"> → </button>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
+    <!-- 헤더 -->
+    <div class="moa-header mb-5">
+        <div class="moa-bar"></div>
+        <h1>CAR <span style="color:#00C4A8;">MOA</span></h1>
+        <p>드라이브의 꿈, 적금으로 시동 걸자!</p>
     </div>
-  </div>
-  {% endfor %}
 
-  <div class="row car-section all-section" data-category="전체">
+<div class="d-flex justify-content-center gap-3 my-5">
+    <button type="button" class="btn btn-outline-success px-4 active" onclick="filterByBox('전체',this)">전체</button>
+    <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('경차',this)">소형(경차)</button>
+    <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('세단',this)">세단</button>
+    <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('소형 SUV',this)">SUV</button>
+</div>
+
+{% set global_counter = namespace(value=0) %}
+{% for category in ['경차', '세단', '소형 SUV'] %}
+<div class="mb-2 car-section filtered-section" data-category="{{ category }}">
+    <div id="carousel{{ category }}" class="carousel slide" data-bs-touch="false" data-bs-interval="false">
+        <div class="carousel-inner">
+            {% for car in car_list if car['카테고리'] == category %}
+            {% set idx = global_counter.value %}
+            {% set global_counter.value = global_counter.value + 1 %}
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                <div class="row align-items-center">
+                    <div class="col-md-1 text-center">
+                        <button class="btn carousel-control-btn" type="button" onclick="prevSlide('carousel{{ category }}')">‹</button>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" class="car-img" alt="{{ car['모델명'] }}">
+                        <h3 class="mt-3">{{ car['모델명'] }}</h3> 
+                        <p>평균 가격 <strong>{{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
+                    </div>
+                    <div class="col-md-5">
+                      <div class="d-flex align-items-center gap-2 mb-3">
+                        <label for="months{{ idx }}" class="form-label mb-0" style="color:#0AA68F;">목표 기간  </label>
+                        <select id="months{{ idx }}"
+                                class="form-select"
+                                data-price="{{ car['평균가격'] }}"
+                                onchange="calculateAndRecommend(this, {{ car['평균가격'] }}, {{ idx }})">
+                          {% for period in period_options if period not in [1,3] %}
+                            <option value="{{ period }}" {% if period==24 %}selected{% endif %}>{{ period }}개월</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+
+                      <p style="color:#0AA68F;">월 저축액  <span id="monthly{{ idx }}" style="color:#000000;">       -</span></p>
+                      <p style="color:#0AA68F;">총 저축 예상 금액  <span id="total{{ idx }}" style="color:#000000;">  -</span></p>
+
+                      <div class="recommended-savings" id="recommend{{ idx }}"></div>
+                    </div>
+                    <div class="col-md-1 text-center">
+                        <button class="btn carousel-control-btn" type="button" onclick="nextSlide('carousel{{ category }}')">›</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="row car-section all-section" data-category="전체">
     {% for car in car_list %}
     {% set idx = loop.index0 %}
     <div class="col-md-4 mb-4">
-      <div class="card h-100 shadow-sm">
-        <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}"
-             class="card-img-top car-img"
-             alt="{{ car['모델명'] }}"
-             style="cursor:pointer"
-             data-category="{{ car['카테고리'] }}"
-             onclick="jumpToSlide('{{ car['카테고리'] }}', {{ loop.index0 }})">
-        <div class="card-body text-center">
-          <h5 class="card-title">{{ car['모델명'] }}</h5>
+        <div class="card h-90">
+            <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" class="card-img-top car-img" alt="{{ car['모델명'] }}" style="cursor:pointer" data-category="{{ car['카테고리'] }}" onclick="jumpToSlide('{{ car['카테고리'] }}', {{ loop.index0 }})">
+            <div class="card-body text-center">
+                <h5 class="card-title">{{ car['모델명'] }}</h5>
+            </div>
         </div>
-      </div>
     </div>
     {% endfor %}
-  </div>
+</div>
+
 </div>
 
 <script>
 const savingsProducts = {{ savings_products | tojson | safe }};
 
 function calculateAndRecommend(select, price, index) {
-  const months = parseInt(select.value);
-  const monthlyEl = document.getElementById("monthly" + index);
-  const totalEl = document.getElementById("total" + index);
-  const recommendEl = document.getElementById("recommend" + index);
+    const months = parseInt(select.value);
+    const monthlyEl = document.getElementById("monthly" + index);
+    const totalEl = document.getElementById("total" + index);
+    const recommendEl = document.getElementById("recommend" + index);
 
-  if (!isNaN(months) && months > 0) {
-    const monthly = (price / months).toFixed(1);
-    const total = (monthly * months).toFixed(1);
-    monthlyEl.textContent = monthly + " 만원";
-    totalEl.textContent = total + " 만원";
+    if (!isNaN(months) && months > 0) {
+        const monthly = (price / months).toFixed(1);
+        const total = (monthly * months).toFixed(1);
+        monthlyEl.textContent = monthly + "    만원";
+        totalEl.textContent = total + "    만원";
 
-    const filtered = savingsProducts
-      .filter(p => parseInt(p.기간) === months)
-      .sort((a, b) => b.금리 - a.금리)
-      .slice(0, 3);
+        const filtered = savingsProducts
+            .filter(p => parseInt(p.기간) === months)
+            .sort((a, b) => b.금리 - a.금리)
+            .slice(0, 3);
 
-    if (filtered.length > 0) {
-      const list = filtered.map(p => {
-        const interestRate = parseFloat(p.금리) / 100;
-        const estimatedTotal = (monthly * months * (1 + (interestRate * months / 12))).toFixed(1);
-        return `
-          <li>
-            <a href="/savings/detail/${encodeURIComponent(p.금융회사명)}/${encodeURIComponent(p.상품명)}" class="text-decoration-none fw-bold text-dark">
-              ${p.상품명}
-            </a><br>
-            <span class="text-muted small">(${p.금융회사명}, <strong>${p.금리}%</strong>)</span><br>
-            <span class="text-success small">예상 수령 금액: <strong>${estimatedTotal} 만원</strong></span>
-          </li>`;
-      }).join('');
-      recommendEl.innerHTML = `<ul class="recommend-list">${list}</ul>`;
+        if (filtered.length > 0) {
+            const list = filtered.map(p => {
+                const interestRate = parseFloat(p.금리) / 100;
+                const estimatedTotal = (monthly * months * (1 + (interestRate * months / 12))).toFixed(1);
+                return `
+                    <li>
+                        <a href="/savings/detail/${encodeURIComponent(p.금융회사명)}/${encodeURIComponent(p.상품명)}" class="text-decoration-none fw-bold text-dark">
+                            ${p.상품명}
+                        </a><br>
+                        <span class="text-muted">(${p.금융회사명}, <strong>${p.금리}%</strong>)</span><br>
+                        <span class="text small"  style="color:#0A9A85;"> → 예상 수령 금액 <strong>${estimatedTotal} 만원</strong></span>
+                    </li>`;
+            }).join('');
+            recommendEl.innerHTML = `<ul class="recommend-list">${list}</ul>`;
+        } else {
+            recommendEl.innerHTML = `<div class="text-muted" >추천 상품 없음</div>`;
+        }
     } else {
-      recommendEl.innerHTML = `<div class="text-muted">추천 상품 없음</div>`;
+        monthlyEl.textContent = "-";
+        totalEl.textContent = "-";
+        recommendEl.innerHTML = "-";
     }
-
-  } else {
-    monthlyEl.textContent = "-";
-    totalEl.textContent = "-";
-    recommendEl.innerHTML = "-";
-  }
 }
 
-function filterByBox(category) {
-  document.querySelectorAll('.filtered-section').forEach(s => s.style.display = 'none');
-  const allSection = document.querySelector('.all-section');
-  if (category === '전체') {
-    allSection.style.display = 'flex';
-  } else {
-    document.querySelectorAll(`.filtered-section[data-category='${category}']`).forEach(s => s.style.display = 'block');
-    allSection.style.display = 'none';
-  }
+function filterByBox(category, clickedBtn) {
+    document.querySelectorAll('.filtered-section').forEach(s => s.style.display = 'none');
+    const allSection = document.querySelector('.all-section');
+    
+    if (category === '전체') {
+        allSection.style.display = 'flex';
+    } else {
+        document.querySelectorAll(`.filtered-section[data-category='${category}']`)
+                .forEach(s => s.style.display = 'block');
+        allSection.style.display = 'none';
+    }
+
+    document.querySelectorAll('.d-flex button').forEach(b => b.classList.remove('active'));
+    clickedBtn.classList.add('active');
 }
 
 function nextSlide(id) {
-  const carousel = document.getElementById(id);
-  const active = carousel.querySelector('.carousel-item.active');
-  let next = active.nextElementSibling;
-  if (!next) next = carousel.querySelector('.carousel-item');
-  active.classList.remove('active');
-  next.classList.add('active');
+    const carousel = document.getElementById(id);
+    const active = carousel.querySelector('.carousel-item.active');
+    let next = active.nextElementSibling;
+    if (!next) next = carousel.querySelector('.carousel-item');
+    active.classList.remove('active');
+    next.classList.add('active');
 }
 
 function prevSlide(id) {
-  const carousel = document.getElementById(id);
-  const active = carousel.querySelector('.carousel-item.active');
-  let prev = active.previousElementSibling;
-  if (!prev) prev = carousel.querySelectorAll('.carousel-item').item(-1);
-  active.classList.remove('active');
-  prev.classList.add('active');
+    const carousel = document.getElementById(id);
+    const active = carousel.querySelector('.carousel-item.active');
+    let prev = active.previousElementSibling;
+    if (!prev) prev = carousel.querySelectorAll('.carousel-item').item(-1);
+    active.classList.remove('active');
+    prev.classList.add('active');
 }
 
 function jumpToSlide(category, index) {
-  filterByBox(category);
-  setTimeout(() => {
-    const carouselId = "carousel" + category;
-    const carousel = document.getElementById(carouselId);
-    const items = carousel.querySelectorAll('.carousel-item');
-    items.forEach(item => item.classList.remove('active'));
-    const target = items[index % items.length];
-    if (target) {
-      target.classList.add('active');
-      window.scrollTo({ top: carousel.offsetTop - 80, behavior: 'smooth' });
-    }
-  }, 200);
+    filterByBox(category);
+    setTimeout(() => {
+        const carouselId = "carousel" + category;
+        const carousel = document.getElementById(carouselId);
+        const items = carousel.querySelectorAll('.carousel-item');
+        items.forEach(item => item.classList.remove('active'));
+        const target = items[index % items.length];
+        if (target) {
+            target.classList.add('active');
+            window.scrollTo({ top: carousel.offsetTop - 80, behavior: 'smooth' });
+        }
+    }, 200);
 }
 
 window.onload = function () {
-  document.querySelectorAll('.filtered-section').forEach(s => s.style.display = 'block');
-  setTimeout(() => {
-    document.querySelectorAll('select[id^="months"]').forEach(select => {
-      const idx = select.id.replace('months', '');
-      select.value = "24";
-      calculateAndRecommend(select, parseInt(select.dataset.price), idx);
-    });
-    filterByBox('전체');
-  }, 300);
+    document.querySelectorAll('.filtered-section')
+            .forEach(s => s.style.display = 'block');
+    setTimeout(() => {
+        document.querySelectorAll('select[id^="months"]').forEach(select => {
+            const idx = select.id.replace('months', '');
+            select.value = "24";
+            calculateAndRecommend(select, parseInt(select.dataset.price), idx);
+        });
+
+        let firstBtn = document.querySelector('.d-flex button.active');
+        if (!firstBtn) {
+            firstBtn = document.querySelector('.d-flex button');
+            firstBtn.classList.add('active');
+        }
+        filterByBox('전체', firstBtn);
+    }, 300);
 };
 </script>
+
 {% endblock %}
