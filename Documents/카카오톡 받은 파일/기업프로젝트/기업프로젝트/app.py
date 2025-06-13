@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import pandas as pd
 import random
 import re
@@ -897,22 +897,88 @@ def plus_region_map():
     ]
     return render_template('region_map.html', breadcrumb=breadcrumb)
 
-@app.route('/plus/travel', methods=['GET'])
-def travel_home():
-    breadcrumb = [
-        {'name': '홈', 'url': '/'},
-        {'name': 'MOA PLUS', 'url': '/plus'},
-        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
-        {'name': 'TRIP MOA', 'current': True}
-    ]
+# =========================================
+# 여행 테스트 페이지
+# =========================================
+# app.py에 추가할 도시별 이미지 매핑
+CITY_IMAGES = {
+    # 일본
+    '오사카': 'https://images.unsplash.com/photo-1590253230532-c6a7124c2e0a?w=800&q=80',  # 오사카성
+    '교토': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80',  # 후시미 이나리 신사
     
-    try:
-        travel_df = pd.read_csv('travel.csv')
-        cities = travel_df['도시'].tolist()
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
-    except Exception as e:
-        print(f"여행 데이터 로드 오류: {e}")
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
+    # 대만
+    '타이베이': 'https://images.unsplash.com/photo-1508248467877-aec1b08de376?w=800&q=80',  # 타이베이 101
+    '가오슝': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',  # 가오슝 항구
+    '화롄': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',  # 타로코 협곡
+    
+    # 베트남
+    '하노이': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&q=80',  # 하노이 호안끼엠 호수
+    '다낭': 'https://images.unsplash.com/photo-1559592413-7cec4d0d2c64?w=800&q=80',  # 다낭 골든브릿지
+    '호치민': 'https://images.unsplash.com/photo-1555401735-8a7d8c0b3db9?w=800&q=80',  # 호치민 노트르담 성당
+    '푸꾸옥': 'https://images.unsplash.com/photo-1544467184-4b4f6b4e3c97?w=800&q=80',  # 푸꾸옥 해변
+    
+    # 태국
+    '치앙마이': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',  # 치앙마이 사원
+    '방콕': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80',  # 방콕 왓포 사원
+    
+    # 말레이시아
+    '쿠알라룸푸르': 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&q=80',  # 페트로나스 트윈타워
+    '조호르바루': 'https://images.unsplash.com/photo-1598946192925-680b3e36a7e8?w=800&q=80',  # 조호르바루 모스크
+    
+    # 싱가포르
+    '싱가포르': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',  # 마리나베이샌즈
+    '센토사': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',  # 센토사 해변
+    
+    # 홍콩
+    '홍콩': 'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=800&q=80',  # 홍콩 빅토리아 항구
+    
+    # 인도네시아
+    '자카르타': 'https://images.unsplash.com/photo-1555899434-94d1b7d270d7?w=800&q=80',  # 자카르타 스카이라인
+    '발리': 'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=800&q=80',  # 발리 우불드 사원
+    
+    # 필리핀
+    '마닐라': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',  # 마닐라 인트라무로스
+    '보라카이': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',  # 보라카이 화이트 비치
+    '세부': 'https://images.unsplash.com/photo-1589881133595-b5e692b9f628?w=800&q=80',  # 세부 성당
+    
+    # 터키
+    '이스탄불': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',  # 이스탄불 아야소피아
+    '카파도키아': 'https://images.unsplash.com/photo-1561475750-0e52d4de690f?w=800&q=80',  # 카파도키아 열기구
+    '안탈리아': 'https://images.unsplash.com/photo-1539650116574-75c0c6d73165?w=800&q=80',  # 안탈리아 해안
+
+
+# 유럽 & 북미
+
+    # 미국
+    '뉴욕': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',  # 뉴욕 자유의 여신상
+    '샌프란시스코': 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80',  # 샌프란시스코 골든게이트 브릿지
+    '포틀랜드': 'https://images.unsplash.com/photo-1512090926665-89a0bddc6f68?w=800&q=80',  # 포틀랜드 시내
+    
+    # 캐나다
+    '퀘벡시티': 'https://images.unsplash.com/photo-1529645468809-5dca3ba2d3ed?w=800&q=80',  # 퀘벡시티 올드타운
+    '몬트리올': 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&q=80',  # 몬트리올 노트르담 성당
+    
+    # 스페인
+    '바르셀로나': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',  # 바르셀로나 사그라다 파밀리아
+    
+    # 이탈리아
+    '시칠리아': 'https://images.unsplash.com/photo-1555992643-db50b4011daf?w=800&q=80',  # 시칠리아 타오르미나
+    '토스카나': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',  # 토스카나 언덕
+    
+    # 프랑스
+    '파리': 'https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=800&q=80',  # 파리 에펠탑
+    '리옹': 'https://images.unsplash.com/photo-1582480065751-d71e0910b19c?w=800&q=80',  # 리옹 시내
+    
+    # 포르투갈
+    '리스본': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80',  # 리스본 트램
+    
+    # 체코
+    '프라하': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=800&q=80',  # 프라하 성
+    
+    # 조지아
+    '트빌리시': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',  # 트빌리시 올드타운
+}
+
 
 @app.route('/plus/travel-plan', methods=['GET', 'POST'])
 def travel_plan():
@@ -925,8 +991,22 @@ def travel_plan():
     
     try:
         travel_df = pd.read_csv("travel.csv")
-        cities = travel_df['도시'].tolist()
-
+        
+        # CSV에서 실제 국가 목록 추출
+        available_countries = travel_df['국가'].unique().tolist()
+        
+        # 대륙별 국가 매핑 (GeoJSON의 7개 대륙에 맞춤)
+        continent_mapping = {
+            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀'],
+            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아', '터키'],  # 터키를 유럽에 포함
+            'north-america': ['미국', '캐나다'],
+            'south-america': [],     # CSV에 남미 국가 없음
+            'oceania': [],           # CSV에 오세아니아 국가 없음
+            'africa': [],            # CSV에 아프리카 국가 없음
+            'antarctica': []         # 남극은 여행지 없음
+        }
+        
+        # POST 요청 처리 (기존 로직 유지)
         if request.method == 'POST':
             selected_city = request.form['city']
             months = int(request.form['months'])
@@ -974,11 +1054,153 @@ def travel_plan():
                     products=recommended_products
                 )
 
-        # GET 요청일 때는 도시 리스트만 넘겨서 폼 렌더링
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
+        # GET 요청일 때는 세계지도 기반 페이지 렌더링
+        return render_template('travel_worldmap.html', 
+                             breadcrumb=breadcrumb, 
+                             continent_mapping=continent_mapping,
+                             available_countries=available_countries)
+    
     except Exception as e:
         print(f"여행 계획 오류: {e}")
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
+        return render_template('travel_worldmap.html', 
+                             breadcrumb=breadcrumb, 
+                             continent_mapping={},
+                             available_countries=[])
+
+# 대륙별 국가 정보 API
+@app.route('/api/continent/<continent_id>')
+def get_continent_countries(continent_id):
+    try:
+        travel_df = pd.read_csv("travel.csv")
+        
+        # GeoJSON의 7개 대륙에 맞춘 매핑
+        continent_mapping = {
+            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀'],
+            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아', '터키'],
+            'north-america': ['미국', '캐나다'],
+            'south-america': [],
+            'oceania': [],
+            'africa': [],
+            'antarctica': []
+        }
+        
+        if continent_id not in continent_mapping:
+            return jsonify({'error': '해당 대륙을 찾을 수 없습니다.'}), 404
+            
+        countries = continent_mapping[continent_id]
+        
+        # 빈 대륙의 경우 빈 배열 반환
+        if not countries:
+            return jsonify([])
+        
+        # 해당 대륙의 국가들 데이터 필터링
+        continent_data = travel_df[travel_df['국가'].isin(countries)]
+        
+        result = []
+        for _, row in continent_data.iterrows():
+            city_name = row['도시']
+            # 기본 이미지 URL 설정
+            default_image = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'
+            
+            result.append({
+                'country': row['국가'],
+                'city': row['도시'],
+                'theme': row['테마'],
+                'reason': row['추천이유'],
+                'days': row['추천일정'],
+                'total_cost': int(row['총예상경비']),
+                'airfare': int(row['예상항공료']),
+                'accommodation': int(row['숙박비']),
+                'food': int(row['식비']),
+                'image_url': CITY_IMAGES.get(city_name, default_image)
+            })
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': f'데이터 로딩 중 오류: {str(e)}'}), 500
+
+# 나머지 API들은 이전과 동일...
+@app.route('/debug/countries')
+def debug_countries():
+    try:
+        travel_df = pd.read_csv("travel.csv")
+        countries_in_csv = travel_df['국가'].unique().tolist()
+        cities_by_country = {}
+        
+        # 대륙별 분류도 함께 표시
+        continent_mapping = {
+            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀'],
+            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아', '터키'],
+            'north-america': ['미국', '캐나다'],
+            'south-america': [],
+            'oceania': [],
+            'africa': [],
+            'antarctica': []
+        }
+        
+        for country in countries_in_csv:
+            cities = travel_df[travel_df['국가'] == country]['도시'].tolist()
+            cities_by_country[country] = cities
+            
+        # 대륙별 국가 수 계산
+        continent_stats = {}
+        for continent, countries in continent_mapping.items():
+            continent_stats[continent] = {
+                'countries': countries,
+                'count': len(countries)
+            }
+            
+        return jsonify({
+            "countries_in_csv": countries_in_csv,
+            "total_countries": len(countries_in_csv),
+            "cities_by_country": cities_by_country,
+            "total_cities": len(travel_df),
+            "continent_mapping": continent_stats
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/data/continent-low.geo.json')
+def serve_geojson():
+    try:
+        data_path = os.path.join(app.root_path, 'data')
+        file_path = os.path.join(data_path, 'continent-low.geo.json')
+        
+        if not os.path.exists(file_path):
+            return jsonify({
+                "error": "GeoJSON 파일을 찾을 수 없습니다.",
+                "path": file_path
+            }), 404
+        
+        return send_from_directory(data_path, 'continent-low.geo.json')
+    
+    except Exception as e:
+        return jsonify({
+            "error": f"파일 서빙 중 오류 발생: {str(e)}"
+        }), 500
+
+@app.route('/debug/check-files')
+def check_files():
+    data_path = os.path.join(app.root_path, 'data')
+    geojson_path = os.path.join(data_path, 'continent-low.geo.json')
+    csv_path = os.path.join(app.root_path, 'travel.csv')
+    
+    return jsonify({
+        "data_directory_exists": os.path.exists(data_path),
+        "geojson_file_exists": os.path.exists(geojson_path),
+        "csv_file_exists": os.path.exists(csv_path),
+        "data_path": data_path,
+        "geojson_path": geojson_path,
+        "csv_path": csv_path,
+        "files_in_data": os.listdir(data_path) if os.path.exists(data_path) else [],
+        "files_in_root": [f for f in os.listdir(app.root_path) if f.endswith('.csv')]
+    })
+
+
+
+
+
 
 # =========================================
 # 적금‧예금 비교 결과 계산 헬퍼

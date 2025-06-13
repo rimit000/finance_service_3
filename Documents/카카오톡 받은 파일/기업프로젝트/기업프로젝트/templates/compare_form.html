@@ -53,13 +53,11 @@
       font-weight: 400;
     }
 
-
-
     .compare-box {
       background-color: white;
-      border-radius: 12px;
+      border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      max-width: 800px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 30px;
     }
@@ -87,7 +85,7 @@
     .form-card {
       flex: 1;
       border: 1px solid #ddd;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 20px;
       background-color: #fafafa;
     }
@@ -104,229 +102,820 @@
       padding: 8px;
       margin-top: 6px;
       margin-bottom: 14px;
-      border-radius: 6px;
+      border-radius: 10px;
       border: 1px solid #ccc;
     }
 
-    .result-section {
+    /* 그룹 버튼 (pill 스타일) */
+    .group-buttons {
       display: flex;
-      justify-content: space-around;
+      width: 100%;
+      background-color: #fffdfd;
+      border-radius: 10px;
+      overflow: hidden;
+      z-index: 1;
+      box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
+      height: 48px;
+      align-items: center;
+      padding: 6px;
+      gap: 8px; /* 버튼 간 여백 */
+    }
+
+    .group-buttons button {
+      border: none;
+      background: none;
+      padding: 0 24px;
+      height: 100%;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #444;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;      /* 추가: 버튼이 그룹 너비 균등 분배 */
+      border-radius: 10px;
+    }
+
+    .group-buttons .active {
+      background-color: #fdfdfd;
+      color: #00C4A8;
+      font-weight: 600;
+      box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
+      border-radius: 10px;
+    }
+
+    .button-group-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      border-radius: 10px;
+    }
+
+    /* 직접 입력 영역 */
+    .manual-rate-box {
+      margin-top: 12px;
+      padding: 16px;
+      border: 1px solid transparent; /* 보이지 않게 처리 */
+      border-radius: 10px;
+      background-color: transparent;
+      display: block; /* 항상 표시 */
+      min-height: 60px; /* 항상 공간 확보 */
+      transition: all 0.3s ease;
+    }
+    .manual-rate-box.hidden {
+      background-color: transparent;
+      border-color: transparent;
+      display: none; /* 숨김 처리 */
+    }
+
+    .manual-rate-box.visible {
+      background-color: #fafafa;
+      border: 1px solid #e2e2e2;
+    }
+    .manual-rate-box label {
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #444;
+    }
+
+    .rate-input {
+      width: 80px;
+      padding: 4px 8px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      text-align: right;
+    }
+
+    .label-text {
+      color: #222;
+      font-weight: 500;
+      width: 30%;
+    }
+
+    /* -------------------- 공통 드롭다운 박스 -------------------- */
+    .custom-dropdown {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      width: 100%;
+      background-color: white;
+      font-family: sans-serif;
+      margin-top: 12px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .dropdown-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .dropdown-tabs button {
+      flex: 1;
+      border: none;
+      background: none;
+      font-weight: 500;
+      color: #777;
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    .dropdown-tabs .active {
+      color: #00C4A8;
+      font-weight: 600;
+    }
+
+    .dropdown-list-wrapper {
+      max-height: 140px;
+      overflow-y: auto;
+      border-top: 1px solid #eee;
+      padding-top: 8px;
+    }
+
+    .dropdown-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      background-color: white;
+      box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+      z-index: 5;
+    }
+
+    .dropdown-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #444;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .dropdown-item:hover,
+    .dropdown-item.selected {
+      background-color: #f6fdfc;
+      color: #00C4A8;
+      font-weight: 600;
+    }
+
+    .dropdown-arrow {
+      text-align: right;
+      font-size: 0.8rem;
+      color: #00C4A8;
+      margin-top: 4px;
+    }
+
+    /* 계산 섹션 */
+    .calculation-section {
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .calculation-section h3 {
+      color: #00C4A8;
+      margin-bottom: 15px;
+    }
+
+    .calculation-inputs {
+      display: flex;
+	  flex-direction: column;
+	  align-items: center;
       gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .calculation-inputs > div {
+      flex: 1;
+    }
+
+	.calculation-inputs label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 5px;
+	font-weight: 500;
+	}
+
+	.calculation-inputs input {
+	width: 120px;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 10px;
+	text-align: right;
+	}
+
+    .compare-button {
+      background-color: #00C4A8;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.2s;
+    }
+
+    .compare-button:hover {
+      background-color: #00a08c;
+    }
+
+    /* 결과 표시 */
+    .result-section {
+      margin-top: 30px;
+      display: none;
+    }
+
+    .result-cards {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
     }
 
     .result-card {
       flex: 1;
-      padding: 20px;
-      border-radius: 8px;
-      background-color: #fff;
-      border: 1px solid #e0e0e0;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.05);
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      position: relative;
     }
 
-    .result-card h3 {
-      margin: 0;
+    .result-card.winner {
+      border-color: #00C4A8;
+      background: linear-gradient(135deg, #f0fffe 0%, #e6fffc 100%);
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 196, 168, 0.15);
+    }
+
+    .result-card .bank-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 15px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .result-card .bank-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .result-card .bank-name {
       font-size: 1.1rem;
+      font-weight: 600;
       color: #333;
     }
 
-    .result-card p {
-      margin: 6px 0;
+    .result-card .product-name {
       font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 15px;
+      line-height: 1.3;
     }
 
+    .result-card .rate-display {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 
+    .result-card .rate-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #00C4A8;
+    }
 
-        /* 그룹 버튼 (pill 스타일) */
+    .result-card .rate-label {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 5px;
+    }
 
+    .result-details {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
 
+    .result-details li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
 
-    /* 버튼 스타일 테스트 */
-    .group-buttons {
-  display: flex;
-  width: 100%;
-  background-color: #fffdfd;
-  border-radius: 12px;
-  overflow: hidden;
-  z-index: 1;
-  box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
-  height: 48px;
-  align-items: center;
-  padding: 6px;
-    gap: 8px; /* 버튼 간 여백 */
-  }
+    .result-details li:last-child {
+      border-bottom: none;
+      padding-top: 12px;
+      margin-top: 8px;
+      border-top: 2px solid #00C4A8;
+    }
 
-  .group-buttons button {
-    border: none;
-    background: none;
-    padding: 0 24px;
-    height: 100%;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #444;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  flex: 1;      /* 추가: 버튼이 그룹 너비 균등 분배 */
-  }
+    .result-details .label {
+      font-size: 0.9rem;
+      color: #666;
+    }
 
-  .group-buttons .active {
-    background-color: #fdfdfd;
-    color: #00C4A8;
-    font-weight: 600;
-    box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
-  }
+    .result-details .value {
+      font-weight: 600;
+      color: #333;
+    }
 
-  .group-buttons button:hover {
-    background-color: #f9f9f9;
-  }
+    .result-details .final-amount {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #00C4A8;
+    }
 
-  .button-group-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
+    .result-summary {
+      background: linear-gradient(135deg, #00C4A8 0%, #00a08c 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 6px 16px rgba(0, 196, 168, 0.2);
+    }
 
+    .result-summary h3 {
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
 
-  /* 직접 입력 영역 */
-    .manual-rate-box {
-    margin-top: 12px;
-    padding: 16px;
-    border: 1px solid #e2e2e2;
-    border-radius: 8px;
-    background-color: #fafafa;
-    display: none;
-    transition: all 0.3s ease;
-  }
+    .result-summary .gap-amount {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-top: 10px;
+    }
 
-  .manual-rate-box label {
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #444;
-  }
+    .winner-badge {
+      position: absolute;
+      top: -8px;
+      right: 15px;
+      background: #00C4A8;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
 
-  .rate-input {
-    width: 80px;
-    padding: 4px 8px;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: right;
-  }
-
-  .label-text {
-    color: #222;
-    font-weight: 500;
-  }
   </style>
-  
-</head>
 
-
-<body>
-
-  <div class="container mt-1 mb-5">
-    <div class="moa-header mb-5">
-      <div class="moa-bar"></div>
-    
+<div class="container mt-1 mb-5">
+  <div class="moa-header mb-5">
+    <div class="moa-bar"></div>
     <h1>한눈에 싹 MOA</h1>
     <p>예·적금, 가입 전 비교는 필수!<br>수익률 높은 상품을 똑똑하게 찾아보세요.</p>
+  </div>
+
+  <div class="compare-box">
+    <h1>금융상품 비교하기</h1>
+    <p>두 상품을 선택해서 수익률을 비교해보세요</p>
+
+    <form method="POST" id="compare-form">
+      <!-- 예금/적금 선택 -->
+      <div class="group-buttons" id="type-toggle">
+        <button type="button" class="btn-type" data-type="deposit">예금</button>
+        <button type="button" class="btn-type active" data-type="savings">적금</button>
       </div>
+      <input type="hidden" name="product_type" id="product_type" value="savings">
 
-
-    <div class="form-section">
-      <div class="form-card">
-        
-        
+      <div class="form-section">
+        <!-- 첫 번째 상품 -->
+        <div class="form-card">
+          <h2>첫 번째 상품</h2>
+          
           <div class="button-group-wrapper">
-<!-- 예금/적금 선택 -->
-<div class="group-buttons" id="type-toggle">
-  <button class="btn-type" data-type="deposit">예금</button>
-  <button class="btn-type" data-type="savings">적금</button>
-</div>
+            <!-- 목록에서 선택 / 직접 입력 -->
+            <div class="group-buttons entry-toggle" data-side="left">
+              <button type="button" class="btn-option active" data-mode="list">목록에서 선택</button>
+              <button type="button" class="btn-option" data-mode="manual">직접 입력</button>   
+            </div>
 
-<!-- 목록에서 선택 / 직접 입력 -->
-<div class="direct-input-wrapper">
-  <div class="group-buttons" id="entry-toggle">
-    <button class="btn-option" data-mode="list">목록에서 선택</button>
-    <button class="btn-option" data-mode="manual">직접 입력</button>
-  </div>
+            <div class="manual-rate-box hidden" data-side="left">
+              <label>
+                <span class="label-text">	&nbsp;&nbsp;&nbsp;금리 입력 :</span>
+                <input type="number" class="rate-input" name="rate_left" placeholder="예: 3.15" step="0.01"> %
+              </label>
+            </div>
 
-  <div class="manual-rate-box" id="manual-rate-box">
-    <label>
-      <span class="label-text">금리 입력 :</span>
-      <input type="number" class="rate-input" placeholder="예: 3.15" step="0.01"> %
-    </label>
-  </div>
-</div>
+            <!-- 은행 선택 -->
+            <div class="custom-dropdown bank-select" data-side="left">
+              <div class="dropdown-tabs">
+                <button type="button" class="active" data-type="all">전체</button>
+                <button type="button" data-type="tier1">1금융권</button>
+                <button type="button" data-type="tier2">2금융권</button>
+              </div>
+              <div class="dropdown-list-wrapper">
+                <ul class="bank-list dropdown-list">
+                  <!-- 은행 항목 -->
+                </ul>
+              </div>
+            </div>
 
+            <!-- 상품 선택 -->
+            <div class="custom-dropdown product-select" data-side="left" style="display: none;">
+              <div class="dropdown-list-wrapper">
+                <ul class="product-list dropdown-list">
+                  <!-- 상품 항목들이 여기에 동적으로 추가됨 -->
+                </ul>
+              </div>
+            </div>
+
+            <!-- Hidden inputs for left side -->
+            <input type="hidden" name="mode_left" value="list">
+            <input type="hidden" name="tier_left" value="all">
+            <input type="hidden" name="bank_left" value="">
+            <input type="hidden" name="product_left" value="">
           </div>
+        </div>
 
+        <!-- 두 번째 상품 -->
+        <div class="form-card">
+          <h2>두 번째 상품</h2>
+          
+          <div class="button-group-wrapper">
+            <!-- 목록에서 선택 / 직접 입력 -->
+            <div class="group-buttons entry-toggle" data-side="right">
+              <button type="button" class="btn-option active" data-mode="list">목록에서 선택</button>
+              <button type="button" class="btn-option" data-mode="manual">직접 입력</button>   
+            </div>
 
+            <div class="manual-rate-box hidden" data-side="right">
+              <label>
+                <span class="label-text">금리 입력 :</span>
+                <input type="number" class="rate-input" name="rate_right" placeholder="예: 3.15" step="0.01"> %
+              </label>
+            </div>
 
-        <select>
-          <option>은행 선택</option>
-        </select>
-        <select>
-          <option>상품 선택</option>
-        </select>
-        <input type="number" placeholder="금리 (%)">
+            <!-- 은행 선택 -->
+            <div class="custom-dropdown bank-select" data-side="right">
+              <div class="dropdown-tabs">
+                <button type="button" class="active" data-type="all">전체</button>
+                <button type="button" data-type="tier1">1금융권</button>
+                <button type="button" data-type="tier2">2금융권</button>
+              </div>
+              <div class="dropdown-list-wrapper">
+                <ul class="bank-list dropdown-list">
+                  <!-- 은행 항목 -->
+                </ul>
+              </div>
+            </div>
+
+            <!-- 상품 선택 -->
+            <div class="custom-dropdown product-select" data-side="right" style="display: none;">
+              <div class="dropdown-list-wrapper">
+                <ul class="product-list dropdown-list">
+                  <!-- 상품 항목들이 여기에 동적으로 추가됨 -->
+                </ul>
+              </div>
+            </div>
+
+            <!-- Hidden inputs for right side -->
+            <input type="hidden" name="mode_right" value="list">
+            <input type="hidden" name="tier_right" value="all">
+            <input type="hidden" name="bank_right" value="">
+            <input type="hidden" name="product_right" value="">
+          </div>
+        </div>
       </div>
 
-    <div class="result-section">
-      <div class="result-card">
-        <h3>카카오뱅크</h3>
-        <p>상품명: 모아모아 적금</p>
-        <p>이자(세후): 68,463원</p>
-        <p><strong>실수령액: 3,668,463원</strong></p>
-      </div>
+      <!-- 계산 조건 입력 -->
+	<div class="calculation-section">
+	<div class="calculation-inputs">
+		<div>
+		<label for="amount">월 적금액 
+			<input type="number" id="amount" name="amount" value="100000" min="1000" step="1000" required>
+			&nbsp;&nbsp;원&nbsp;&nbsp;&nbsp;
+		</label>
+		</div>
+		<div>
+		<label for="months">납입 기간 
+			<input type="number" id="months" name="months" value="12" min="1" max="120" required>
+			개월
+		</label>
+		</div>
+	</div>
+	<button type="submit" class="compare-button">비교하기</button>
+	</div>
 
+    <!-- 결과 표시 -->
+    {% if result1 and result2 %}
+    <div class="result-section" style="display: block;">
+      <div class="result-cards">
+        <div class="result-card {{ 'winner' if result1.실수령액 > result2.실수령액 else '' }}">
+          {% if result1.실수령액 > result2.실수령액 %}
+          <div class="winner-badge">유리!</div>
+          {% endif %}
+          
+          <div class="bank-header">
+            <div class="bank-logo">
+              {% if result1.로고파일명 %}
+              <img src="{{ url_for('static', filename='bank_logos/' + result1.로고파일명) }}" 
+                   alt="{{ result1.금융회사명 }}" style="width: 100%; height: 100%; object-fit: contain;">
+              {% else %}
+              {{ result1.금융회사명[:2] }}
+              {% endif %}
+            </div>
+            <div class="bank-name">{{ result1.금융회사명 }}</div>
+          </div>
+          
+          <div class="product-name">{{ result1.상품명 }}</div>
+          
+          <div class="rate-display">
+            <div class="rate-value">{{ "%.2f"|format(result1.금리) }}%</div>
+            <div class="rate-label">연간 금리</div>
+          </div>
+          
+          <ul class="result-details">
+            <li>
+              <span class="label">세전 이자</span>
+              <span class="value">{{ "{:,}".format(result1.세전이자|int) }}원</span>
+            </li>
+            <li>
+              <span class="label">이자 과세</span>
+              <span class="value">{{ "{:,}".format(result1.이자과세|int) }}원</span>
+            </li>
+            <li>
+              <span class="label">세후 이자</span>
+              <span class="value">{{ "{:,}".format(result1.세후이자|int) }}원</span>
+            </li>
+            <li>
+              <span class="label">실수령액</span>
+              <span class="value final-amount">{{ "{:,}".format(result1.실수령액|int) }}원</span>
+            </li>
+          </ul>
+        </div>
+        
+        <div class="result-card {{ 'winner' if result2.실수령액 > result1.실수령액 else '' }}">
+          {% if result2.실수령액 > result1.실수령액 %}
+          <div class="winner-badge">승리!</div>
+          {% endif %}
+          
+          <div class="bank-header">
+            <div class="bank-logo">
+              {% if result2.로고파일명 %}
+              <img src="{{ url_for('static', filename='bank_logos/' + result2.로고파일명) }}" 
+                   alt="{{ result2.금융회사명 }}" style="width: 100%; height: 100%; object-fit: contain;">
+              {% else %}
+              {{ result2.금융회사명[:2] }}
+              {% endif %}
+            </div>
+            <div class="bank-name">{{ result2.금융회사명 }}</div>
+          </div>
+          
+          <div class="product-name">{{ result2.상품명 }}</div>
+          
+          <div class="rate-display">
+            <div class="rate-value">{{ "%.2f"|format(result2.금리) }}%</div>
+            <div class="rate-label">연간 금리</div>
+          </div>
+          
+          <ul class="result-details">
+            <li>
+              <span class="label">세전 이자</span>
+              <span class="value">{{ "{:,}".format(result2.세전이자|int) }}원</span>
+            </li>
+            <li>
+              <span class="label">이자 과세</span>
+              <span class="value">{{ "{:,}".format(result2.이자과세|int) }}원</span>
+            </li>
+            <li>
+              <span class="label">세후 이자</span>
+              <span class="value">{{ "{:,}".format(result2.세후이자|int) }}원</span>
+            </li>
+            <li>
+              <span class="label">실수령액</span>
+              <span class="value final-amount">{{ "{:,}".format(result2.실수령액|int) }}원</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="result-summary">
+        <h3>{{ better }}이(가) 더 유리합니다!</h3>
+        <div class="gap-amount">{{ "{:,}".format(gap|int) }}원 더 많이 받을 수 있습니다</div>
+      </div>
     </div>
+    {% endif %}
   </div>
-
-</body>
-
+</div>
 
 <!-- JavaScript 코드 -->
-<!-- JavaScript -->
 <script>
-  const typeButtons = document.querySelectorAll('#type-toggle .btn-type');
-  const entryButtons = document.querySelectorAll('#entry-toggle .btn-option');
-  const manualBox = document.getElementById('manual-rate-box');
+// === 전역 변수 ===
+const productMap = {{ product_map | tojson }};
+const bankTierMap = {{ bank_tier_map | tojson }};
 
-  // 예금/적금 버튼 클릭 시
-  typeButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      // active 클래스 적용
-      typeButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+// 은행 목록 (티어별)
+const bankOptions = {
+  all: [],
+  tier1: [],
+  tier2: []
+};
 
-      // entry-toggle 버튼들 활성화
-      entryButtons.forEach(b => b.removeAttribute('disabled'));
+// 은행 목록 초기화
+Object.keys(bankTierMap).forEach(bank => {
+  bankOptions.all.push(bank);
+  if (bankTierMap[bank] === 'tier1') {
+    bankOptions.tier1.push(bank);
+  } else {
+    bankOptions.tier2.push(bank);
+  }
+});
 
-      // 목록에서 선택 초기화
-      entryButtons.forEach(b => b.classList.remove('active'));
-      entryButtons[0].classList.add('active'); // '목록에서 선택' 기본
-      manualBox.style.display = 'none';
+// === DOM 요소 선택자 ===
+const typeButtons = document.querySelectorAll('#type-toggle .btn-type');
+const productTypeInput = document.getElementById('product_type');
+
+// === 유틸리티 함수 ===
+function updateHiddenInput(name, value) {
+  const input = document.querySelector(`input[name="${name}"]`);
+  if (input) input.value = value;
+}
+
+function renderBankList(container, type) {
+  const bankList = container.querySelector('.bank-list');
+  const side = container.getAttribute('data-side');
+  
+  bankList.innerHTML = '';
+  bankOptions[type].forEach(bank => {
+    const li = document.createElement('li');
+    li.textContent = bank;
+    li.classList.add('dropdown-item');
+    li.addEventListener('click', () => {
+      // 기존 선택 해제
+      container.querySelectorAll('.bank-list li').forEach(el => el.classList.remove('selected'));
+      li.classList.add('selected');
+      
+      // Hidden input 업데이트
+      updateHiddenInput(`bank_${side}`, bank);
+      
+      // 상품 목록 렌더링
+      renderProductListByBank(container.parentElement, bank);
+      
+      console.log(`${side} 선택한 은행:`, bank);
     });
+    bankList.appendChild(li);
   });
+}
 
-  // 목록/직접입력 토글
-  entryButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return; // 비활성화 상태일 땐 무시
+function renderProductListByBank(wrapper, bankName) {
+  const side = wrapper.querySelector('.bank-select').getAttribute('data-side');
+  const productContainer = wrapper.querySelector('.product-select');
+  const productList = productContainer.querySelector('.product-list');
+  
+  const currentType = document.querySelector('#type-toggle .btn-type.active').dataset.type;
+  const products = (productMap[currentType] && productMap[currentType][bankName]) || [];
 
-      entryButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      // 수동 입력창 표시 여부
-      if (btn.dataset.mode === 'manual') {
-        manualBox.style.display = 'block';
-      } else {
-        manualBox.style.display = 'none';
-      }
+  productList.innerHTML = '';
+  products.forEach(name => {
+    const li = document.createElement('li');
+    li.textContent = name;
+    li.classList.add('dropdown-item');
+    li.addEventListener('click', () => {
+      productContainer.querySelectorAll('.product-list li').forEach(el => el.classList.remove('selected'));
+      li.classList.add('selected');
+      
+      // Hidden input 업데이트
+      updateHiddenInput(`product_${side}`, name);
+      
+      console.log(`${side} 선택한 상품:`, name);
     });
+    productList.appendChild(li);
   });
+  
+  // 상품 선택 드롭다운 표시
+  productContainer.style.display = 'block';
+  updateHiddenInput(`product_${side}`, '');
+}
+
+// === 이벤트 리스너 ===
+
+// 예금/적금 타입 변경
+typeButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    typeButtons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    productTypeInput.value = btn.dataset.type;
+
+    // 모든 폼 초기화
+    initializeAllForms();
+  });
+});
+
+// 은행 탭 변경
+document.addEventListener('click', (e) => {
+  if (e.target.matches('.dropdown-tabs button')) {
+    const container = e.target.closest('.bank-select');
+    const side = container.getAttribute('data-side');
+    const tabs = container.querySelectorAll('.dropdown-tabs button');
+    
+    tabs.forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    
+    renderBankList(container, e.target.dataset.type);
+    updateHiddenInput(`tier_${side}`, e.target.dataset.type);
+    
+    // 상품 선택 초기화
+    const productContainer = container.parentElement.querySelector('.product-select');
+    productContainer.style.display = 'none';
+    updateHiddenInput(`bank_${side}`, '');
+    updateHiddenInput(`product_${side}`, '');
+  }
+});
+
+// 목록/직접입력 모드 변경
+document.addEventListener('click', (e) => {
+  if (e.target.matches('.entry-toggle .btn-option')) {
+    const wrapper = e.target.closest('.button-group-wrapper');
+    const side = e.target.closest('.entry-toggle').getAttribute('data-side');
+    const buttons = wrapper.querySelectorAll('.entry-toggle .btn-option');
+    
+    buttons.forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    
+    const isManual = e.target.dataset.mode === 'manual';
+    const manualBox = wrapper.querySelector('.manual-rate-box');
+    const bankSelect = wrapper.querySelector('.bank-select');
+    const productSelect = wrapper.querySelector('.product-select');
+    
+    updateHiddenInput(`mode_${side}`, e.target.dataset.mode);
+    
+    if (isManual) {
+      manualBox.classList.remove('hidden');
+      manualBox.classList.add('visible');
+      bankSelect.style.display = 'none';
+      productSelect.style.display = 'none';
+    } else {
+      manualBox.classList.remove('visible');
+      manualBox.classList.add('hidden');
+      bankSelect.style.display = 'block';
+      renderBankList(bankSelect, 'all');
+      productSelect.style.display = 'none';
+    }
+  }
+});
+
+// 상품 드롭다운 토글 (삭제됨 - 은행 선택과 동일한 스타일로 변경)
+
+// 폼 초기화 함수
+function initializeAllForms() {
+  // 모든 사이드에 대해 초기화
+  ['left', 'right'].forEach(side => {
+    // 모드를 목록 선택으로 초기화
+    const entryToggle = document.querySelector(`.entry-toggle[data-side="${side}"]`);
+    const buttons = entryToggle.querySelectorAll('.btn-option');
+    buttons.forEach(b => b.classList.remove('active'));
+    buttons[0].classList.add('active'); // 첫 번째 버튼 (목록에서 선택) 활성화
+    
+    // Hidden inputs 초기화
+    updateHiddenInput(`mode_${side}`, 'list');
+    updateHiddenInput(`tier_${side}`, 'all');
+    updateHiddenInput(`bank_${side}`, '');
+    updateHiddenInput(`product_${side}`, '');
+    
+    // UI 초기화
+    const wrapper = entryToggle.closest('.button-group-wrapper');
+    const manualBox = wrapper.querySelector('.manual-rate-box');
+    const bankSelect = wrapper.querySelector('.bank-select');
+    const productSelect = wrapper.querySelector('.product-select');
+    
+    manualBox.classList.remove('visible');
+    manualBox.classList.add('hidden');
+    bankSelect.style.display = 'block';
+    productSelect.style.display = 'none';
+    
+    // 은행 목록 렌더링
+    renderBankList(bankSelect, 'all');
+    
+    // 은행 탭 초기화
+    const bankTabs = bankSelect.querySelectorAll('.dropdown-tabs button');
+    bankTabs.forEach(t => t.classList.remove('active'));
+    bankTabs[0].classList.add('active'); // 전체 탭 활성화
+  });
+}
+
+// 페이지 로드 시 초기 설정
+document.addEventListener('DOMContentLoaded', () => {
+  initializeAllForms();
+});
+
 </script>
 
 {% endblock %}
