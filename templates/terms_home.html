@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
 {% block title %}단어를 MOA{% endblock %}
 
 {% block content %}
@@ -14,10 +15,15 @@
   }
 
   .moa-header h1 {
-    font-size: 5rem;
+    font-size: 4rem; /* 다른 페이지와 동일한 크기로 변경 */
     font-weight: 700;
-    color: #00C4A8; 
+    color: #000000; /* 검은색으로 변경 */
     letter-spacing: 1.5px;
+  }
+
+  /* MOA 텍스트에만 녹색 적용 */
+  .moa-header h1 .moa-highlight {
+    color: #00C4A8;
   }
 
   .moa-header h1 span {
@@ -93,12 +99,14 @@
     text-decoration: none;
     transition: 0.2s;
   }
+
   .moa-bar {
     width: 53px;
     height: 10px;
-    background-color: #8AE4D7;
-    margin: 20px auto 30px;
+    background-color: #8AE2BB; /* 연한 녹색으로 변경 */
+    margin: 0 auto 30px; /* 상단 여백 제거 */
   }
+
   .moa-buttons a:hover {
     background-color: #00bfa5;
     color: white;
@@ -119,7 +127,7 @@
 <!-- 상단 제목 영역 -->
 <div class="moa-header">
   <div class="moa-bar"></div>
-  <h1><span>단어를</span> MOA</h1>
+  <h1>단어를 <span class="moa-highlight">MOA</span></h1>
   <p>한눈에 보는 핵심 개념, 모아플러스 금융 용어 사전</p>
 </div>
 

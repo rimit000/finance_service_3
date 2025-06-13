@@ -177,9 +177,15 @@
   .moa-header h1 {
     font-size: 4rem;
     font-weight: 700;
-    color: var(--moa-green);
+    color: #000000;  /* 기본 텍스트 색상을 검은색으로 변경 */
     letter-spacing: 1.5px;
   }
+  
+  /* MOA 텍스트에만 녹색 적용 */
+  .moa-header h1 .moa-highlight {
+    color: var(--moa-green);
+  }
+  
   .moa-header h1 span {
     color: var(--moa-light);
   }
@@ -403,14 +409,12 @@
   }
 </style>
 
-<!-- 메인 콘텐츠 (전체 너비 사용) -->
-<div class="main-content">
-  <!-- 타이틀 -->
-  <div class="moa-header">
-    <div class="moa-bar"></div>
-    <h1><span>내 상품,</span> 이자 얼MOA?</h1>
-    <p>내가 가진 금융 상품, 여기서 바로 이자 계산 끝!</p>
-  </div>
+<!-- 헤더 부분에서 MOA 강조를 위한 HTML 구조 변경 -->
+<div class="moa-header">
+  <div class="moa-bar"></div>
+  <h1>내 상품, 이자 얼<span class="moa-highlight">MOA</span>?</h1>
+  <p>내가 가진 금융 상품, 여기서 바로 이자 계산 끝!</p>
+</div>
 
   <!-- 탭 리스트 -->
   <div class="container py-5" data-bs-theme="auto">

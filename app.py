@@ -22,7 +22,7 @@ def logo_filename(bank_name):
     filename = bank_logo_map.get(bank_name)
     return f"bank_logos/{filename}" if filename else "bank_logos/default.png"
 
-# ✔ 예금/적금 데이터 로드
+# ✔ 예금/적금 데이터 로드HOUS
 try:
     deposit_tier1 = pd.read_csv('예금_1금융권_포함.csv')
     deposit_tier2 = pd.read_csv('예금_2금융권.csv')
@@ -128,6 +128,21 @@ def safe_add_columns(df, df_name):
         if not df.empty:
             df['지역'] = '기타'
             df['logo'] = 'default.png'
+# 여기에 expand_to_all_regions 정의
+ALL_REGIONS = [
+    '서울', '부산', '대구', '인천', '광주', '대전', '울산',
+    '경기', '강원', '충북', '충남', '전북', '전남', '경북', '경남',
+    '제주', '기타'
+]
+
+def expand_to_all_regions(df, bank_col='금융회사명', region_col='지역'):
+    rows = []
+    for _, row in df.iterrows():
+        for r in ALL_REGIONS:
+            new_row = row.copy()
+            new_row[region_col] = r
+            rows.append(new_row)
+    return pd.DataFrame(rows)
 
 # 각 데이터프레임에 안전하게 컬럼 추가
 safe_add_columns(deposit_tier1, "deposit_tier1")
@@ -135,6 +150,9 @@ safe_add_columns(deposit_tier2, "deposit_tier2")
 safe_add_columns(savings_tier1, "savings_tier1")
 safe_add_columns(savings_tier2, "savings_tier2")
 
+# 2) 1금융권 상품을 전국 17개 시·도로 복제
+deposit_tier1 = expand_to_all_regions(deposit_tier1)
+savings_tier1 = expand_to_all_regions(savings_tier1)
 def clean_loan_data(file):
     try:
         df = pd.read_csv(file)
@@ -792,38 +810,94 @@ def plus_calculator():
     return render_template('calculator_home.html', breadcrumb=breadcrumb)
 
 @app.route('/plus/region-data')
+@app.route('/plus/region-data')
 def region_data():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/region'},
+        {'name': 'HOUSE MOA', 'current': True}
+    ]
+    
     try:
+        import re  # 정규표현식 사용을 위해 추가
+        
         region = request.args.get('region')
-        region = region.replace("특별시", "").replace("광역시", "").replace("도", "").strip()
-
+        print(f"요청된 지역: {region}")  # 디버깅용
+        
+        # CSV 파일 읽기
         house_df = pd.read_csv('주택_시도별_보증금.csv')
-        avg_prices = house_df.groupby('시도')['가격'].mean().round(1).to_dict()
+        
+        # 지역별 평균 가격 계산
+        avg_prices = house_df.groupby('시도')['가격'].mean().round(0).astype(int).to_dict()
         price = avg_prices.get(region, '정보없음')
 
-        savings = pd.concat([savings_tier1, savings_tier2])
-        top_savings = savings[savings['지역'] == region].sort_values(by='최고우대금리(%)', ascending=False).head(5)
+        # 주택담보대출 상품 데이터
+        loan_products = pd.read_csv('주택담보대출_정리본.csv')
+        
+        # 금리에서 최소값 추출하여 정렬 (예: "2.88~9.70%" → 2.88)
+        def extract_min_rate(rate_str):
+            try:
+                # "2.88~9.70%" 형태에서 최소값만 추출
+                rate = str(rate_str).replace('%', '').split('~')[0]
+                return float(rate)
+            except:
+                return 999  # 파싱 실패시 큰 값으로 설정
+        
+        loan_products['최소금리'] = loan_products['금리'].apply(extract_min_rate)
+        
+        # 금리 기준 오름차순 정렬하여 상위 6개 선택
+        top_loans = loan_products.sort_values(by='최소금리', ascending=True).head(6)
 
         product_list = []
-        for _, row in top_savings.iterrows():
-            기간 = row.get('저축기간(개월)', 12)
-            try:
-                기간 = int(기간)
-                월저축금 = int((price * 10000) / 기간 / 10000)  # 만원 단위
-            except:
-                월저축금 = '계산불가'
+        for _, row in top_loans.iterrows():
+            # 대출 한도 처리 (문자열에서 숫자 추출)
+            limit_str = str(row['대출한도'])
+            
+            # 대출한도에서 숫자 추출
+            def extract_limit_amount(limit_str):
+                try:
+                    if '억원' in limit_str:
+                        # "최대 10억원" → 10억 = 100000만원
+                        num = re.findall(r'(\d+(?:\.\d+)?)', limit_str)[0]
+                        return int(float(num) * 10000)
+                    elif '천만원' in limit_str:
+                        # "최대 4억 2천만원" → 42000만원
+                        numbers = re.findall(r'(\d+)', limit_str)
+                        if len(numbers) >= 2:
+                            return int(numbers[0]) * 10000 + int(numbers[1]) * 1000
+                        return int(numbers[0]) * 10000
+                    elif '만원' in limit_str:
+                        num = re.findall(r'(\d+)', limit_str)[0]
+                        return int(num)
+                    elif '제한없음' in limit_str or '감정가' in limit_str:
+                        return 999999  # 매우 큰 값으로 설정
+                    else:
+                        return 50000  # 기본값 5억
+                except:
+                    return 50000
+            
+            max_limit = extract_limit_amount(limit_str)
+            
+            # 실제 대출 가능 금액 (전세가의 80% 또는 상품 최대 한도 중 작은 값)
+            if price != '정보없음':
+                loan_limit = min(int(price * 0.8), max_limit)
+            else:
+                loan_limit = max_limit
+                
             product_list.append({
                 '상품명': row['상품명'],
-                '금융회사명': row['금융회사명'],
-                '최고우대금리(%)': row['최고우대금리(%)'],
-                '기간': 기간,
-                '월저축금': 월저축금
+                '금융회사명': row['은행명'],
+                '금리': row['금리'],
+                '대출한도(만원)': loan_limit if loan_limit != 999999 else '제한없음',
+                '상품타입': '정부지원' if row['은행명'] == '정부' else '일반'
             })
 
-        return jsonify({'price': price, 'products': product_list})
+        return jsonify({'price': price, 'products': product_list, 'breadcrumb': breadcrumb})
     except Exception as e:
         print(f"지역 데이터 오류: {e}")
-        return jsonify({'price': '정보없음', 'products': []})
+        return jsonify({'price': '정보없음', 'products': [], 'breadcrumb': breadcrumb})
+
 
 @app.template_filter('extract_rate')
 def extract_rate(val):

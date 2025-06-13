@@ -421,22 +421,23 @@
       box-shadow: 0 0 0 0.2rem rgba(138,228,215,0.25) !important;
     }
 
-    /* 페이지네이션 스타일 */
+    /* 페이지네이션 스타일 - loans_list.html과 동일하게 변경 */
     #pagination-container {
       display: flex;
       justify-content: center;
       margin-top: 24px;
+      gap: 8px;
     }
     #pagination-container .page-btn {
       border: 1px solid #E0E5F3;
       color: #333;
       background-color: #fffdfd;
-      padding: 6px 15px;
-      margin: 0 4px;
+      padding: 8px 16px;
       border-radius: 4px;
       font-size: 0.99rem;
       cursor: pointer;
-      
+      text-decoration: none;
+      transition: all 0.2s ease;
     }
     #pagination-container .page-btn:hover {
       background-color: #C4F0DC;
@@ -444,7 +445,14 @@
       color: var(--moa-dark-text);
     }
     #pagination-container .page-btn.active {
-      color: #333;
+      background-color: var(--moa-green);
+      border-color: var(--moa-green);
+      color: white;
+      font-weight: 600;
+    }
+    #pagination-container .page-btn.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   </style>
 
@@ -598,6 +606,7 @@
     const itemsPerPage     = 15;
     let allProducts        = [];
 
+
     // 세전→세후 계산
     function calculateAfterTax(amount, rate, months = 12) {
       let grossInterest = amount * (rate / 100) * (months / 12);
@@ -716,46 +725,73 @@
       renderPagination(totalPages);
     }
 
-    // 페이지네이션
+    // 페이지네이션 - loans_list.html 스타일로 수정
     function renderPagination(totalPages) {
-      const container   = document.getElementById("pagination-container");
+      const container = document.getElementById("pagination-container");
       container.innerHTML = "";
       if (totalPages <= 1) return;
 
-      const prevBtn = document.createElement("button");
-      prevBtn.textContent = "이전";
-      prevBtn.className   = "page-btn me-1";
-      prevBtn.disabled    = currentPage === 1;
-      prevBtn.onclick     = () => {
-        if (currentPage > 1) {
+      // 이전 버튼
+      if (currentPage > 1) {
+        const prevBtn = document.createElement("a");
+        prevBtn.textContent = "이전";
+        prevBtn.className = "page-btn";
+        prevBtn.href = "#";
+        prevBtn.onclick = (e) => {
+          e.preventDefault();
           currentPage--;
           renderPage();
-        }
-      };
-      container.appendChild(prevBtn);
-
-      const maxVisible = 5;
-      const startPage  = Math.floor((currentPage - 1) / maxVisible) * maxVisible + 1;
-      const endPage    = Math.min(startPage + maxVisible - 1, totalPages);
-      for (let i = startPage; i <= endPage; i++) {
-        const btn = document.createElement("button");
-        btn.textContent   = i;
-        btn.className     = "page-btn mx-1" + (i === currentPage ? " active" : "");
-        btn.onclick       = () => { currentPage = i; renderPage(); };
-        container.appendChild(btn);
+        };
+        container.appendChild(prevBtn);
+      } else {
+        const prevBtn = document.createElement("span");
+        prevBtn.textContent = "이전";
+        prevBtn.className = "page-btn disabled";
+        container.appendChild(prevBtn);
       }
 
-      const nextBtn = document.createElement("button");
-      nextBtn.textContent = "다음";
-      nextBtn.className   = "page-btn ms-1";
-      nextBtn.disabled    = currentPage === totalPages;
-      nextBtn.onclick     = () => {
-        if (currentPage < totalPages) {
+      // 페이지 번호들 - 5개씩 그룹으로 표시
+      const start_page = Math.floor((currentPage - 1) / 5) * 5 + 1;
+      const end_page = Math.min(start_page + 4, totalPages);
+      
+      for (let page_num = start_page; page_num <= end_page; page_num++) {
+        if (page_num === currentPage) {
+          const activeBtn = document.createElement("span");
+          activeBtn.textContent = page_num;
+          activeBtn.className = "page-btn active";
+          container.appendChild(activeBtn);
+        } else {
+          const pageBtn = document.createElement("a");
+          pageBtn.textContent = page_num;
+          pageBtn.className = "page-btn";
+          pageBtn.href = "#";
+          pageBtn.onclick = (e) => {
+            e.preventDefault();
+            currentPage = page_num;
+            renderPage();
+          };
+          container.appendChild(pageBtn);
+        }
+      }
+
+      // 다음 버튼
+      if (currentPage < totalPages) {
+        const nextBtn = document.createElement("a");
+        nextBtn.textContent = "다음";
+        nextBtn.className = "page-btn";
+        nextBtn.href = "#";
+        nextBtn.onclick = (e) => {
+          e.preventDefault();
           currentPage++;
           renderPage();
-        }
-      };
-      container.appendChild(nextBtn);
+        };
+        container.appendChild(nextBtn);
+      } else {
+        const nextBtn = document.createElement("span");
+        nextBtn.textContent = "다음";
+        nextBtn.className = "page-btn disabled";
+        container.appendChild(nextBtn);
+      }
     }
 
     // 은행 그룹 토글
@@ -842,7 +878,6 @@
         bootstrap.Collapse.getOrCreateInstance(collapseEl).toggle();
       });
 
-
       document.addEventListener('shown.bs.collapse', e => {
         const btn = tbody.querySelector(`.btn-toggle[data-bs-target="#${e.target.id}"]`);
         if (btn) btn.textContent = '▲';
@@ -851,6 +886,11 @@
         const btn = tbody.querySelector(`.btn-toggle[data-bs-target="#${e.target.id}"]`);
         if (btn) btn.textContent = '▼';
       });
+    });
+
+    // 추가적인 스크롤 위치 복원 (window.onload 이벤트)
+    window.addEventListener('load', function() {
+      restoreScrollPosition();
     });
   </script>
 {% endblock %}
