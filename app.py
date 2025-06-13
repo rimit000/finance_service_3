@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, redirect
 import pandas as pd
 import random
 import re
@@ -244,64 +244,64 @@ if not loan_data.empty:
     print("✔ 대출유형 분포:")
     print(loan_data['대출유형'].value_counts())
 
-# 동림 버전의 메인 대출 페이지 라우트
+# 메인 대출 페이지 라우트
 @app.route('/loans')
 def loans_page():
-    breadcrumb = [
-        {'name': '홈', 'url': '/'},
-        {'name': '대출', 'current': True}
-    ]
+    breadcrumb = [{'name': '홈', 'url': '/'}, {'name': '대출', 'current': True}]
     selected_types = request.args.getlist('loanType')
     input_amount = request.args.get('amount', type=int)
-    
+    max_limit = request.args.get('maxLimit', type=int)  # 
+
     if loan_data.empty:
-        return render_template('loans_list.html',
-                             breadcrumb=breadcrumb,
-                             products=[],
-                             selected_types=selected_types,
-                             input_amount=input_amount,
-                             current_page=1,
-                             total_pages=1,
-                             product_type='대출',
-                             product_type_url='loans')
-    
+        return render_template('loans_list.html', ...)
+
     df = loan_data.copy()
-    # 이미 파일 로딩시 대출유형이 설정되어 있으므로 상품유형을 대출유형으로 설정
     df['상품유형'] = df['대출유형']
-    
-    # 로그 확인
-    print("✔ 대출유형 분포:")
-    print(df['상품유형'].value_counts())  # 햇살론, 기타 등 몇 개인지 찍힘
-    logging.info(df['상품유형'].value_counts())
-    
-    # 금액이 있으면 계산금액 컬럼 추가
+
     if input_amount:
         def compute_total(row):
             try:
-                # 🔧 금리 문자열에서 % 제거 및 공백 제거
-                rate_str = str(row['최저 금리(%)']).replace('%', '').strip()
-                rate = float(rate_str) / 100
+                rate = float(str(row['최저 금리(%)']).replace('%', '').strip()) / 100
                 return int(input_amount * (1 + rate))
-            except Exception as e:
-                print("계산 오류:", e, "| 금리 값:", row['최저 금리(%)'])
+            except:
                 return None
         df['계산금액'] = df.apply(compute_total, axis=1)
     else:
         df['계산금액'] = None
-    
-    # 필터링 (모든 상품 표시)
+
+    # ✅ 최대한도 숫자화
+    def parse_loan_limit(val):
+        try:
+            val = str(val).replace(',', '').replace(' ', '')
+            if '억원' in val:
+                return int(float(val.replace('억원', '')) * 10000)
+            elif '천만원' in val:
+                return int(float(val.replace('천만원', '')) * 1000)
+            elif '백만원' in val:
+                return int(float(val.replace('백만원', '')) * 100)
+            elif '만원' in val:
+                return int(float(val.replace('만원', '')))
+            else:
+                return int(val)
+        except:
+            return 0
+    df['한도정수'] = df['대출한도'].apply(parse_loan_limit)
+
+    if max_limit:
+        df = df[df['한도정수'] >= max_limit]  
+
     if selected_types and '전체' not in selected_types:
         filtered_df = df[df['상품유형'].isin(selected_types)]
     else:
-        filtered_df = df  # 모든 상품 표시
-    
+        filtered_df = df
+
     # 페이지네이션
     page = request.args.get('page', 1, type=int)
     page_size = 15
     start = (page - 1) * page_size
     end = start + page_size
     total_pages = (len(filtered_df) + page_size - 1) // page_size
-    
+
     return render_template(
         'loans_list.html',
         breadcrumb=breadcrumb,
@@ -311,8 +311,10 @@ def loans_page():
         current_page=page,
         total_pages=total_pages,
         product_type='대출',
-        product_type_url='loans'
+        product_type_url='loans',
+        max_limit=max_limit  
     )
+
 
 # 동림 버전의 API 엔드포인트
 @app.route('/api/loans')
@@ -778,13 +780,14 @@ def plus_youth_policy():
     ]
     return render_template('youth_policy.html', breadcrumb=breadcrumb)
 
+# 수정된 계산기 라우트 - 가이드 페이지 없이 바로 연결
 @app.route('/plus/calculator')
 def plus_calculator():
     breadcrumb = [
         {'name': '홈', 'url': '/'},
         {'name': 'MOA PLUS', 'url': '/plus'},
-        {'name': '한눈에 비교하기 쉬운 상품', 'url': '/guide'},
-        {'name': '내 상품, 이자얼MOA?', 'current': True}
+        {'name': '한눈에 비교하기 쉬운 상품', 'url': '/plus/calculator'},
+        {'name': '내 상품, 이자 얼MOA?', 'current': True}
     ]
     return render_template('calculator_home.html', breadcrumb=breadcrumb)
 
@@ -897,88 +900,22 @@ def plus_region_map():
     ]
     return render_template('region_map.html', breadcrumb=breadcrumb)
 
-# =========================================
-# 여행 테스트 페이지
-# =========================================
-# app.py에 추가할 도시별 이미지 매핑
-CITY_IMAGES = {
-    # 일본
-    '오사카': 'https://images.unsplash.com/photo-1590253230532-c6a7124c2e0a?w=800&q=80',  # 오사카성
-    '교토': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&q=80',  # 후시미 이나리 신사
+@app.route('/plus/travel', methods=['GET'])
+def travel_home():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
+        {'name': 'TRIP MOA', 'current': True}
+    ]
     
-    # 대만
-    '타이베이': 'https://images.unsplash.com/photo-1508248467877-aec1b08de376?w=800&q=80',  # 타이베이 101
-    '가오슝': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',  # 가오슝 항구
-    '화롄': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',  # 타로코 협곡
-    
-    # 베트남
-    '하노이': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=800&q=80',  # 하노이 호안끼엠 호수
-    '다낭': 'https://images.unsplash.com/photo-1559592413-7cec4d0d2c64?w=800&q=80',  # 다낭 골든브릿지
-    '호치민': 'https://images.unsplash.com/photo-1555401735-8a7d8c0b3db9?w=800&q=80',  # 호치민 노트르담 성당
-    '푸꾸옥': 'https://images.unsplash.com/photo-1544467184-4b4f6b4e3c97?w=800&q=80',  # 푸꾸옥 해변
-    
-    # 태국
-    '치앙마이': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',  # 치앙마이 사원
-    '방콕': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80',  # 방콕 왓포 사원
-    
-    # 말레이시아
-    '쿠알라룸푸르': 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&q=80',  # 페트로나스 트윈타워
-    '조호르바루': 'https://images.unsplash.com/photo-1598946192925-680b3e36a7e8?w=800&q=80',  # 조호르바루 모스크
-    
-    # 싱가포르
-    '싱가포르': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',  # 마리나베이샌즈
-    '센토사': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',  # 센토사 해변
-    
-    # 홍콩
-    '홍콩': 'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=800&q=80',  # 홍콩 빅토리아 항구
-    
-    # 인도네시아
-    '자카르타': 'https://images.unsplash.com/photo-1555899434-94d1b7d270d7?w=800&q=80',  # 자카르타 스카이라인
-    '발리': 'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=800&q=80',  # 발리 우불드 사원
-    
-    # 필리핀
-    '마닐라': 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80',  # 마닐라 인트라무로스
-    '보라카이': 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',  # 보라카이 화이트 비치
-    '세부': 'https://images.unsplash.com/photo-1589881133595-b5e692b9f628?w=800&q=80',  # 세부 성당
-    
-    # 터키
-    '이스탄불': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',  # 이스탄불 아야소피아
-    '카파도키아': 'https://images.unsplash.com/photo-1561475750-0e52d4de690f?w=800&q=80',  # 카파도키아 열기구
-    '안탈리아': 'https://images.unsplash.com/photo-1539650116574-75c0c6d73165?w=800&q=80',  # 안탈리아 해안
-
-
-# 유럽 & 북미
-
-    # 미국
-    '뉴욕': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',  # 뉴욕 자유의 여신상
-    '샌프란시스코': 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&q=80',  # 샌프란시스코 골든게이트 브릿지
-    '포틀랜드': 'https://images.unsplash.com/photo-1512090926665-89a0bddc6f68?w=800&q=80',  # 포틀랜드 시내
-    
-    # 캐나다
-    '퀘벡시티': 'https://images.unsplash.com/photo-1529645468809-5dca3ba2d3ed?w=800&q=80',  # 퀘벡시티 올드타운
-    '몬트리올': 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&q=80',  # 몬트리올 노트르담 성당
-    
-    # 스페인
-    '바르셀로나': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',  # 바르셀로나 사그라다 파밀리아
-    
-    # 이탈리아
-    '시칠리아': 'https://images.unsplash.com/photo-1555992643-db50b4011daf?w=800&q=80',  # 시칠리아 타오르미나
-    '토스카나': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',  # 토스카나 언덕
-    
-    # 프랑스
-    '파리': 'https://images.unsplash.com/photo-1502602898536-47ad22581b52?w=800&q=80',  # 파리 에펠탑
-    '리옹': 'https://images.unsplash.com/photo-1582480065751-d71e0910b19c?w=800&q=80',  # 리옹 시내
-    
-    # 포르투갈
-    '리스본': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80',  # 리스본 트램
-    
-    # 체코
-    '프라하': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=800&q=80',  # 프라하 성
-    
-    # 조지아
-    '트빌리시': 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',  # 트빌리시 올드타운
-}
-
+    try:
+        travel_df = pd.read_csv('travel.csv')
+        cities = travel_df['도시'].tolist()
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
+    except Exception as e:
+        print(f"여행 데이터 로드 오류: {e}")
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
 
 @app.route('/plus/travel-plan', methods=['GET', 'POST'])
 def travel_plan():
@@ -991,22 +928,8 @@ def travel_plan():
     
     try:
         travel_df = pd.read_csv("travel.csv")
-        
-        # CSV에서 실제 국가 목록 추출
-        available_countries = travel_df['국가'].unique().tolist()
-        
-        # 대륙별 국가 매핑 (GeoJSON의 7개 대륙에 맞춤)
-        continent_mapping = {
-            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀'],
-            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아', '터키'],  # 터키를 유럽에 포함
-            'north-america': ['미국', '캐나다'],
-            'south-america': [],     # CSV에 남미 국가 없음
-            'oceania': [],           # CSV에 오세아니아 국가 없음
-            'africa': [],            # CSV에 아프리카 국가 없음
-            'antarctica': []         # 남극은 여행지 없음
-        }
-        
-        # POST 요청 처리 (기존 로직 유지)
+        cities = travel_df['도시'].tolist()
+
         if request.method == 'POST':
             selected_city = request.form['city']
             months = int(request.form['months'])
@@ -1054,153 +977,11 @@ def travel_plan():
                     products=recommended_products
                 )
 
-        # GET 요청일 때는 세계지도 기반 페이지 렌더링
-        return render_template('travel_worldmap.html', 
-                             breadcrumb=breadcrumb, 
-                             continent_mapping=continent_mapping,
-                             available_countries=available_countries)
-    
+        # GET 요청일 때는 도시 리스트만 넘겨서 폼 렌더링
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
     except Exception as e:
         print(f"여행 계획 오류: {e}")
-        return render_template('travel_worldmap.html', 
-                             breadcrumb=breadcrumb, 
-                             continent_mapping={},
-                             available_countries=[])
-
-# 대륙별 국가 정보 API
-@app.route('/api/continent/<continent_id>')
-def get_continent_countries(continent_id):
-    try:
-        travel_df = pd.read_csv("travel.csv")
-        
-        # GeoJSON의 7개 대륙에 맞춘 매핑
-        continent_mapping = {
-            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀'],
-            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아', '터키'],
-            'north-america': ['미국', '캐나다'],
-            'south-america': [],
-            'oceania': [],
-            'africa': [],
-            'antarctica': []
-        }
-        
-        if continent_id not in continent_mapping:
-            return jsonify({'error': '해당 대륙을 찾을 수 없습니다.'}), 404
-            
-        countries = continent_mapping[continent_id]
-        
-        # 빈 대륙의 경우 빈 배열 반환
-        if not countries:
-            return jsonify([])
-        
-        # 해당 대륙의 국가들 데이터 필터링
-        continent_data = travel_df[travel_df['국가'].isin(countries)]
-        
-        result = []
-        for _, row in continent_data.iterrows():
-            city_name = row['도시']
-            # 기본 이미지 URL 설정
-            default_image = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'
-            
-            result.append({
-                'country': row['국가'],
-                'city': row['도시'],
-                'theme': row['테마'],
-                'reason': row['추천이유'],
-                'days': row['추천일정'],
-                'total_cost': int(row['총예상경비']),
-                'airfare': int(row['예상항공료']),
-                'accommodation': int(row['숙박비']),
-                'food': int(row['식비']),
-                'image_url': CITY_IMAGES.get(city_name, default_image)
-            })
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        return jsonify({'error': f'데이터 로딩 중 오류: {str(e)}'}), 500
-
-# 나머지 API들은 이전과 동일...
-@app.route('/debug/countries')
-def debug_countries():
-    try:
-        travel_df = pd.read_csv("travel.csv")
-        countries_in_csv = travel_df['국가'].unique().tolist()
-        cities_by_country = {}
-        
-        # 대륙별 분류도 함께 표시
-        continent_mapping = {
-            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀'],
-            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아', '터키'],
-            'north-america': ['미국', '캐나다'],
-            'south-america': [],
-            'oceania': [],
-            'africa': [],
-            'antarctica': []
-        }
-        
-        for country in countries_in_csv:
-            cities = travel_df[travel_df['국가'] == country]['도시'].tolist()
-            cities_by_country[country] = cities
-            
-        # 대륙별 국가 수 계산
-        continent_stats = {}
-        for continent, countries in continent_mapping.items():
-            continent_stats[continent] = {
-                'countries': countries,
-                'count': len(countries)
-            }
-            
-        return jsonify({
-            "countries_in_csv": countries_in_csv,
-            "total_countries": len(countries_in_csv),
-            "cities_by_country": cities_by_country,
-            "total_cities": len(travel_df),
-            "continent_mapping": continent_stats
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/data/continent-low.geo.json')
-def serve_geojson():
-    try:
-        data_path = os.path.join(app.root_path, 'data')
-        file_path = os.path.join(data_path, 'continent-low.geo.json')
-        
-        if not os.path.exists(file_path):
-            return jsonify({
-                "error": "GeoJSON 파일을 찾을 수 없습니다.",
-                "path": file_path
-            }), 404
-        
-        return send_from_directory(data_path, 'continent-low.geo.json')
-    
-    except Exception as e:
-        return jsonify({
-            "error": f"파일 서빙 중 오류 발생: {str(e)}"
-        }), 500
-
-@app.route('/debug/check-files')
-def check_files():
-    data_path = os.path.join(app.root_path, 'data')
-    geojson_path = os.path.join(data_path, 'continent-low.geo.json')
-    csv_path = os.path.join(app.root_path, 'travel.csv')
-    
-    return jsonify({
-        "data_directory_exists": os.path.exists(data_path),
-        "geojson_file_exists": os.path.exists(geojson_path),
-        "csv_file_exists": os.path.exists(csv_path),
-        "data_path": data_path,
-        "geojson_path": geojson_path,
-        "csv_path": csv_path,
-        "files_in_data": os.listdir(data_path) if os.path.exists(data_path) else [],
-        "files_in_root": [f for f in os.listdir(app.root_path) if f.endswith('.csv')]
-    })
-
-
-
-
-
+        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
 
 # =========================================
 # 적금‧예금 비교 결과 계산 헬퍼
@@ -1408,12 +1189,13 @@ def create_product_map():
         print(f"상품 맵 생성 중 오류: {e}")
         return {'deposit': {}, 'savings': {}}
 
+# 수정된 비교 페이지 라우트 - breadcrumb 수정
 @app.route('/plus/compare', methods=['GET', 'POST'], endpoint='compare_savings')
 def compare_savings():
     breadcrumb = [
         {'name': '홈', 'url': '/'},
         {'name': 'MOA PLUS', 'url': '/plus'},
-        {'name': '한눈에 비교하기 쉬운 상품', 'url': '/guide'},
+        {'name': '한눈에 비교하기 쉬운 상품', 'url': '/plus/calculator'},
         {'name': '한눈에 싹 MOA', 'current': True}
     ]
     """상품 비교 페이지"""
@@ -1594,15 +1376,10 @@ def roadmap():
     ]
     return render_template('plus_roadmap.html', breadcrumb=breadcrumb)
 
-# 가이드 모아 페이지
+# 가이드 라우트 삭제 - 리다이렉트로 대체
 @app.route('/guide')
 def guide_moa():
-    breadcrumb = [
-        {'name': '홈', 'url': '/'},
-        {'name': 'MOA PLUS', 'url': '/plus'},
-        {'name': '한눈에 비교하기 쉬운 상품', 'current': True}
-    ]
-    return render_template('guide_moa.html', breadcrumb=breadcrumb)
+    return redirect('/plus/calculator')
 
 if __name__ == '__main__':
     app.run(debug=True)

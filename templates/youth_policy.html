@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}청년 정책 모아보기{% endblock %}
+
+{% block content %}
+<style>
+  /* ---------------- 공통 변수 & 기본 폰트 ---------------- */
+  :root{
+    --moa-green: #8AE4D7;   
+    --moa-dark:  #020715;
+    --moa-muted: #717171;
+    --moa-border:#E0E5F3;
+    --moa-hover: #E0E5F3;
+  }
+  body,.container{font-family:'NoonnuBasicGothic', sans-serif;}
+
+    /* -------------------- 상단 헤더 영역 -------------------- */
+    .moa-header {
+      transform: translateY(-2cm);
+      background: white;
+      text-align: center;
+      padding: 20px;
+      font-family: 'NoonnuBasicGothic', sans-serif;
+    }
+    .moa-header .moa-bar {
+      width: 53px;
+      height: 10px;
+      background-color: #8AE4D7;
+      margin: 20px auto 30px;
+    }
+    .moa-header h1 {
+      font-size: 3.75rem; /* 60px */
+      font-weight: 600;
+      color: #020715;
+      letter-spacing: 1.2px;
+      margin-bottom: 10px;
+    }
+    .moa-header p {
+      font-size: 1.25rem;
+      color: #717171;
+      letter-spacing: 0.5px;
+      margin: 0;
+      font-weight: 400;
+    }
+
+  /* ---------------- 탭 ---------------- */
+  .nav-tabs {
+    transform: translateY(-2cm);
+    border-bottom: 2px solid var(--moa-border);
+    white-space: nowrap;
+    position: center;
+    width: 865px;         
+    margin: 0 auto; 
+    font-family: 'NoonnuBasicGothic', sans-serif;
+    /* overflow-x: auto; */
+  }
+  .nav-tabs .nav-link {
+    position: center;
+    color: #717171;
+    font-size: 1.6rem;
+    border: none;
+    white-space: nowrap;     
+    padding: 0.5rem 7.6rem ;
+  }
+
+  
+  .nav-tabs .nav-link.active {
+    position: center;
+    color: #00C4A8;
+    border-bottom: 3px solid #00C4A8;
+    width: 100%;
+  }
+
+
+  /* ---------------- 정책 카드 ---------------- */
+  .policy-card{
+    transform: translateY(-1.4cm);
+    border:2px solid #CFCFCF;
+    border-radius:12px;
+  }
+  
+  .policy-card .card-body{
+  padding:30px 30px;
+  display: flex;
+  flex-direction: column;
+  }
+  
+  .policy-card h5{
+    color:var(--moa-dark);
+    font-weight:450;
+    font-size: 1.6rem;
+    margin-bottom:12px;
+    white-space: pre; 
+  
+  }
+
+  .policy-card p{
+    letter-spacing: -0.7px;
+    font-size: 1.1rem;
+    color:var(--moa-muted);
+    font-weight: 330;
+    margin-top:5px;
+    margin-bottom:9px;
+    white-space: pre; 
+  }
+  
+  .policy-card li{
+    font-size: 1.1rem;
+    color:var(--moa-dark);
+    font-weight: 310;
+    margin-top:5px;
+    margin-bottom:9px;
+    white-space: pre; 
+  }
+  
+  
+  .btn-detail {
+    margin-top: auto;       
+    align-self: center;      
+    display: block;         
+    }
+  .btn-detail img {
+    margin-top: auto;       
+    align-self: center;  
+    width: 100%;           
+    height: 45px;          
+    }
+
+
+  .btn-detail:hover {
+    color: transparent;
+    
+  }
+
+</style>
+
+<div class="container my-5">
+  <!-- 헤더 -->
+  <div class="moa-header mb-5">
+    <div class="moa-bar"></div>
+    <h1>혜택을 <span style="color:#00C4A8;">MOA</span></h1>
+    <p>한 번에 보는 생활 밀착형 정책 혜택 가이드</p>
+  </div>
+
+  <!-- 필터 탭 -->
+  <ul id="catTabs" class="nav nav-tabs justify-content-center mb-4">
+    <li class="nav-item"><a class="nav-link active" data-cat="거주" href="#">거주</a></li>
+    <li class="nav-item"><a class="nav-link"        data-cat="금융" href="#">금융</a></li>
+    <li class="nav-item"><a class="nav-link"        data-cat="교육" href="#">교육</a></li>
+  </ul>
+
+  {% set cards = [
+    {"cat":"거주","title":"내집마련 디딤돌 대출","desc":"무주택 세대주가 주택구입 자금을 빌릴 수 있도록\n지원하여 주거 안정을 돕습니다.","dept":"국토교통부 주택기금과","cycle":"1회성","type":"현금대여(융자)","call":"1566-9009","url":"https://www.molit.go.kr/portal.do"},
+    {"cat":"거주","title":"버팀목 전세자금 대출","desc":"무주택 세대주의 주택전세자금 융자를 통해\n주거 안정을 지원합니다.","dept":"국토교통부 주택기금과","cycle":"1회성","type":"현금대여(융자)","call":"1566-9009","url":"https://www.molit.go.kr/portal.do"},
+    {"cat":"거주","title":"주거안정 월세대출","desc":"월세부담이 큰 사회초년생 등의\n주택월세자금 융자를 통해 주거안정을 지원합니다.","dept":"국토교통부 주택기금과","cycle":"월","type":"현금대여(융자)","call":"1566-9009","url":"https://www.molit.go.kr/portal.do"},
+    {"cat":"거주","title":"청년월세 한시 특별 지원","desc":"경제적 어려움을 겪는 청년층에게\n월세를 한시적으로 지원합니다.","dept":"국토교통부 청년주거정책과","cycle":"월","type":"현금지급","call":"1533-2022","url":"https://www.molit.go.kr/portal.do"},
+    {"cat":"거주","title":"행복주택 공급","desc":"저렴한 임대료로 교통 편리 부지에 주택을 공급해\n청년·신혼부부의 주거안정을 돕습니다.","dept":"국토교통부 공공주택정책과","cycle":"1회성","type":"임대주택","call":"1588-9081","url":"https://www.molit.go.kr/portal.do"},
+    {"cat":"거주","title":"청약홈 청약 모집공고","desc":"청약 신청·당첨 결과·분양 정보 등\n종합 정보를 확인할 수 있습니다.","dept":"국토교통부","cycle":"-","type":"정보제공","call":"-","url":"https://www.molit.go.kr/portal.do"},
+    {"cat":"거주","title":"청년주택드림 청약 통장","desc":"소득 무주택 청년의 주택구입 및 자산형성을\n지원하기 위하여 위해 재형 기능을 강화한 청약통장","dept":"국토교통부","cycle":"-","type":"자유적립식 적금","call":"1566-9009","url":"https://www.molit.go.kr/2024dreamaccount/main.jsp"},
+    {"cat":"거주","title":"뉴:홈","desc":"공공주택공고, 주거급여, 주택금융 등\n 다양한 주거복지 정보와 청년 신혼부부 주거지원 정보제공 등","dept":"국토교통부","cycle":"-","type":"정보 제공","call":"1600-1004","url":"https://xn--vg1bl39d.kr/supplyPlan/recruitment.do"},
+    {"cat":"거주","title":"마이홈","desc":"청년의 내집마련 부담을 덜어주는\n 새로운 솔루션을 제시하는 공공주택","dept":"국토교통부","cycle":"-","type":"정보 제공","call":"1600-1004","url":"https://www.myhome.go.kr/hws/portal/main/getMgtMainHubPage.do"},
+
+    {"cat":"금융","title":"보금자리론","desc":"금리 변동 위험 없이\n장기 고정금리 분할상환 방식의 모기지론","dept":"한국주택금융공사","cycle":"1회성","type":"현금대여(융자)","call":"1688-8114","url":"https://hf.go.kr/ko/index.do"},
+    {"cat":"금융","title":"신혼부부전용 구입자금","desc":"저소득·무주택자의\n주택 구입자금 대출이자율 감면","dept":"국토교통부 주택기금과","cycle":"1회성","type":"현금대여(융자)","call":"1566-9009","url":"https://www.molit.go.kr/portal.do"},
+    {"cat":"금융","title":"미소드림적금","desc":"저소득 서민의\n자립기반 마련 지원형 적금제도","dept":"서민금융진흥원","cycle":"월","type":"자유적립식 적금","call":"1397","url":"https://www.kinfa.or.kr/main.do"},
+    {"cat":"금융","title":"청년희망적금","desc":"일정 조건 충족 시 정부가 저축액에 추가로\n장려금을 지원하는 청년 전용 적금","dept":"서민금융진흥원","cycle":"월","type":"자유적립식 적금","call":"1397","url":"https://www.kinfa.or.kr/main.do"},
+    {"cat":"금융","title":"장병내일준비적금","desc":"군 복무 중 매월 적립하여\n전역 시 목돈 마련 가능","dept":"병무청/국방부","cycle":"월","type":"자유적립식 적금","call":"1588-9090","url":"https://www.mma.go.kr/index.do"},
+    {"cat":"금융","title":"청년도약계좌","desc":"일정 조건 충족 시\n정부 기여금이 추가로 적립되는 자유적립식 적금","dept":"서민금융진흥원","cycle":"월","type":"자유적립식 적금","call":"1397","url":"https://www.kinfa.or.kr/main.do"},
+    {"cat":"금융","title":"햇살론 청년대출","desc":"저신용 청년 대상 저금리 대출 상품","dept":"서민금융진흥원","cycle":"1회성","type":"현금대여(융자)","call":"1397","url":"https://www.kinfa.or.kr/main.do"},
+    {"cat":"금융","title":"소액생계비대출","desc":"대부업 조차 이용이 어려워  \n불법사금융이 불가피한 고객을 위한정책서민상품","dept":"서민금융진흥원","cycle":"1회성","type":"현금대여(융자)","call":"1397","url":"https://sloan.kinfa.or.kr/drt/step1"},
+    {"cat":"금융","title":"청년전용창업자금","desc":"우수한 기술력과 사업성은 있으나\n자금력이 부족한 청년들을 위한 대출 상품","dept":"중소벤처기업부","cycle":"1회성","type":"현금대여(융자)","call":"055-751-9836","url":"https://www.gov.kr/portal/rcvfvrSvc/dtlEx/142000000099?administOrgCd=ALL"},
+    
+    {"cat":"교육","title":"교육 지원 한 눈에","desc":"교육정책 수요자를 위한\n맞춤형 복지·지원 정책 통합 조회","dept":"교육부","cycle":"상시","type":"웹서비스","call":"02-6222-6868","url":"https://www.moe.go.kr/main.do?s=moe"},
+    {"cat":"교육","title":"학점은행제","desc":"다양한 형태의 학습을 통해\n학위 취득 기회 제공","dept":"국가평생교육진흥원","cycle":"상시","type":"온라인·방문교육 서비스","call":"1600-0400","url":"https://www.nile.or.kr/index.do"},
+    {"cat":"교육","title":"K-MOOC","desc":"대학 우수 공개 강좌 온라인 무료 제공","dept":"국가평생교육진흥원","cycle":"상시","type":"온라인 공개강좌","call":"1811-3118","url":"https://www.nile.or.kr/index.do"},
+    {"cat":"교육","title":"온 국민 평생 배움터","desc":"남녀노소 평생 학습 콘텐츠 플랫폼","dept":"국가평생교육진흥원","cycle":"상시","type":"온라인·방문교육 서비스","call":"1600-3790","url":"https://www.nile.or.kr/index.do"},
+    {"cat":"교육","title":"스타트업 AI 기술인력 양성","desc":"혁신 벤처·스타트업이 필요로 하는 실무인력 양성과\n취·창업 연계를 통한 청년인재 창출 프로그램","dept":"청년창업사관학교","cycle":"상시","type":"오프라인","call":"02-6735-1342","url":"http://www.kosmes.or.kr"},
+    {"cat":"교육","title":"대‧중소기업 상생일자리 프로그램","desc":"대기업 교육 인프라를 활용하여 \n청년 구직자에게 직무교육을 실시하고, \n대기업(중견기업) 협력사에 취업연계","dept":"인력지원처","cycle":"상시","type":"-","call":" 055-751-9881","url":"http://job.kosmes.or.kr"},
+    {"cat":"교육","title":"대학일자리플러스 센터","desc":"대학의 다양한 취업지원 프로그램과 특화 프로그램 등 \n통합 청년 특화 고용 서비스 제공","dept":"고용노동부","cycle":"상시","type":"-","call":"-","url":"https://m.work24.go.kr/cm/c/f/1100/selecSystInfo.do?currentPageNo=1&recordCountPerPage=10&upprSystClId=SC00000001&systClId=SC00000194&systId=SI00000337"},
+    {"cat":"교육","title":"고용24 직업훈련 통합검색","desc":"기업훈련, 일학습병행과정, 부처별훈련 과정 등 \n직업 능력 개발을 위한 통합 검색 제공","dept":"고용노동부","cycle":"상시","type":"-","call":"-","url":"https://m.work24.go.kr/hr/a/a/1100/trnnCrsInf0.do?dtlContextPath=&redirectUrl=%2Fa%2Fa%2F1100%2FtrnnCrsInf0Post.do&topArea=&dtlSmtmConcCtrlId=&dtlExnwMenuConcSecd=&programMenuIdentification=EBG020000510010&menuPurpSecd=EBM01&dtlPwdCfrmYn=&serverToday=20250612&currentMenuId=EBG020000510010&dtlForwardPolyUrl=&dtlMenuId=&dtlMenuPurpSecd=&area=&crseTracseSe=&ncs=&gvrnInstt=&selectNCSKeyword=&srchType=&requestURI=%2Fhr%2Fa%2Fa%2F1100%2FtrnnCrsInf0Post.do&action=trnnCrsInf0Post.do"},
+    {"cat":"교육","title":"청년일경험포털","desc":"내일의 걱정은 사라지고 \n내 일의 기대감을 키울 일자리 정보 포털","dept":"고용노동부","cycle":"상시","type":"-","call":"-","url":"https://yw.work24.go.kr/main.do"}
+
+  ] %}
+
+  <!-- 카드 그리드 -->
+  <div class="row gy-4" id="policyGrid">
+    {% for p in cards %}
+      <div class="col-12 col-sm-6 col-md-4 policy-col" data-cat="{{ p.cat }}">
+        <div class="card policy-card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ p.title }}</h5>
+            <p class="card-text mb-3" style="white-space:pre-line;">{{ p.desc }}</p>
+            <ul class="list-unstyled small">
+              <li><strong style = "color:#0AA68F;" > 담당 부처    </strong> {{ p.dept }}</li>
+              <li><strong style = "color:#0AA68F;" > 지원 주기    </strong> {{ p.cycle }}</li>
+              <li><strong style = "color:#0AA68F;" > 제공 유형    </strong> {{ p.type }}</li>
+              <li><strong style = "color:#0AA68F;" > 문의처         </strong> {{ p.call }}</li>
+            </ul>
+            <a href="{{ p.url if p.url is defined else '#' }}" a class="btn-detail">
+              <img src="{{ url_for('static', filename='Button2.png') }}" alt="자세히 보기">
+            </a>
+
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+/* 초기 – 거주만 표시 */
+document.addEventListener('DOMContentLoaded',()=>filterCards('거주'));
+
+/* 탭 클릭 */
+document.querySelectorAll('#catTabs .nav-link').forEach(tab=>{
+  tab.addEventListener('click',e=>{
+    e.preventDefault();
+    const cat = tab.dataset.cat;
+    document.querySelectorAll('#catTabs .nav-link')
+            .forEach(t=>t.classList.toggle('active',t===tab));
+    filterCards(cat);
+  });
+});
+
+/* 필터 함수 */
+function filterCards(cat){
+  document.querySelectorAll('.policy-col')
+          .forEach(col=>{col.style.display = (col.dataset.cat===cat)?'':'none';});
+}
+</script>
+{% endblock %}

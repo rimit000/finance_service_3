@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}MOA PLUS{% endblock %}</title>
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+
+  <link rel="icon" type="image/png"
+        href="{{ url_for('static', filename='favicon-16x16.png') }}">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+  <style>
+    /* ---------- 전역 레이아웃 ---------- */
+    html, body{height:100%;}
+    body{
+      display:flex;flex-direction:column;min-height:100vh;
+      font-family:'Noto Sans KR',sans-serif;
+      padding-top: 120px; /* 고정 헤더 공간 확보 */
+    }
+
+    .custom-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 20% 24px; /* 하단 패딩 줄임 */
+        flex-wrap: wrap;
+        /* 고정 헤더 스타일 추가 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+
+    /* 스크롤 시 헤더 스타일 변화 */
+    .custom-header.scrolled {
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        padding: 16px 20% 16px; /* 스크롤 시 패딩 줄임 */
+    }
+
+    .custom-logo img {
+        height: 48px;
+        transition: height 0.3s ease;
+    }
+
+    /* 스크롤 시 로고 크기 조정 */
+    .custom-header.scrolled .custom-logo img {
+        height: 40px;
+    }
+
+    .custom-nav {
+        display: flex;
+        gap: 2rem;
+        font-family: 'NoonnuBasicGothic', sans-serif;
+        font-size: 24px;
+        font-weight: 200;
+        line-height: 1.3;   
+    }
+
+    .custom-nav a {
+        text-decoration: none;
+        color: #000;
+        position: relative;
+        padding: 0.5rem 2rem;
+        transition: color 0.3s ease;
+    }
+
+    .custom-nav a:hover {
+        color: #00bfa5;
+    }
+    .custom-nav a.active {
+        color: #00bfa5;  
+    }
+
+    .custom-nav .dropdown {
+        position: relative;
+    }
+
+    .custom-nav .dropdown-menu{
+      display:block;position:absolute;top:calc(100% + 8px);left:0;
+      background:rgba(255, 255, 255, 0.98);border:none;border-radius:.75rem;
+      box-shadow:0 8px 25px rgba(0,0,0,.15);padding:.5rem 0;
+      opacity:0;transform:translateY(-10px);
+      transition:opacity .2s ease,transform .2s ease;
+      pointer-events:none;z-index:1001;min-width:200px;
+      backdrop-filter: blur(10px);
+    }
+    .custom-nav .dropdown-item{
+      padding:.75rem 1.5rem;font-size:1rem;color:#333;
+      transition:background .2s,color .2s;white-space:nowrap;
+    }
+    .custom-nav .dropdown-item:hover{background:#f0fdf9;color:#008e76;}
+    .custom-nav .dropdown-item + .dropdown-item{margin-top:.25rem;}
+
+    /* 모바일 반응형 */
+    @media (max-width:768px){
+      body {
+        padding-top: 100px; /* 모바일에서는 더 작은 패딩 */
+      }
+      
+      .custom-header {
+        padding: 16px 5%;
+      }
+      
+      .custom-header.scrolled {
+        padding: 12px 5%;
+      }
+      
+      .custom-nav {
+        gap: 1rem;
+        font-size: 20px;
+      }
+      
+      .custom-nav a {
+        padding: 0.5rem 1rem;
+      }
+      
+      .custom-nav .dropdown-menu{
+        position:static;transform:none;opacity:1;pointer-events:auto;
+        box-shadow:none;background:none;padding:0;margin-top:.5rem;
+        backdrop-filter: none;
+      }
+      .custom-nav .dropdown-item{
+        padding:.5rem 0;font-size:1.125rem;color:#000;
+      }
+    }
+
+    /* ---------- 브레드크럼 스타일 ---------- */
+    .moa-breadcrumb {
+        background-color: transparent;
+        padding: 20px 0;
+        margin-bottom: 30px;
+        font-family: 'NoonnuBasicGothic', sans-serif;
+    }
+
+    .breadcrumb-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .breadcrumb-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .breadcrumb-item:not(:last-child)::after {
+        content: '>';
+        margin: 0 6px;
+        color: #666;
+        font-size: 16px;
+        font-weight: 400;
+    }
+
+    .breadcrumb-link {
+        color: #666;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 400;
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb-link:hover {
+        color: #333;
+        text-decoration: none;
+    }
+
+    .breadcrumb-current {
+        color: #333;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    /* ::before 가상요소로 인한 / 문자 제거 */
+    .breadcrumb-current::before,
+    .breadcrumb-link::before,
+    .breadcrumb-item::before {
+        content: none !important;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+        .breadcrumb-container {
+            padding: 0 16px;
+        }
+        
+        .breadcrumb-item:not(:last-child)::after {
+            margin: 0 8px;
+            font-size: 12px;
+        }
+        
+        .breadcrumb-link,
+        .breadcrumb-current {
+            font-size: 13px;
+        }
+    }
+
+    /* 긴 텍스트 처리 */
+    .breadcrumb-item {
+        max-width: 200px;
+    }
+
+    .breadcrumb-link,
+    .breadcrumb-current {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (max-width: 480px) {
+        .breadcrumb-item {
+            max-width: 120px;
+        }
+    }
+
+    /* ---------- 푸터 (세로 길이 2/3로 축소) ---------- */
+    .site-footer{
+        background:#EDF2F4;
+        color:#000;
+        box-shadow:0 -2px 8px rgba(0,0,0,.05);
+        font-size:.85rem;
+        padding:30px 0 20px 0;  /* 기존 60px에서 축소 */
+        margin-top:auto;
+    }
+    
+    .site-footer .row {
+        margin: 0;
+    }
+    
+    .site-footer .col-md-4 {
+        padding: 0 15px;
+    }
+    
+    .site-footer h5{
+        font-size:1.1rem;
+        font-weight:600;
+        margin-bottom:0.8rem;
+        color:#868787;
+    }
+    
+    .site-footer p {
+        margin-bottom: 0.4rem !important;
+        line-height: 1.4;
+        font-size: 0.9rem;
+    }
+    
+    .site-footer .mb-2 {
+        margin-bottom: 0.3rem !important;
+    }
+    
+    .site-footer .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .site-footer small {
+        font-size: 0.8rem;
+        line-height: 1.3;
+    }
+    
+    .site-footer a{
+        color:#868787;
+        text-decoration:none;
+    }
+    
+    .site-footer a:hover{
+        text-decoration:underline;
+    }
+    
+    .site-footer .divider{
+        height:1px;
+        background:#D1D5DB;
+        margin:0.6rem 0;
+    }
+    
+    .site-footer img {
+        height: 24px !important; /* 로고 크기 축소 */
+    }
+
+    /* ---------- 부드러운 스크롤 효과 ---------- */
+    html {
+        scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ---------- 헤더 ---------- -->
+<header class="custom-header" id="mainHeader">
+  <a class="custom-logo" href="/">
+    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="MOA+ 로고">
+  </a>
+  <nav class="custom-nav">
+    <a href="/deposits" class="{% if request.path == '/deposits' %}active{% endif %}">예금</a>
+    <a href="/savings" class="{% if request.path == '/savings' %}active{% endif %}">적금</a>
+    <a href="/loans" class="{% if request.path == '/loans' %}active{% endif %}">대출</a>
+
+    <div class="dropdown">
+      <a class="nav-link" href="/plus" id="plusDropdown">모아플러스</a>
+      <div class="dropdown-menu" aria-labelledby="plusDropdown">
+        <a class="dropdown-item" href="/plus/terms">Step 1. 금융, 이제는 쉽고 재미있게</a>
+        <a class="dropdown-item" href="/plus/youth">Step 2. 청년들을 위한 지원 사업</a>
+        <a class="dropdown-item" href="/guide">Step 3. 한눈에 비교하기 쉬운 상품</a>
+        <a class="dropdown-item" href="/plus/roadmap">Step 4. 당신의 미래를 모으는 시간</a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<!-- ---------- 브레드크럼 네비게이션 ---------- -->
+{% if breadcrumb and breadcrumb|length > 1 %}
+<nav class="moa-breadcrumb" aria-label="breadcrumb">
+    <div class="breadcrumb-container">
+        <ol class="breadcrumb-list">
+            {% for item in breadcrumb %}
+                <li class="breadcrumb-item">
+                    {% if item.current %}
+                        <span class="breadcrumb-current" title="{{ item.name }}">{{ item.name }}</span>
+                    {% else %}
+                        <a href="{{ item.url }}" class="breadcrumb-link" title="{{ item.name }}">{{ item.name }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+</nav>
+{% endif %}
+
+<!-- ---------- 본문 ---------- -->
+<main class="flex-grow-1"><!-- ❗ main은 항상 남겨둠 -->
+  {% if not no_container %}
+  <div class="container py-5">
+  {% endif %}
+
+      {% block content %}{% endblock %}
+
+  {% if not no_container %}
+  </div>
+  {% endif %}
+</main>
+
+<!-- ---------- 3단 푸터 ---------- -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="row gy-4">
+
+      <!-- 1) Project Info -->
+      <div class="col-md-4">
+        <h5>PROJECT TEAM MOAPLUS</h5>
+        <p class="mb-2">모아플러스, 더 쉽고 똑똑하게 금융을 모으다</p>
+        <p class="mb-2">© 2025 MOAPLUS. All rights reserved.</p>
+        <div class="divider"></div>
+        <p class="mb-2"><strong>Development Period</strong><br>2025.05.07 ~ 2025.06.27</p>
+        <p class="mb-3"><strong>Data Source</strong><br>금융감독원 오픈 API</p>
+        <small>
+          본 사이트는 교육 및 포트폴리오 목적이며, 상업적 사용을 위한 것이 아닙니다.<br>
+          <em>This site was created for non-commercial, educational use only.</em>
+        </small>
+      </div>
+
+      <!-- 2) Tech & Tools -->
+      <div class="col-md-4">
+        <h5>Tech & Tools</h5>
+        <p class="mb-2"><strong>Built With</strong><br>Python, Flask, HTML, CSS, JavaScript</p>
+        <p class="mb-2"><strong>Design Tool</strong><br>Figma</p>
+        <p><strong>Hosting & Deployment</strong><br>GitHub, Vercel</p>
+      </div>
+
+      <!-- 3) Team & Contact -->
+      <div class="col-md-4">
+        <h5>Team Info & Contact</h5>
+
+        <!-- ■ 로고 + 학교명 한 줄 -->
+        <p class="mb-2 d-flex align-items-center gap-2">
+          <img src="{{ url_for('static', filename='knu_logo.png') }}"
+              alt="경북대학교 로고" style="height:28px;">
+          <strong class="m-0">경북대학교 KDT 7기</strong>
+        </p>
+
+        <!-- 팀원 -->
+        <p class="mb-3">김수연, 노동림, 오유솔, 최수창</p>
+
+        <p class="mb-3">
+          <a href="mailto:moaplus.help@gmail.com">moaplus.help@gmail.com</a>
+        </p>
+
+        <p class="mb-3">
+          <a href="#">이용약관</a> |
+          <a href="#">개인정보처리방침</a> |
+          <a href="#">오픈소스 라이선스</a>
+        </p>
+
+        <p class="mb-0"><strong>Follow us</strong></p>
+        <p>
+          <a href="#" class="me-2">Facebook</a>
+          <a href="#" class="me-2">Twitter</a>
+          <a href="#">Instagram</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ---------- 스크립트 ---------- -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/* 드롭다운 호버 */
+document.querySelectorAll('.custom-nav .dropdown').forEach(dropdown=>{
+  let t;
+  dropdown.addEventListener('mouseenter',()=>{
+      clearTimeout(t);
+      const m=dropdown.querySelector('.dropdown-menu');
+      m.style.opacity='1';m.style.transform='translateY(0)';m.style.pointerEvents='auto';
+  });
+  dropdown.addEventListener('mouseleave',()=>{
+      t=setTimeout(()=>{
+          const m=dropdown.querySelector('.dropdown-menu');
+          m.style.opacity='0';m.style.transform='translateY(-10px)';m.style.pointerEvents='none';
+      },1000);
+  });
+});
+
+/* 스크롤 시 헤더 스타일 변경 */
+window.addEventListener('scroll', function() {
+    const header = document.getElementById('mainHeader');
+    
+    if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+    } else {
+        header.classList.remove('scrolled');
+    }
+});
+
+/* 페이지 로드 시 스크롤 위치 확인 */
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.getElementById('mainHeader');
+    
+    if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <!-- 1) Bootstrap/Select2 CSS 로드 -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  />
+
+  <!-- {# ----------------------------------------------------------- #}
+       {# 2) 커스텀 CSS (화면 상단 헤더, 필터 카드, 테이블, 페이지네이션) #}
+       {# ----------------------------------------------------------- #} -->
+  <style>
+    /* --------------------- 공통 CSS 변수 --------------------- */
+    :root {
+      --moa-green:       #00C5A8;
+      --moa-light:       #f8f9fa;
+      --moa-dark-text:   #020715;
+      --moa-border:      #E0E5F3;
+      --moa-hover:       #E0E5F3;
+    }
+
+    /* -------------------- 상단 헤더 영역 -------------------- */
+    .moa-header {
+      transform: translateY(-1cm);
+      background: white;
+      text-align: center;
+      padding: 20px;
+      font-family: 'NoonnuBasicGothic', sans-serif;
+    }
+    .moa-header .moa-bar {
+      width: 53px;
+      height: 10px;
+      background-color: var(--moa-green);
+      margin: 20px auto 30px;
+    }
+    .moa-header h1 {
+      font-size: 3.75rem; /* 60px */
+      font-weight: 700;
+      color: var(--moa-dark-text);
+      letter-spacing: 1.2px;
+      margin-bottom: 10px;
+    }
+    .moa-header p {
+      font-size: 1.25rem;
+      color: #717171;
+      letter-spacing: 0.5px;
+      margin: 0;
+      font-weight: 400;
+    }
+
+    /* -------------------- 메인 컨테이너 -------------------- */
+    .container {
+        display: flex;
+        max-width: 100%;
+        margin: 0;
+        padding: 80px 40px;
+        gap: 100px;
+        min-height: 90vh;
+        align-items: center;
+        width: 100vw;
+        box-sizing: border-box;
+        transform: translateY(-2cm);
+    }
+
+    .left-section {
+        flex: 1;
+        max-width: 500px;
+        padding-left: 60px;
+    }
+
+    .left-section h1 {
+        font-size: 5.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 50px;
+        line-height: 1.1;
+        transform: translateY(-1cm);
+    }
+
+    .left-section p {
+        font-size: 1.5rem;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 50px;
+    }
+
+    .service-button {
+        background-color: #2a2a2a;
+        color: white;
+        padding: 20px 40px;
+        border: none;
+        border-radius: 30px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .service-button:hover {
+        background-color: #404040;
+    }
+
+    .right-section {
+        flex: 2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 30px;
+        height: 650px;
+        min-width: 800px;
+        padding-right: 60px;
+    }
+
+    .solution-box {
+        background: linear-gradient(135deg, #2a2a2a 0%, #4a4a4a 100%);
+        border-radius: 30px;
+        padding: 50px;
+        color: rgb(172, 172, 172);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .solution-box:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    }
+
+    .solution-box h3 {
+        font-size: 1.4rem;
+        color: #717171;
+        margin-bottom: 20px;
+        font-weight: 400;
+        line-height: 1.4;
+    }
+
+    .solution-box h1 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        line-height: 1.3;
+        z-index: 2;
+        color: #000000;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .solution-box .brand {
+        font-size: 1.1rem;
+        color: #aaa;
+        margin-top: auto;
+        z-index: 2;
+        position: relative;
+        text-align: right;
+        font-weight: 500;
+    }
+
+    .hover-image {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150%;
+        height: 150%;
+        background-size: 200% auto;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0;
+        transform: translateX(100px) scale(1.2);
+        transition: all 0.5s ease;
+        z-index: 1;
+    }
+
+    .solution-box:hover .hover-image {
+        opacity: 0.9;
+        transform: translateX(0) scale(1.2);
+        animation: slideFrames 0.7s ease-out;
+    }
+
+    .solution-box:hover h1,
+    .solution-box:hover h3 {
+        color: #ffffff;
+        transition: color 0.3s ease;
+    }
+
+    @keyframes slideFrames {
+        0% { transform: translateX(100px) scale(1.2); }
+        10% { transform: translateX(90px) scale(1.2); }
+        20% { transform: translateX(80px) scale(1.2); }
+        30% { transform: translateX(70px) scale(1.2); }
+        40% { transform: translateX(60px) scale(1.2); }
+        50% { transform: translateX(50px) scale(1.2); }
+        60% { transform: translateX(40px) scale(1.2); }
+        70% { transform: translateX(30px) scale(1.2); }
+        80% { transform: translateX(20px) scale(1.2); }
+        90% { transform: translateX(10px) scale(1.2); }
+        100% { transform: translateX(0) scale(1.2); }
+    }
+
+    .box1 {
+        background: linear-gradient(135deg, #efefef 20%, #efefef 100%);
+        grid-column: 1 / 3;
+        grid-row: 1;
+    }
+
+    .box1 .hover-image {
+        background-image: url('../static/roadmap_trip.jpeg');
+    }
+
+    .box2 {
+        background: linear-gradient(135deg, #efefef 20%, #efefef 100%);
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    .box2 .hover-image {
+        background-image: url('../static/roadmap_house.jpg');
+    }
+
+    .box3 {
+        background: linear-gradient(135deg, #efefef 20%, #efefef 100%);
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    .box3 .hover-image {
+        background-image: url('../static/roadmap_car.jpg');
+    }
+
+    @media (max-width: 1024px) {
+        .container {
+            gap: 60px;
+            padding: 60px 30px;
+        }
+        
+        .left-section {
+            padding-left: 30px;
+        }
+        
+        .right-section {
+            min-width: 600px;
+            height: 550px;
+            padding-right: 30px;
+        }
+        
+        .solution-box {
+            padding: 40px;
+        }
+        
+        .solution-box h1 {
+            font-size: 2.2rem;
+        }
+        
+        .left-section h1 {
+            font-size: 3.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            flex-direction: column;
+            gap: 50px;
+            padding: 50px 20px;
+            min-height: auto;
+        }
+        
+        .left-section {
+            max-width: none;
+            padding-left: 0;
+            text-align: center;
+        }
+        
+        .left-section h1 {
+            font-size: 3rem;
+        }
+
+        .right-section {
+            grid-template-columns: 1fr;
+            grid-template-rows: auto auto auto;
+            height: auto;
+            min-width: auto;
+            gap: 25px;
+            padding-right: 0;
+        }
+
+        .solution-box {
+            grid-column: 1 !important;
+            height: 200px;
+            padding: 35px;
+        }
+
+        .box1 { grid-row: 1; }
+        .box2 { grid-row: 2; }
+        .box3 { grid-row: 3; }
+        
+        .solution-box h1 {
+            font-size: 1.8rem;
+        }
+        
+        .solution-box h3 {
+            font-size: 1.1rem;
+        }
+    }
+
+    /* 푸터 위치 조정 */
+    .site-footer {
+        transform: translateY(-2cm);
+        margin-top: 2cm;
+    }
+
+    /* 푸터 중앙 정렬 */
+    .site-footer .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .site-footer .row {
+        justify-content: center;
+        text-align: center;
+    }
+
+    .site-footer .col-md-4 {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* 전역 푸터 스타일 (base.html과 동일하게) */
+    body .site-footer {
+        transform: translateY(-2cm) !important;
+        margin-top: 2cm !important;
+        padding: 5px 0 5px 0 !important;
+    }
+
+    body .site-footer .container {
+        max-width: 1200px !important;
+        margin: 0 auto !important;
+        padding: 0 20px !important;
+    }
+
+    body .site-footer .row {
+        justify-content: center !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        margin: 0 !important;
+    }
+
+    body .site-footer .col-md-4 {
+        text-align: left !important;
+        display: block !important;
+        flex: 1 !important;
+        min-width: 300px !important;
+        padding: 0 15px !important;
+        margin-bottom: 0 !important;
+    }
+
+    body .site-footer h5 {
+        margin-bottom: 0.8rem !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        color: #868787 !important;
+    }
+
+    body .site-footer p {
+        margin-bottom: 0.4rem !important;
+        line-height: 1.4 !important;
+        font-size: 0.9rem !important;
+    }
+
+    body .site-footer .mb-2 {
+        margin-bottom: 0.3rem !important;
+    }
+
+    body .site-footer .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+
+    body .site-footer small {
+        font-size: 0.8rem !important;
+        line-height: 1.3 !important;
+    }
+
+    body .site-footer .divider {
+        margin: 0.6rem 0 !important;
+        height: 1px !important;
+        background: #D1D5DB !important;
+    }
+
+    body .site-footer img {
+        height: 24px !important;
+    }
+
+    body .site-footer a {
+        color: #868787 !important;
+        font-size: 0.9rem !important;
+    }
+</style>
+
+<body>
+  <div class="container mt-1 mb-5">
+    <div class="left-section">
+        <h1>ROADMAP <span style="color: var(--moa-green);">MOA</span></h1>
+        <p>여행, 집, 자동차.<br>
+        누구나 한 번쯤 꿈꾸는 삶의 이정표들.<br>
+        무엇부터 준비해야 할지 모를 때,<br> 
+        어떻게 모아야 할지 고민될 때.<br>
+        당신의 계획을 현실로 만드는 가장 쉬운 방법,<br>
+        MOA에서 만나보세요.</p>
+    </div>
+
+    <div class="right-section">
+        <div class="solution-box box1" onclick="navigateToPage('trip')">
+            <div class="hover-image"></div>
+            <h3>여행은 계획했지? 돈은 TRIP 모아에서!</h3>
+            <h1>TRIP MOA</h1>
+            <div class="brand"></div>
+        </div>
+        
+        <div class="solution-box box2" onclick="navigateToPage('house')">
+            <div class="hover-image"></div>
+            <h3>전세 목돈, 여기서 MOA봐~</h3>
+            <h1>HOUSE MOA</h1>
+            <div class="brand"></div>
+        </div>
+        
+        <div class="solution-box box3" onclick="navigateToPage('car')">
+            <div class="hover-image"></div>
+            <h3>드라이브의 꿈, 적금으로 시동 걸자!</h3>
+            <h1>CAR MOA</h1>
+            <div class="brand"></div>
+        </div>
+    </div>
+  </div>
+
+    <script>
+        function navigateToPage(section) {
+            // 현재 창에서 페이지 이동
+            switch(section) {
+                case 'trip':
+                    window.location.href = '/plus/travel-plan';
+                    break;
+                case 'house':
+                    window.location.href = '/plus/region';
+                    break;
+                case 'car':
+                    window.location.href = '/plus/car-roadmap';
+                    break;
+                default:
+                    console.log('페이지를 찾을 수 없습니다.');
+            }
+        }
+    </script>
+</body>
+
+{% endblock %}

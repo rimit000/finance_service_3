@@ -61,6 +61,132 @@
       font-weight: 400;
     }
 
+    /* -------------------- 하단 안내 문구 스타일 -------------------- */
+    .bottom-notice {
+      text-align: left;
+      color: #6c757d;
+      font-size: 0.85rem;
+      font-family: 'NoonnuBasicGothic', sans-serif;
+      margin-top: 20px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
+    /* -------------------- 정보 기준일 스타일 -------------------- */
+    .info-date {
+      text-align: left;
+      color: #6c757d;
+      font-size: 0.9rem;
+      font-family: 'NoonnuBasicGothic', sans-serif;
+      margin-bottom: 8px;
+      font-weight: 400;
+    }
+
+    /* -------------------- MOA+ 스타일 CTA 버튼 -------------------- */
+    .cta-buttons-container {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      font-family: 'NoonnuBasicGothic', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      cursor: pointer;
+      height: 40px;
+      white-space: nowrap;
+      min-width: 140px;
+    }
+
+    /* 계산기 버튼 - 연한 민트색 */
+    .cta-calculator {
+      background-color: #B8F2E6;
+      color: #1a5f54;
+      border: 1px solid #A8EDD8;
+    }
+
+    .cta-calculator:hover {
+      background-color: #8AE4D7;
+      color: #1a5f54;
+      border: 1px solid #6DD8C7;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(184, 242, 230, 0.4);
+    }
+
+    /* 비교 버튼 - 그레이/화이트 느낌 */
+    .cta-compare {
+      background-color: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+    }
+
+    .cta-compare:hover {
+      background-color: #e9ecef;
+      color: #495057;
+      border: 1px solid #ced4da;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(233, 236, 239, 0.5);
+    }
+
+    /* 버튼 텍스트 */
+    .cta-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+
+    .cta-arrow {
+      font-size: 1rem;
+      transition: transform 0.2s ease;
+    }
+
+    .cta-button:hover .cta-arrow {
+      transform: translateX(3px);
+    }
+
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .cta-buttons-container {
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      
+      .cta-button {
+        min-width: 120px;
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        height: 36px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .cta-buttons-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .cta-button {
+        min-width: 160px;
+        font-size: 0.95rem;
+        height: 40px;
+      }
+    }
+
 /* ------------------ 필터 카드(가로 바) ------------------ */
     .filter-card {
       background-color: #ffffff;
@@ -330,7 +456,25 @@
       <h1>{{ product_type }} 다 MOA</h1>
       <p>은행별 {{ product_type }} 상품을 손쉽게 비교해보세요</p>
     </div>
-
+    
+    {% if product_type in ['예금', '적금'] %}
+    <!-- 필터 위 CTA 버튼들 -->
+    <div class="cta-buttons-container">
+      <a href="{{ url_for('plus_calculator') }}?tab={{ product_type }}" class="cta-button cta-calculator">
+        <div class="cta-text">
+          {{ product_type }} 계산기
+          <span class="cta-arrow">→</span>
+        </div>
+      </a>
+      <a href="{{ url_for('compare_savings') }}" class="cta-button cta-compare">
+        <div class="cta-text">
+          상품 비교하기
+          <span class="cta-arrow">→</span>
+        </div>
+      </a>
+    </div>
+    {% endif %}
+    
     <!-- 필터 카드(가로 바) -->
     <div class="filter-card mb-2">
       <form id="filterForm" class="row gx-1 gy-2 align-items-end">
@@ -429,6 +573,13 @@
         <tbody id="product-tbody"></tbody>
       </table>
       <div id="pagination-container"></div>
+      
+      <!-- 하단 안내 문구 -->
+      <div class="bottom-notice">
+        ※ 정보 기준일 : 2025년 5월 9일<br>
+        ※ 상품 정보는 각 금융기관에서 제공한 자료를 바탕으로 작성되었으며, 실제 조건과 다를 수 있습니다.<br>
+        ※ 정확한 상품 정보는 해당 금융기관에 직접 문의하시기 바랍니다.
+      </div>
     </div>
   </div>
 
@@ -547,10 +698,8 @@
                 <p><strong>▶ 우대조건:</strong> ${p.우대조건 || "정보 없음"}</p>
                 <p><strong>▶ 가입대상:</strong> ${p.가입대상 || "정보 없음"}</p>
                 <p><strong>▶ 금리유형:</strong> ${p.금리유형 || "정보 없음"}</p>
-                <p><strong>▶ 적립유형:</strong> ${p.적립유형 || "정보 없음"}</p>
                 <p><strong>▶ 저축기간:</strong> ${p["저축기간(개월)"] || "정보 없음"}개월</p>
                 <p><strong>▶ 금융권:</strong> ${p.금융권 || "정보 없음"}</p>
-                <p><strong>▶ 상환 방식:</strong> ${p["상환 방식"] || "정보 없음"}</p>
                 <div class="text-end mt-2">
                   <button
                     class="btn btn-sm btn-secondary"
@@ -611,7 +760,7 @@
 
     // 은행 그룹 토글
     function setBankGroup(group) {
-      selectedBankGroup = group;
+      selectedBankGroup = group;    
       selectedBanks     = [];
       renderBankDropdown();
       document.querySelectorAll(".bank-group-btns .btn")
@@ -705,5 +854,4 @@
     });
   </script>
 {% endblock %}
-
 

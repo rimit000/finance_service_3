@@ -4,7 +4,6 @@
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
   .car-section-title {
@@ -54,16 +53,13 @@
   </div>
 
   {% set global_counter = namespace(value=0) %}
-  {% set car_index_map = {} %}
   {% for category in ['경차', '세단', '소형 SUV'] %}
   <div class="mb-5 car-section filtered-section" data-category="{{ category }}">
     <h4 class="text-center fw-bold my-4 category-title">{{ category }}</h4>
     <div id="carousel{{ category }}" class="carousel slide" data-bs-touch="false" data-bs-interval="false">
       <div class="carousel-inner">
-        {% set local_index = 0 %}
         {% for car in car_list if car['카테고리'] == category %}
         {% set idx = global_counter.value %}
-        {% set car_index_map = car_index_map.update({car['모델명']: local_index}) %}
         {% set global_counter.value = global_counter.value + 1 %}
         <div class="carousel-item {% if loop.first %}active{% endif %}">
           <div class="d-flex align-items-center justify-content-center">
@@ -82,12 +78,10 @@
               <p> 월 저축액: <span class="monthly-saving" id="monthly{{ idx }}">-</span></p>
               <p class="total-saving">총 저축 예상 금액: <span id="total{{ idx }}">-</span></p>
               <div class="recommended-savings" id="recommend{{ idx }}">-</div>
-              <canvas id="chart{{ idx }}" height="150" class="mt-4"></canvas>
             </div>
             <button class="btn btn-outline-secondary ms-3" type="button" onclick="nextSlide('carousel{{ category }}')"> → </button>
           </div>
         </div>
-        {% set local_index = local_index + 1 %}
         {% endfor %}
       </div>
     </div>
@@ -104,7 +98,6 @@
              alt="{{ car['모델명'] }}"
              style="cursor:pointer"
              data-category="{{ car['카테고리'] }}"
-             data-slide-index="{{ loop.index0 }}"
              onclick="jumpToSlide('{{ car['카테고리'] }}', {{ loop.index0 }})">
         <div class="card-body text-center">
           <h5 class="card-title">{{ car['모델명'] }}</h5>
@@ -136,62 +129,23 @@ function calculateAndRecommend(select, price, index) {
       .slice(0, 3);
 
     if (filtered.length > 0) {
-      const list = filtered.map(p =>
-        `<li>
-          <a href="/savings/detail/${encodeURIComponent(p.금융회사명)}/${encodeURIComponent(p.상품명)}" class="text-decoration-none fw-bold text-dark">
-            ${p.상품명}
-          </a><br>
-          <span class="text-muted small">(${p.금융회사명}, <strong>${p.금리}%</strong>)</span>
-        </li>`).join('');
+      const list = filtered.map(p => {
+        const interestRate = parseFloat(p.금리) / 100;
+        const estimatedTotal = (monthly * months * (1 + (interestRate * months / 12))).toFixed(1);
+        return `
+          <li>
+            <a href="/savings/detail/${encodeURIComponent(p.금융회사명)}/${encodeURIComponent(p.상품명)}" class="text-decoration-none fw-bold text-dark">
+              ${p.상품명}
+            </a><br>
+            <span class="text-muted small">(${p.금융회사명}, <strong>${p.금리}%</strong>)</span><br>
+            <span class="text-success small">예상 수령 금액: <strong>${estimatedTotal} 만원</strong></span>
+          </li>`;
+      }).join('');
       recommendEl.innerHTML = `<ul class="recommend-list">${list}</ul>`;
     } else {
       recommendEl.innerHTML = `<div class="text-muted">추천 상품 없음</div>`;
     }
 
-    const ctx = document.getElementById("chart" + index).getContext("2d");
-    if (window["chartInstance" + index]) window["chartInstance" + index].destroy();
-
-    const data = Array.from({ length: months }, (_, i) => (monthly * (i + 1)).toFixed(1));
-    const labels = Array.from({ length: months }, (_, i) => `${i + 1}개월`);
-    const bgColors = Array.from({ length: months }, (_, i) => `rgba(0, 216, 176, ${0.2 + (i / months) * 0.8})`);
-
-    window["chartInstance" + index] = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: '누적 저축액 (만원)',
-          data: data,
-          backgroundColor: bgColors,
-          borderColor: '#00b894',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        animation: {
-          duration: 1000,
-          easing: 'easeOutQuart'
-        },
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => `${ctx.label} 누적: ${ctx.parsed.y}만원`
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: '만원' },
-            ticks: {
-              callback: value => value + '만원'
-            }
-          }
-        }
-      }
-    });
   } else {
     monthlyEl.textContent = "-";
     totalEl.textContent = "-";

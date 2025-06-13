@@ -884,6 +884,23 @@ function calcLoan() {
   document.getElementById('summaryLoanTotalPay').innerText   =
     Math.round(totalPayment).toLocaleString();
 }
+//계산기 이동시 폐이지
+document.addEventListener("DOMContentLoaded", function () {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+
+    if (tab === "적금") {
+      const savingsTab = new bootstrap.Tab(document.querySelector('#tab-savings'));
+      savingsTab.show();
+    } else if (tab === "대출") {
+      const loanTab = new bootstrap.Tab(document.querySelector('#tab-loan'));
+      loanTab.show();
+    } else {
+      const simpleTab = new bootstrap.Tab(document.querySelector('#tab-simple'));
+      simpleTab.show();
+    }
+  });
+
 </script>
 
 {% endblock %}

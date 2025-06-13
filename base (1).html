@@ -17,7 +17,7 @@
     html, body{height:100%;}
     body{
       display:flex;flex-direction:column;min-height:100vh;
-      font-family:'NoonnuBasicGothic', sans-serif;
+      font-family:'Noto Sans KR',sans-serif;
     }
 
     .custom-header {
@@ -26,7 +26,6 @@
         justify-content: space-between;
         padding: 24px 20% 40px;
         flex-wrap: wrap;
-        background-color: #fff;
     }
 
     .custom-logo img {
@@ -39,7 +38,7 @@
         font-family: 'NoonnuBasicGothic', sans-serif;
         font-size: 24px;
         font-weight: 200;
-        line-height: 1.3;
+        line-height: 1.3;   
     }
 
     .custom-nav a {
@@ -85,19 +84,166 @@
       }
     }
 
-    /* ---------- 푸터 ---------- */
-    .site-footer{
-    background:#EDF2F4;   /* ← 이미지 속 배경색과 동일 */
-    color:#000;
-    box-shadow:0 -2px 8px rgba(0,0,0,.05);
-    font-size:.95rem;
-    padding:60px 0;
-    margin-top:auto;      /* 본문이 짧을 때 바닥에 붙음 */
+    /* ---------- 브레드크럼 스타일 ---------- */
+    .moa-breadcrumb {
+        background-color: transparent;
+        padding: 20px 0;
+        margin-bottom: 30px;
+        font-family: 'NoonnuBasicGothic', sans-serif;
     }
-    .site-footer h5{font-size:1.1rem;font-weight:700;margin-bottom:1rem;color:#868787;}
-    .site-footer a{color:#868787;text-decoration:none;}
-    .site-footer a:hover{text-decoration:underline;}
-    .site-footer .divider{height:1px;background:#EDF2F4;margin:1rem 0;}
+
+    .breadcrumb-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .breadcrumb-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .breadcrumb-item:not(:last-child)::after {
+        content: '>';
+        margin: 0 6px;
+        color: #666;
+        font-size: 16px;
+        font-weight: 400;
+    }
+
+    .breadcrumb-link {
+        color: #666;
+        text-decoration: none;
+        font-size: 16px;
+        font-weight: 400;
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb-link:hover {
+        color: #333;
+        text-decoration: none;
+    }
+
+    .breadcrumb-current {
+        color: #333;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    /* ::before 가상요소로 인한 / 문자 제거 */
+    .breadcrumb-current::before,
+    .breadcrumb-link::before,
+    .breadcrumb-item::before {
+        content: none !important;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 768px) {
+        .breadcrumb-container {
+            padding: 0 16px;
+        }
+        
+        .breadcrumb-item:not(:last-child)::after {
+            margin: 0 8px;
+            font-size: 12px;
+        }
+        
+        .breadcrumb-link,
+        .breadcrumb-current {
+            font-size: 13px;
+        }
+    }
+
+    /* 긴 텍스트 처리 */
+    .breadcrumb-item {
+        max-width: 200px;
+    }
+
+    .breadcrumb-link,
+    .breadcrumb-current {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (max-width: 480px) {
+        .breadcrumb-item {
+            max-width: 120px;
+        }
+    }
+
+    /* ---------- 푸터 (세로 길이 2/3로 축소) ---------- */
+    .site-footer{
+        background:#EDF2F4;
+        color:#000;
+        box-shadow:0 -2px 8px rgba(0,0,0,.05);
+        font-size:.85rem;
+        padding:30px 0 20px 0;  /* 기존 60px에서 축소 */
+        margin-top:auto;
+    }
+    
+    .site-footer .row {
+        margin: 0;
+    }
+    
+    .site-footer .col-md-4 {
+        padding: 0 15px;
+    }
+    
+    .site-footer h5{
+        font-size:1.1rem;
+        font-weight:600;
+        margin-bottom:0.8rem;
+        color:#868787;
+    }
+    
+    .site-footer p {
+        margin-bottom: 0.4rem !important;
+        line-height: 1.4;
+        font-size: 0.9rem;
+    }
+    
+    .site-footer .mb-2 {
+        margin-bottom: 0.3rem !important;
+    }
+    
+    .site-footer .mb-3 {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .site-footer small {
+        font-size: 0.8rem;
+        line-height: 1.3;
+    }
+    
+    .site-footer a{
+        color:#868787;
+        text-decoration:none;
+    }
+    
+    .site-footer a:hover{
+        text-decoration:underline;
+    }
+    
+    .site-footer .divider{
+        height:1px;
+        background:#D1D5DB;
+        margin:0.6rem 0;
+    }
+    
+    .site-footer img {
+        height: 24px !important; /* 로고 크기 축소 */
+    }
   </style>
 </head>
 <body>
@@ -123,6 +269,25 @@
     </div>
   </nav>
 </header>
+
+<!-- ---------- 브레드크럼 네비게이션 ---------- -->
+{% if breadcrumb and breadcrumb|length > 1 %}
+<nav class="moa-breadcrumb" aria-label="breadcrumb">
+    <div class="breadcrumb-container">
+        <ol class="breadcrumb-list">
+            {% for item in breadcrumb %}
+                <li class="breadcrumb-item">
+                    {% if item.current %}
+                        <span class="breadcrumb-current" title="{{ item.name }}">{{ item.name }}</span>
+                    {% else %}
+                        <a href="{{ item.url }}" class="breadcrumb-link" title="{{ item.name }}">{{ item.name }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+</nav>
+{% endif %}
 
 <!-- ---------- 본문 ---------- -->
 <main class="flex-grow-1"><!-- ❗ main은 항상 남겨둠 -->
@@ -219,8 +384,6 @@ document.querySelectorAll('.custom-nav .dropdown').forEach(dropdown=>{
       },1000);
   });
 });
-
-
 
 </script>
 
