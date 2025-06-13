@@ -922,15 +922,15 @@ def car_roadmap():
 
         # 이미지 매핑 딕셔너리
         image_map = {
-            '레이': 'ray.png',
-            '캐스퍼': 'kester.png',
-            '모닝': 'moring.png',
-            '기아 K3': 'kia_k3.png',
-            '현대 아반떼': 'avante.png',
-            '현대 쏘나타': 'sonata.png',
-            '르노코리아 XM3': 'renault_xm3.png',
-            '현대 코나': 'kona.png',
-            '기아 셀토스': 'seltos.png',
+            'Ray': 'ray.png',
+            'Casper': 'kester.png',
+            'Morning': 'moring.png',
+            'K3': 'kia_k3.png',
+            'Avante': 'avante.png',
+            'Sonata': 'sonata.png',
+            'XM3': 'renault_xm3.png',
+            'Kona': 'kona.png',
+            'Seltos': 'seltos.png',
         }
 
         # car_list 구성
