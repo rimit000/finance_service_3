@@ -18,6 +18,7 @@
     
     body, .container {
         font-family:'NoonnuBasicGothic', sans-serif;
+        
     }
 
     /* -------------------- 상단 헤더 영역 -------------------- */
@@ -103,21 +104,29 @@
         text-align: center;  
     }
 
-    /* -------------------- 페이지 누르면 적금추천 뜨는 박스 -------------------- */
-    .recommend-list {
-        padding-left: 0;
+    .row.align-items-center{
+        background-color: #FFFFFF;
+        border:2px solid #f0f0f0 ;
+        border-radius: 8px;
+        width: 1260px;
+        margin-left: 3px;
+        box-shadow: 2px 2px 6px rgba(124,132,153,0.3); 
+
     }
+    /* -------------------- 페이지 누르면 적금추천 뜨는 박스 -------------------- */
+
     
     .recommend-list li {
         border:#fffdfd;
-        background-color: rgb(227, 240, 229, 0.5);
+        background-color: #E8ECF1; 
         border-radius: 8px;
-        box-shadow: 0 0 8px rgba(184,180,180,0.25), 3px 3px 4px rgba(0,0,0,0.25); 
+        /* box-shadow: 0 0 8px rgba(184,180,180,0.25), 3px 3px 4px rgba(0,0,0,0.25);  */
         padding: 15px;
         list-style: none;
         font-size: 1.2rem;
         line-height: 1.6;
         margin-bottom: 10px;
+        
     }
     
     .filtered-section { 
@@ -130,24 +139,28 @@
     
 
     .col-md-5 {
+    margin: 1.5rem 1.5rem !important;  
     font-size:1.3rem !important;
     white-space: nowrap;
   }
     .col-md-5.form-select {width: 20px;}
 
+
     .col-md-4.text-center > h3 {
-      color: #00C4A8;
+      color: #000000;
       margin: 1.5rem 0 !important;   
       font-size: 2.5rem;  
       white-space: nowrap;
     }
-    .col-md-4.text-center > p {
+    .col-md-5.text-center > p {
       color:#434040;
-      font-size: 1.5rem;   
+      font-size: 1.3rem;   
       white-space: nowrap; 
       margin: 1.5rem 0;
       font-weight: 100;
     }
+
+    
 </style>
 
 <div class="container my-5">
@@ -181,11 +194,12 @@
                     <div class="col-md-4 text-center">
                         <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" class="car-img" alt="{{ car['모델명'] }}">
                         <h3 class="mt-3">{{ car['모델명'] }}</h3> 
-                        <p>평균 가격 <strong>{{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
+                        
                     </div>
                     <div class="col-md-5">
                       <div class="d-flex align-items-center gap-2 mb-3">
-                        <label for="months{{ idx }}" class="form-label mb-0" style="color:#0AA68F;">목표 기간  </label>
+                        
+                        <label for="months{{ idx }}" class="form-label mb-0" style="color:#434040;">목표 기간</label>
                         <select id="months{{ idx }}"
                                 class="form-select"
                                 data-price="{{ car['평균가격'] }}"
@@ -195,9 +209,9 @@
                           {% endfor %}
                         </select>
                       </div>
-
-                      <p style="color:#0AA68F;">월 저축액  <span id="monthly{{ idx }}" style="color:#000000;">       -</span></p>
-                      <p style="color:#0AA68F;">총 저축 예상 금액  <span id="total{{ idx }}" style="color:#000000;">  -</span></p>
+                      <p>평균 가격 <strong>{{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
+                      <p style="color:#434040;">월 저축액  <span id="monthly{{ idx }}" style="color:#000000;">       -</span></p>
+                      <p style="color:#434040;">총 저축 예상 금액  <span id="total{{ idx }}" style="color:#000000;">  -</span></p>
 
                       <div class="recommended-savings" id="recommend{{ idx }}"></div>
                     </div>
@@ -258,7 +272,7 @@ function calculateAndRecommend(select, price, index) {
                             ${p.상품명}
                         </a><br>
                         <span class="text-muted">(${p.금융회사명}, <strong>${p.금리}%</strong>)</span><br>
-                        <span class="text small"  style="color:#0A9A85;"> → 예상 수령 금액 <strong>${estimatedTotal} 만원</strong></span>
+                        <span class="text small"  style="color:#0E3280;"> → 예상 수령 금액 <strong>${estimatedTotal} 만원</strong></span>
                     </li>`;
             }).join('');
             recommendEl.innerHTML = `<ul class="recommend-list">${list}</ul>`;
@@ -299,12 +313,15 @@ function nextSlide(id) {
 
 function prevSlide(id) {
     const carousel = document.getElementById(id);
+    const items    = carousel.querySelectorAll('.carousel-item');
     const active = carousel.querySelector('.carousel-item.active');
     let prev = active.previousElementSibling;
-    if (!prev) prev = carousel.querySelectorAll('.carousel-item').item(-1);
+    if (!prev) prev = items[items.length - 1];
     active.classList.remove('active');
     prev.classList.add('active');
 }
+
+
 
 function jumpToSlide(category, index) {
     filterByBox(category);
