@@ -890,6 +890,16 @@ def car_roadmap():
                                savings_products=[],
                                period_options=[])
 
+@app.route('/plus/region')
+def plus_region_map():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},Add commentMore actions
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
+        {'name': 'HOUSE MOA', 'current': True}
+    ]
+    return render_template('region_map.html', breadcrumb=breadcrumb)
+
 ## ------------------------------------------------------------
 ## 트립모아 (여행) trip travel 수정본
 ## ------------------------------------------------------------
