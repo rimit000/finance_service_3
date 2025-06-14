@@ -260,7 +260,9 @@
       height: 48px;
       align-items: center;
       padding: 6px;
-      gap: 8px; /* 버튼 간 여백 */
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 30px;
     }
 
     .group-buttons button {
@@ -632,8 +634,8 @@
     <form method="POST" id="compare-form">
       <!-- 예금/적금 선택 -->
       <div class="group-buttons" id="type-toggle">
-        <button type="button" class="btn-type" data-type="deposit">예금</button>
-        <button type="button" class="btn-type active" data-type="savings">적금</button>
+        <button type="button" class="btn-type active" data-type="deposit">예금</button>
+        <button type="button" class="btn-type" data-type="savings">적금</button>
       </div>
       <input type="hidden" name="product_type" id="product_type" value="savings">
 
