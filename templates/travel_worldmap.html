@@ -1,0 +1,675 @@
+{% extends 'base.html' %}
+{% block title %}TRIP MOA - 세계지도로 여행지 선택{% endblock %}
+
+{% block content %}
+<style>
+  :root {
+    --moa-green: #00C5A8;
+    --moa-lightgreen: #8CE4BC;
+    --moa-dark: #020715;
+	--moa-border:  #E0E5F3;
+    --moa-light: #8CE4BC;
+
+	  /* 대륙별 색상 변수 추가 */
+	--asia-color: #a8b1c5;
+	--europe-color: #a8b5c1;
+	--oceania-color: #b5aac1;
+	--south-america-color: #acbfa7;
+	--north-america-color: #beafa1;
+	--africa-color: #c5baa7;
+  }
+
+
+  .main-content {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* 타이틀----------------------------------------------------------------- */
+  .moa-header {
+    transform: translateY(-1cm);
+    background: white;
+    padding: 80px 20px 20px;
+    text-align: center;
+    font-family: 'NoonnuBasicGothic', sans-serif;
+  }
+  .moa-header .moa-bar {
+    width: 53px;
+    height: 10px;
+    background-color: var(--moa-light);
+    margin: 0 auto 30px;
+  }
+  .moa-header h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--moa-green);
+    letter-spacing: 1.5px;
+  }
+  .moa-header h1 span {
+    color: var(--moa-light);
+  }
+  .moa-header p {
+    font-size: 1.5rem;
+    color: #717171;
+    margin-top: 10px;
+    letter-spacing: 1.1px;
+  }
+
+  .section-title {
+    color: var(--moa-dark);
+    border-bottom: 3px solid var(--moa-green);
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+  }
+
+  /* 지도 영역 스타일 */
+  .map-container {
+    background: #ffffff;
+    border: 1px solid var(--moa-border);
+    border-radius: 10px;
+    box-shadow: 1px 1px 1px #0000000a, 0 2px 6px #131b320f;
+	padding: 24px 24px;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+
+  .world-map {
+    width: 90%;
+    max-width: 1000px;
+    height: auto;
+    background: #e3f2fd00;
+    border-radius: 10px;
+	margin: 0 auto;          /* 좌우 중앙 정렬 */
+  	display: block;          /* SVG를 블록 요소로 설정 */
+  }
+
+  .continent {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    stroke: #ffffff;
+    stroke-width: 1;
+  }
+
+  .continent:hover {
+    filter: brightness(1.1) drop-shadow(0 0 3px rgba(0,0,0,0.3));
+    stroke-width: 2;
+  }
+
+  .continent.selected {
+    filter: brightness(1.2) drop-shadow(0 0 3px rgba(0,0,0,0.4));
+    stroke-width: 1;
+    stroke: #ffffffc6;
+  }
+/* 대륙별 순서 */
+.legend-item[data-continent="asia"] { order: 1; }
+.legend-item[data-continent="europe"] { order: 2; }
+.legend-item[data-continent="oceania"] { order: 3; }
+.legend-item[data-continent="north-america"] { order: 4; }
+.legend-item[data-continent="south-america"] { order: 5; }
+.legend-item[data-continent="africa"] { order: 6; }
+
+/* 대륙별 색상 - CSS 변수 사용 */
+.asia { fill: var(--asia-color); }
+.europe { fill: var(--europe-color); }
+.oceania { fill: var(--oceania-color); }	
+.south-america { fill: var(--south-america-color); }
+.north-america { fill: var(--north-america-color); }
+.africa { fill: var(--africa-color); }
+
+/* 범례 스타일 */
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 15px;
+    margin-top: 30px;
+    padding: 0 20px;
+	margin-bottom: 40px;
+  }
+/* 모바일에서 범례 두 줄로 변경 */
+  @media (max-width: 900px) {
+  .legend {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 15px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .legend-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0 15px 3px rgba(0,0,0,0.15);
+    border-color: #ddd;
+  }
+
+  .legend-item.selected {
+    border-color: var(--moa-green);
+    background: #f0fff4;
+  }
+
+  .legend-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.8);
+  }
+
+  .legend-text {
+    font-weight: 600;
+    color: var(--moa-dark);
+  }
+
+  .countries-section {
+    display: none;
+    background: white;
+    border: 2px solid var(--moa-border);
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 30px;
+	
+
+  }
+
+  .countries-section.active {
+    display: block;
+    animation: fadeInUp 0.6s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(30px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  .countries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .country-card {
+    background: #ffffff;
+    border: 1px solid var(--moa-border);
+    border-radius: 10px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+
+
+  .country-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 15px 3px rgba(0,216,176,0.15);
+    border-color: var(--moa-green);
+  }
+
+  .country-card.selected {
+    border-color: var(--moa-green);
+    background: #f0fff4;
+    transform: translateY(-5px);
+    box-shadow: 0 0 15px 3px rgba(0,216,176,0.25);
+  }
+
+  .country-card h5 {
+    color: var(--moa-dark);
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .country-card .city {
+    font-size: 1.1em;
+    color: #007868;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .country-card .theme {
+   background: #e1e1e13a;
+  color: var(--moa-dark);
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: inline-block;
+  }
+
+  .country-card .cost {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #be3e30;
+    margin-top: 10px;
+  }
+
+
+
+.country-card .card-duration, 
+.country-card .card-theme {
+  background: #e1e1e13a;
+  color: var(--moa-dark);
+  padding: 4px 8px;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: inline-block;
+}
+
+.country-card .country-image {
+  height: 200px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+  }
+
+  .spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--moa-green);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .btn-next {
+    background-color: var(--moa-green);
+    color: white;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 12px 30px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1em;
+    margin-top: 20px;
+    display: none;
+  }
+
+  .btn-next:hover {
+    background-color: #00bfa5;
+    transform: translateY(-2px);
+  }
+
+  .default-info {
+    text-align: center;
+    color: #000000;
+    font-size: 1.2em;
+    padding: 40px;
+  }
+</style>
+<!-- 메인 콘텐츠 (전체 너비 사용) -->
+<div class="main-content">
+  <!-- 타이틀 -->
+  <div class="moa-header">
+    <div class="moa-bar"></div>
+    <h1><span>TRIP</span> MOA</h1>
+    <p>세계지도에서 대륙을 선택하여 여행지를 탐색해보세요</p>
+  </div>
+
+
+  <!-- 세계지도 영역 -->
+  <div class="map-container">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      지도 데이터를 불러오는 중...
+    </div>
+    
+    <svg class="world-map" id="worldMap" style="display: none;" viewBox="-180 -90 360 180" xmlns="http://www.w3.org/2000/svg">
+      <!-- 대륙들이 여기에 동적으로 추가됩니다 -->
+    </svg>
+	      <div class="legend" id="legend" style="display: none;">
+      <!-- 범례가 동적으로 생성됩니다 -->
+    </div>
+  </div>
+
+
+	<!-- 랜덤 여행지 섹션 추가 -->
+	<div class="countries-section" id="randomDestinations" style="display: block;">
+	
+	<div class="default-info" id="defaultInfo">
+	<h3>오늘의 추천 여행지</h3>
+	</div>
+
+	<div class="countries-grid" id="randomGrid">
+		<!-- 랜덤 여행지 카드들이 여기에 표시됩니다 -->
+	</div>
+	</div>
+
+  <!-- 선택된 대륙의 국가들 표시 영역 -->
+  <div class="countries-section" id="countriesSection">
+		<div class="default-info" id="defaultInfo">
+	<h3 id="continentTitle">대륙 여행지</h3>
+	</div>
+    <div class="loading" id="countriesLoading" style="display: none;">
+      <div class="spinner"></div>
+      여행지 정보를 불러오는 중...
+    </div>
+    <div class="countries-grid" id="countriesGrid">
+      <!-- 국가 카드들이 여기에 동적으로 추가됩니다 -->
+
+</div>
+
+<script>
+const continentNames = {
+  	'asia': '아시아',
+	'europe': '유럽',
+	'oceania': '오세아니아',
+  	'south-america': '남미',
+  	'north-america': '북미',
+  	'africa': '아프리카'
+};
+
+let selectedContinent = null;
+let selectedCity = null;
+
+// 지도 로드 함수
+async function loadMap() {
+  try {
+    console.log('지도 데이터 로딩 시작...');
+    
+    const response = await fetch('/static/geojson/continent-low.geo.json');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const geoData = await response.json();
+    console.log('GeoJSON 데이터 로드 완료');
+    
+    createMap(geoData);
+    
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('worldMap').style.display = 'block';
+    document.getElementById('legend').style.display = 'grid';
+    
+  } catch (error) {
+    console.error('지도 로딩 오류:', error);
+    document.getElementById('loading').innerHTML = `
+      <div class="text-danger">
+        ⚠️ 지도를 불러올 수 없습니다.<br>
+        <small>${error.message}</small>
+      </div>
+    `;
+  }
+}
+
+// 좌표를 SVG path로 변환
+function coordinatesToPath(coordinates) {
+  let path = '';
+  
+  if (coordinates[0] && Array.isArray(coordinates[0][0])) {
+    coordinates.forEach(polygon => {
+      polygon.forEach(ring => {
+        ring.forEach((coord, index) => {
+          const [lng, lat] = coord;
+          const command = index === 0 ? 'M' : 'L';
+          path += `${command}${lng},${-lat} `;
+        });
+        path += 'Z ';
+      });
+    });
+  } else {
+    coordinates.forEach(ring => {
+      ring.forEach((coord, index) => {
+        const [lng, lat] = coord;
+        const command = index === 0 ? 'M' : 'L';
+        path += `${command}${lng},${-lat} `;
+      });
+      path += 'Z ';
+    });
+  }
+  
+  return path.trim();
+}
+
+// 지도 생성
+function createMap(geoData) {
+  const svg = document.getElementById('worldMap');
+  const legendContainer = document.getElementById('legend');
+  
+  geoData.features.forEach(feature => {
+    const continentId = feature.properties.id;
+    const continentName = continentNames[continentId] || feature.properties['en-name'];
+    
+    // SVG path 생성 - CSS 클래스로 색상 자동 적용
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', coordinatesToPath(feature.geometry.coordinates));
+    path.setAttribute('class', `continent ${continentId}`);
+    path.setAttribute('data-continent', continentId);
+    
+    path.addEventListener('click', () => selectContinent(continentId));
+    svg.appendChild(path);
+    
+    // 범례 생성 - CSS 변수 직접 사용
+    const legendItem = document.createElement('div');
+    legendItem.className = 'legend-item';
+    legendItem.setAttribute('data-continent', continentId);
+    legendItem.innerHTML = `
+      <div class="legend-color" style="background-color: var(--${continentId}-color);"></div>
+      <span class="legend-text">${continentName}</span>
+    `;
+    
+    legendItem.addEventListener('click', () => selectContinent(continentId));
+    legendContainer.appendChild(legendItem);
+  });
+}
+
+// 대륙 선택 함수
+async function selectContinent(continentId) {
+  console.log('대륙 선택:', continentId);
+  
+  // 이전 선택 해제
+  document.querySelectorAll('.continent.selected').forEach(el => {
+    el.classList.remove('selected');
+  });
+  document.querySelectorAll('.legend-item.selected').forEach(el => {
+    el.classList.remove('selected');
+  });
+  
+  // 새로운 선택 적용
+  const continentElement = document.querySelector(`[data-continent="${continentId}"].continent`);
+  const legendElement = document.querySelector(`[data-continent="${continentId}"].legend-item`);
+  
+  if (continentElement) continentElement.classList.add('selected');
+  if (legendElement) legendElement.classList.add('selected');
+  
+  selectedContinent = continentId;
+  
+  // 기본 정보와 랜덤 여행지 숨기기
+  document.getElementById('defaultInfo').style.display = 'none';
+  document.getElementById('randomDestinations').style.display = 'none';
+  
+  // 해당 대륙의 국가 정보 로드
+  await loadContinentCountries(continentId);
+}
+
+// 대륙별 국가 정보 로드
+async function loadContinentCountries(continentId) {
+  const countriesSection = document.getElementById('countriesSection');
+  const countriesLoading = document.getElementById('countriesLoading');
+  const countriesGrid = document.getElementById('countriesGrid');
+  const continentTitle = document.getElementById('continentTitle');
+  
+  countriesSection.style.display = 'block';
+  countriesLoading.style.display = 'block';
+  countriesGrid.innerHTML = '';
+  continentTitle.textContent = `${continentNames[continentId]} 여행지`;
+  
+  try {
+    const response = await fetch(`/api/continent/${continentId}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const countries = await response.json();
+	console.log('받은 데이터:', countries);
+	
+    countriesLoading.style.display = 'none';
+    
+    if (countries.length === 0) {
+      countriesGrid.innerHTML = `
+        <div class="col-12 text-center">
+          <p class="text-muted">해당 대륙의 여행 상품이 준비되지 않았습니다.</p>
+        </div>
+      `;
+      return;
+    }
+    
+	// 국가 카드 생성
+	countries.forEach(country => {
+		const countryCard = document.createElement('div');
+		countryCard.className = 'country-card';
+		countryCard.setAttribute('data-city', country.city);
+		countryCard.innerHTML = `
+		<div class="theme card-theme">${country.theme}</div>
+		<small class="card-duration">${country.days}</small>
+		<div class="country-image" style="background-image: url('${country.image_url}');"></div>
+		<h5>${country.country}</h5>
+		<div class="city">${country.city}</div>
+		<p class="mb-2">${country.reason}</p>
+		<div class="cost">${country.total_cost.toLocaleString()}원</div>
+		`;
+
+
+		
+		countryCard.addEventListener('click', (event) => selectCountry(country.city, countryCard, event));
+		countriesGrid.appendChild(countryCard);
+	});
+    
+  } catch (error) {
+    console.error('국가 정보 로드 오류:', error);
+    countriesLoading.style.display = 'none';
+    countriesGrid.innerHTML = `
+      <div class="col-12 text-center text-danger">
+        ⚠️ 여행지 정보를 불러올 수 없습니다.
+      </div>
+    `;
+  }
+}
+
+// 국가 선택 함수
+function selectCountry(cityName, cardElement, event) {
+  console.log('도시 선택:', cityName);
+  
+  // 이벤트 전파 방지
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
+  // 이전 선택 해제
+  document.querySelectorAll('.country-card').forEach(card => {
+    card.classList.remove('selected');
+  });
+  
+  // 선택된 카드 강조
+  cardElement.classList.add('selected');
+  
+  // 선택된 도시 저장하고 바로 다음 페이지로 이동
+  selectedCity = cityName;
+  
+  // 바로 저축 계획 페이지로 이동
+  goToSavingsPage();
+}
+
+// 저축 계획 페이지로 이동
+function goToSavingsPage() {
+  console.log('goToSavingsPage 호출됨, selectedCity:', selectedCity);
+  
+  if (selectedCity) {
+    const url = `/plus/travel-plan/savings?city=${encodeURIComponent(selectedCity)}`;
+    console.log('이동할 URL:', url);
+    window.location.href = url;
+  } else {
+    console.error('selectedCity가 없습니다:', selectedCity);
+    alert('먼저 여행지를 선택해주세요.');
+  }
+}
+
+// 페이지 로드 시 지도 로드 + 랜덤 여행지 로드
+document.addEventListener('DOMContentLoaded', function() {
+  loadMap();
+  loadRandomDestinations();
+});
+
+
+// 랜덤 여행지 로드 함수
+async function loadRandomDestinations() {
+  try {
+    // 모든 대륙에서 데이터 가져오기
+    const continents = ['asia', 'europe', 'north-america', 'oceania', 'south-america', 'africa'];
+    let allDestinations = [];
+    
+    for (const continent of continents) {
+      const response = await fetch(`/api/continent/${continent}`);
+      if (response.ok) {
+        const countries = await response.json();
+        allDestinations = allDestinations.concat(countries);
+      }
+    }
+    
+    // 랜덤으로 6개 선택
+    const randomDestinations = allDestinations
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 6);
+    
+    const randomGrid = document.getElementById('randomGrid');
+    randomGrid.innerHTML = '';
+    
+    randomDestinations.forEach(country => {
+      const countryCard = document.createElement('div');
+      countryCard.className = 'country-card';
+      countryCard.setAttribute('data-city', country.city);
+	countryCard.innerHTML = `
+		<div class="theme card-theme">${country.theme}</div>
+		<small class="card-duration">${country.days}</small>
+		<div class="country-image" style="background-image: url('${country.image_url}');"></div>
+		<h5>${country.country}</h5>
+		<div class="city">${country.city}</div>
+		<p class="mb-2">${country.reason}</p>
+		<div class="cost">${country.total_cost.toLocaleString()}원</div>
+		`;
+      
+      countryCard.addEventListener('click', (event) => selectCountry(country.city, countryCard, event));
+      randomGrid.appendChild(countryCard);
+    });
+    
+  } catch (error) {
+    console.error('랜덤 여행지 로드 오류:', error);
+  }
+
+
+}
+
+</script>
+
+{% endblock %}
