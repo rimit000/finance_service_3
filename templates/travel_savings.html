@@ -216,7 +216,7 @@
   .btn-back {
     background: none;
     border: 1px solid var(--moa-border);
-    color: var(--moa-green);
+    color: var(--moa-dark);
     padding: 10px 20px;
     border-radius: 10px;
     text-decoration: none;
@@ -527,7 +527,6 @@
     
     {% for period, data in all_products.items() %}
     <div class="period-section" id="products-{{ period }}">
-      <h5 class="mb-3">{{ period }}개월 저축 상품 (월 {{ data.monthly_saving | format_currency('₩') }})</h5>
       
       {% if data.products %}
         <div class="products-grid">
