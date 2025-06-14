@@ -890,33 +890,142 @@ def car_roadmap():
                                savings_products=[],
                                period_options=[])
 
-@app.route('/plus/region')
-def plus_region_map():
-    breadcrumb = [
-        {'name': '홈', 'url': '/'},
-        {'name': 'MOA PLUS', 'url': '/plus'},
-        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
-        {'name': 'HOUSE MOA', 'current': True}
-    ]
-    return render_template('region_map.html', breadcrumb=breadcrumb)
+## ------------------------------------------------------------
+## 트립모아 (여행) trip travel 수정본
+## ------------------------------------------------------------
 
-@app.route('/plus/travel', methods=['GET'])
-def travel_home():
-    breadcrumb = [
-        {'name': '홈', 'url': '/'},
-        {'name': 'MOA PLUS', 'url': '/plus'},
-        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
-        {'name': 'TRIP MOA', 'current': True}
-    ]
+CITY_IMAGES = {
+    # 일본
+    '오사카': 'https://images.unsplash.com/photo-1743242328615-85e551fae33c?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 오사카성
+    '교토': 'https://images.unsplash.com/photo-1582752438560-621fcca4da3a?q=80&w=1480&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 후시미 이나리 신사
     
-    try:
-        travel_df = pd.read_csv('travel.csv')
-        cities = travel_df['도시'].tolist()
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
-    except Exception as e:
-        print(f"여행 데이터 로드 오류: {e}")
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
+    # 대만
+    '타이베이': 'https://plus.unsplash.com/premium_photo-1661963920742-f5b23a6a1b44?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 타이베이 101
+    '가오슝': 'https://plus.unsplash.com/premium_photo-1661950064135-5be0fa2d3595?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 가오슝 도시 야경
+    '화롄': 'https://images.unsplash.com/photo-1600622249586-63b1e556dd1c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 타로코 협곡
+    
+    # 베트남
+    '하노이': 'https://plus.unsplash.com/premium_photo-1690960644375-6f2399a08ebc?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 호안끼엠 호수
+    '다낭': 'https://images.unsplash.com/photo-1693282815001-0471e68d3bc0?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 다낭 해변
+    '호치민': 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 호치민 시내
+    '푸꾸옥': 'https://images.unsplash.com/photo-1673093781382-766228925b01?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 푸꾸옥 해변
+    
+    # 태국
+    '치앙마이': 'https://images.unsplash.com/photo-1578157695179-d7b7ddeb2f53?q=80&w=1031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 치앙마이 사원
+    '방콕': 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=800&q=80',  # 방콕 왕궁
+    
+    # 말레이시아
+    '쿠알라룸푸르': 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=800&q=80',  # 페트로나스 타워
+    '조호르바루': 'https://images.unsplash.com/photo-1521317925431-c2256dd4fe2a?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 조호르바루 시내
+    
+    # 싱가포르
+    '싱가포르': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=800&q=80',  # 마리나베이 샌즈
+    '센토사': 'https://images.unsplash.com/photo-1650434048812-572363b3a121?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 센토사 해변
+    
+    # 홍콩
+    '홍콩': 'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=800&q=80',  # 홍콩 야경
+    
+    # 인도네시아
+    '자카르타': 'https://images.unsplash.com/photo-1555899434-94d1368aa7af?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 자카르타 스카이라인
+    '발리': 'https://images.unsplash.com/photo-1604999333679-b86d54738315?q=80&w=1025&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 발리 우붓 라이스테라스
+    
+    # 필리핀
+    '마닐라': 'https://images.unsplash.com/photo-1556537185-48d80b9596c0?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 마닐라 인트라무로스
+    '보라카이': 'https://images.unsplash.com/photo-1495031451303-d8ab59c8df37?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 보라카이 화이트 비치
+    '세부': 'https://images.unsplash.com/photo-1637851686615-ba01bfb883f2?q=80&w=1371&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 세부 해변
+    
+    # 터키
+    '이스탄불': 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=80',  # 술탄 아흐메드 모스크
+    '카파도키아': 'https://images.unsplash.com/photo-1641128324972-af3212f0f6bd?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 카파도키아 열기구
+    '안탈리아': 'https://images.unsplash.com/photo-1593238738950-01f243cac6fc?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 안탈리아 해안
+    
+    ## 북미
+    # 미국
+    '뉴욕': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80',  # 뉴욕 스카이라인
+    '샌프란시스코': 'https://images.unsplash.com/photo-1719858403364-83f7442a197e?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 금문교
+    '포틀랜드': 'https://plus.unsplash.com/premium_photo-1675122317418-8b7324d93272?q=80&w=1453&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 포틀랜드 다운타운
+    
+    # 캐나다
+    '퀘벡시티': 'https://images.unsplash.com/photo-1600229876145-bf6b400a2c9b?q=80&w=1325&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 퀘벡 구시가지
+    '몬트리올': 'https://images.unsplash.com/photo-1470181942237-78ce33fec141?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 몬트리올 구시가지
+    
+    ## 유럽
+    # 스페인
+    '바르셀로나': 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80',  # 사그라다 파밀리아
+    
+    # 이탈리아
+    '시칠리아': 'https://images.unsplash.com/photo-1523365154888-8a758819b722?q=80&w=1469&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 시칠리아 타오르미나
+    '토스카나': 'https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 토스카나 언덕
+    
+    # 프랑스
+    '파리': 'https://images.unsplash.com/photo-1569949381669-ecf31ae8e613?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 에펠탑
+    '리옹': 'https://plus.unsplash.com/premium_photo-1661957705604-15f37be44856?q=80&w=1373&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 리옹 구시가지
+    
+    # 포르투갈
+    '리스본': 'https://images.unsplash.com/photo-1555881400-74d7acaacd8b?w=800&q=80',  # 리스본 전차
+    
+    # 체코
+    '프라하': 'https://images.unsplash.com/photo-1519677100203-a0e668c92439?w=800&q=80',  # 프라하 성
+    
+    # 조지아
+    '트빌리시': 'https://images.unsplash.com/photo-1565008576549-57569a49371d?q=80&w=1558&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 트빌리시 구시가지
+    
+    ## 오세아니아
+    # 호주
+    '시드니': 'https://images.unsplash.com/photo-1616128618694-96e9e896ecb7?q=80&w=1290&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 시드니 오페라하우스
+    '멜버른': 'https://plus.unsplash.com/premium_photo-1733338816344-1a21444a646f?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 멜버른 플린더스 스트리트
+    '골드코스트': 'https://images.unsplash.com/photo-1607309843659-f4ad95cf3277?q=80&w=1471&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 골드코스트 해변
+    
+    # 뉴질랜드
+    '오클랜드': 'https://images.unsplash.com/photo-1693807010837-5d849a65fe00?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 오클랜드 스카이타워
+    '퀸스타운': 'https://plus.unsplash.com/premium_photo-1661964091508-b77d484a3003?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 퀸스타운 와카티푸 호수
+    '크라이스트처치': 'https://images.unsplash.com/photo-1634348407697-393e5b24a52d?q=80&w=1475&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 크라이스트처치 대성당
+    
+    ## 남미
+    # 브라질
+    '리우데자네이루': 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=800&q=80',  # 코르코바도 예수상
+    '상파울루': 'https://images.unsplash.com/photo-1696708430962-d303db58fbc6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 상파울루 시내
+    
+    # 아르헨티나
+    '부에노스아이레스': 'https://plus.unsplash.com/premium_photo-1697729901052-fe8900e24993?q=80&w=1333&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 부에노스아이레스 까미니토
+    '바릴로체': 'https://images.unsplash.com/photo-1581836499506-4a660b39478a?w=800&q=80',  # 바릴로체 나우엘 우아피 호수
+    
+    # 페루
+    '리마': 'https://images.unsplash.com/photo-1580530719806-99398637c403?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D0',  # 리마 미라플로레스 해안
+    '쿠스코': 'https://images.unsplash.com/photo-1526392060635-9d6019884377?w=800&q=80',  # 쿠스코 마추픽추
+    
+    # 칠레
+    '산티아고': 'https://images.unsplash.com/photo-1597006438013-0f0cca2c1a03?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 산티아고 안데스 산맥
+    '발파라이소': 'https://images.unsplash.com/photo-1517956918805-bbacc31d5f81?q=80&w=1477&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 발파라이소 컬러풀한 언덕
+    
+    # 볼리비아
+    '라파스': 'https://images.unsplash.com/photo-1641736047736-020e658328a5?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 라파스 전경
+    '우유니': 'https://images.unsplash.com/photo-1529963183134-61a90db47eaf?w=800&q=80',  # 우유니 소금사막
+    
+    ## 아프리카
+    # 남아프리카공화국
+    '케이프타운': 'https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=800&q=80',  # 테이블 마운틴
+    '요하네스버그': 'https://images.unsplash.com/photo-1654575998971-4f467c8a89c1?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 요하네스버그 스카이라인
+    
+    # 케냐
+    '나이로비': 'https://images.unsplash.com/photo-1635595358293-03620e36be48?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 나이로비 사파리
+    '마사이마라': 'https://images.unsplash.com/photo-1535082623926-b39352a03fb7?q=80&w=1491&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 마사이마라 사파리
+    
+    # 탄자니아
+    '다르에스살람': 'https://images.unsplash.com/photo-1589177900326-900782f88a55?q=80&w=1473&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 다르에스살람 시내
+    '아루샤': 'https://images.unsplash.com/photo-1571950484792-c2cbbee9c88b?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 아루샤 킬리만자로
+    
+    # 이집트
+    '카이로': 'https://images.unsplash.com/photo-1670352690010-d39ed2fe465c?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 피라미드
+    '룩소르': 'https://images.unsplash.com/photo-1671483331000-5affba8ca1b0?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 룩소르 신전
+    
+    # 모로코
+    '마라케시': 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?q=80&w=1524&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 마라케시 마조렐 정원
+    '페스': 'https://images.unsplash.com/photo-1553898439-93ac04cfe972?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',  # 페스 메디나
+}
 
+
+# 여행 계획 메인 라우트 (기존 함수 대체)
 @app.route('/plus/travel-plan', methods=['GET', 'POST'])
 def travel_plan():
     breadcrumb = [
@@ -928,32 +1037,78 @@ def travel_plan():
     
     try:
         travel_df = pd.read_csv("travel.csv")
-        cities = travel_df['도시'].tolist()
+        
+        # CSV에서 실제 국가 목록 추출
+        available_countries = travel_df['국가'].unique().tolist()
+        
+        # 대륙별 국가 매핑 (GeoJSON의 7개 대륙에 맞춤)
+        continent_mapping = {
+            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀', '터키'],
+            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아'],
+            'oceania': ['호주', '뉴질랜드'],
+            'north-america': ['미국', '캐나다'],
+            'south-america': ['브라질', '아르헨티나', '페루', '칠레', '볼리비아'],
+            'africa': ['남아프리카공화국', '케냐', '탄자니아', '이집트', '모로코']
+        }
+        
+        # GET 요청일 때는 세계지도 기반 페이지 렌더링
+        return render_template('travel_worldmap.html', 
+                             breadcrumb=breadcrumb, 
+                             continent_mapping=continent_mapping,
+                             available_countries=available_countries)
+    
+    except Exception as e:
+        print(f"여행 계획 오류: {e}")
+        return render_template('travel_worldmap.html', 
+                             breadcrumb=breadcrumb, 
+                             continent_mapping={},
+                             available_countries=[])
 
+# 적금 만기 수령액 계산 함수 (단리)
+def calculate_savings_maturity(monthly_amount, months, annual_rate):
+    """
+    적금 만기 수령액 계산 (단리 방식)
+    """
+    # 적금 단리 공식: 월납입액 × 납입개월수 × (1 + 연이자율 × (납입개월수 + 1) / 24)
+    principal = monthly_amount * months
+    interest = monthly_amount * months * (annual_rate / 100) * (months + 1) / 24
+    total = principal + interest
+    
+    # 세후 이자 계산 (일반과세 15.4%)
+    tax = interest * 0.154
+    after_tax_total = total - tax
+    
+    return {
+        'principal': int(principal),          # 원금
+        'interest': int(interest),            # 세전 이자
+        'tax': int(tax),                     # 세금
+        'total': int(total),                 # 세전 만기수령액
+        'after_tax_total': int(after_tax_total)  # 세후 만기수령액
+    }
+
+# 새로운 라우트: 여행지 선택 후 저축 기간 선택 페이지
+@app.route('/plus/travel-plan/savings', methods=['GET', 'POST'])
+def travel_savings_plan():
+    breadcrumb = [
+        {'name': '홈', 'url': '/'},
+        {'name': 'MOA PLUS', 'url': '/plus'},
+        {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
+        {'name': 'TRIP MOA', 'url': '/plus/travel-plan'},
+        {'name': '저축 계획', 'current': True}
+    ]
+    
+    try:
+        travel_df = pd.read_csv("travel.csv")
+        
         if request.method == 'POST':
+            # 2단계: 저축 기간 선택 후 결과 업데이트 (AJAX 응답)
             selected_city = request.form['city']
             months = int(request.form['months'])
 
             # 선택된 도시의 정보 필터링
             info = travel_df[travel_df['도시'] == selected_city].iloc[0]
-
             total_cost = int(info['총예상경비'])
             monthly_saving = total_cost // months
-
-            travel_plan = {
-                'city': selected_city,
-                'country': info['국가'],
-                'theme': info['테마'],
-                'reason': info['추천이유'],
-                'days': info['추천일정'],
-                'airfare': int(info['예상항공료']),
-                'accommodation': int(info['숙박비']),
-                'food': int(info['식비']),
-                'total': total_cost,
-                'monthly': monthly_saving
-            }
-
-            selected_months = months
 
             # 추천 적금 상품: 기간 일치 + 금리 높은 순으로 상위 5개
             savings_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
@@ -962,26 +1117,152 @@ def travel_plan():
                 .drop_duplicates(subset=['상품명', '금융회사명']) \
                 .head(5).to_dict('records')
             
-            return render_template('travel_result.html',
-                    city=travel_plan['city'],
-                    country=travel_plan['country'],
-                    theme=travel_plan['theme'],
-                    reason=travel_plan['reason'],
-                    days=travel_plan['days'],
-                    airfare=travel_plan['airfare'],
-                    accommodation=travel_plan['accommodation'],
-                    food=travel_plan['food'],
-                    total_cost=travel_plan['total'],
-                    months=selected_months,
-                    monthly_saving=travel_plan['monthly'],
-                    products=recommended_products
-                )
-
-        # GET 요청일 때는 도시 리스트만 넘겨서 폼 렌더링
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=cities)
+            # JSON 응답으로 적금 상품 정보 반환
+            return jsonify({
+                'success': True,
+                'months': months,
+                'monthly_saving': monthly_saving,
+                'products': recommended_products
+            })
+        else:
+            # 1단계: 여행지 선택 후 저축 기간 선택 페이지 표시
+            selected_city = request.args.get('city')
+            
+            if not selected_city:
+                # 도시가 선택되지 않은 경우 첫 페이지로 리다이렉트
+                return redirect(url_for('travel_plan'))
+            
+            # 선택된 도시의 정보 가져오기
+            city_info = travel_df[travel_df['도시'] == selected_city].iloc[0]
+            
+            travel_info = {
+                'city': selected_city,
+                'country': city_info['국가'],
+                'theme': city_info['테마'],
+                'reason': city_info['추천이유'],
+                'days': city_info['추천일정'],
+                'total_cost': int(city_info['총예상경비']),
+                'airfare': int(city_info['예상항공료']),
+                'accommodation': int(city_info['숙박비']),
+                'food': int(city_info['식비']),
+                'image_url': CITY_IMAGES.get(selected_city, 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80')
+            }
+            
+            # 모든 저축 기간에 대한 추천 적금 상품 미리 계산
+            all_products = {}
+            savings_df = pd.concat([savings_tier1, savings_tier2], ignore_index=True)
+            
+            for months in [6, 12, 24, 36]:
+                monthly_saving = travel_info['total_cost'] // months
+                recommended_products = savings_df[savings_df['저축기간(개월)'] == months] \
+                    .sort_values(by='최고우대금리(%)', ascending=False) \
+                    .drop_duplicates(subset=['상품명', '금융회사명']) \
+                    .head(5).to_dict('records')
+                
+                # 각 상품에 대해 올바른 적금 계산 추가
+                for product in recommended_products:
+                    calculation = calculate_savings_maturity(
+                        monthly_saving, 
+                        months, 
+                        float(product['최고우대금리(%)'])
+                    )
+                    product['calculation'] = calculation
+                
+                all_products[str(months)] = {
+                    'monthly_saving': monthly_saving,
+                    'products': recommended_products
+                }
+            
+            return render_template('travel_savings.html',
+                                 breadcrumb=breadcrumb,
+                                 travel_info=travel_info,
+                                 all_products=all_products)
+    
     except Exception as e:
-        print(f"여행 계획 오류: {e}")
-        return render_template('travel_select.html', breadcrumb=breadcrumb, cities=[])
+        print(f"저축 계획 오류: {e}")
+        return redirect(url_for('travel_plan'))
+    
+    
+# 대륙별 국가 정보 API
+@app.route('/api/continent/<continent_id>')
+def get_continent_countries(continent_id):
+    try:
+        travel_df = pd.read_csv("travel.csv")
+        
+        # GeoJSON의 7개 대륙에 맞춘 매핑
+        continent_mapping = {
+            'asia': ['일본', '대만', '베트남', '태국', '말레이시아', '싱가포르', '홍콩', '인도네시아', '필리핀', '터키'],
+            'europe': ['스페인', '이탈리아', '프랑스', '포르투갈', '체코', '조지아'],
+            'oceania': ['호주', '뉴질랜드'],
+            'north-america': ['미국', '캐나다'],
+            'south-america': ['브라질', '아르헨티나', '페루', '칠레', '볼리비아'],
+            'africa': ['남아프리카공화국', '케냐', '탄자니아', '이집트', '모로코']
+        }
+        
+        if continent_id not in continent_mapping:
+            return jsonify({'error': '해당 대륙을 찾을 수 없습니다.'}), 404
+            
+        countries = continent_mapping[continent_id]
+        
+        # 빈 대륙의 경우 빈 배열 반환
+        if not countries:
+            return jsonify([])
+        
+        # 해당 대륙의 국가들 데이터 필터링
+        continent_data = travel_df[travel_df['국가'].isin(countries)]
+        
+        # 기본 이미지 URL
+        default_image = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=800&q=80'
+        
+        result = []
+        for _, row in continent_data.iterrows():
+            city_name = row['도시']
+            result.append({
+                'country': row['국가'],
+                'city': city_name,
+                'theme': row['테마'],
+                'reason': row['추천이유'],
+                'days': row['추천일정'],
+                'total_cost': int(row['총예상경비']),
+                'airfare': int(row['예상항공료']),
+                'accommodation': int(row['숙박비']),
+                'food': int(row['식비']),
+                'image_url': CITY_IMAGES.get(city_name, default_image)
+            })
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'error': f'데이터 로딩 중 오류: {str(e)}'}), 500
+
+# GeoJSON 파일 서빙
+@app.route('/static/geojson/continent-low.geo.json')
+def serve_world_map_data():
+    try:
+        import json
+
+        file_path = os.path.join(app.root_path, 'static', 'geojson', 'continent-low.geo.json')
+
+        if not os.path.exists(file_path):
+            return jsonify({
+                "error": "GeoJSON 파일을 찾을 수 없습니다.",
+                "path": file_path
+            }), 404
+        
+        # 파일을 직접 읽어서 JSON으로 반환
+        with open(file_path, 'r', encoding='utf-8') as f:
+            geojson_data = json.load(f)
+        
+        return jsonify(geojson_data)
+    
+    except Exception as e:
+        return jsonify({
+            "error": f"파일 서빙 중 오류 발생: {str(e)}"
+        }), 500
+
+
+
+
 
 # =========================================
 # 적금‧예금 비교 결과 계산 헬퍼
