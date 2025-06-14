@@ -893,7 +893,7 @@ def car_roadmap():
 @app.route('/plus/region')
 def plus_region_map():
     breadcrumb = [
-        {'name': '홈', 'url': '/'},Add commentMore actions
+        {'name': '홈', 'url': '/'},
         {'name': 'MOA PLUS', 'url': '/plus'},
         {'name': '당신의 미래를 모으는 시간', 'url': '/plus/roadmap'},
         {'name': 'HOUSE MOA', 'current': True}
