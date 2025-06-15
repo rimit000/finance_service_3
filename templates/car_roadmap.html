@@ -197,14 +197,14 @@
 
 </style>
 
-<div class="container my-5">
+
     <!-- 헤더 -->
     <div class="moa-header mb-5">
         <div class="moa-bar"></div>
         <h1>CAR <span style="color:#00C4A8;">MOA</span></h1>
         <p>드라이브의 꿈, 적금으로 시동 걸자!</p>
     </div>
-
+<div class="container my-5">
 <div class="d-flex justify-content-center gap-3 my-5">
     <button type="button" class="btn btn-outline-success px-4 active" onclick="filterByBox('전체',this)">전체</button>
     <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('경차',this)">소형(경차)</button>
@@ -273,6 +273,7 @@
             <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" class="card-img-top car-img" alt="{{ car['모델명'] }}" style="cursor:pointer" data-category="{{ car['카테고리'] }}" onclick="jumpToSlide('{{ car['카테고리'] }}', {{ loop.index0 }})">
             <div class="card-body text-center">
                 <h5 class="card-title">{{ car['모델명'] }}</h5>
+                <p>평균 가격 <strong>{{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
             </div>
         </div>
     </div>
