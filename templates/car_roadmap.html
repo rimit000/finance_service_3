@@ -3,9 +3,8 @@
 
 {% block content %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}" />
 <style>
     /* ---------------- 공통 변수 & 기본 폰트 ---------------- */
     :root {
@@ -18,7 +17,6 @@
     
     body, .container {
         font-family:'NoonnuBasicGothic', sans-serif;
-        
     }
 
     /* -------------------- 상단 헤더 영역 -------------------- */
@@ -66,26 +64,130 @@
 
     button.btn-outline-success:hover {
         background-color: #fffdfd !important;
-        color: #00C4A8 !important;
+        color: #0AA68F !important;
         box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
     }
 
     button.btn.btn-outline-success.active {
         background-color: #fffdfd !important;
-        color: #00C4A8 !important;
+        color: #0AA68F !important;
         transform: translateY(1px);
         box-shadow: 2px 2px 6px rgba(124,132,153,0.3);
     }
 
-    /* -------------------- 차 이미지 들어가있는 박스 -------------------- */
+    /* -------------------- 전체 카드 스타일 -------------------- */
     .card {
-        margin-top: auto;
         border: none;
-        box-shadow: 0 0 8px rgba(184,180,180,0.1), 3px 3px 4px rgba(0,0,0,0.1);  
-        border-radius:0;
-        background-color: #FFFFFF;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        background-color: #f8f8f8;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
-    
+
+    .card-body {
+        padding: 1.5rem;
+        text-align: left !important; 
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-img-top.car-img {
+        width: 100%;
+        height: 200px;
+        object-fit: contain;
+        border-radius: 0;
+        margin-bottom: 0;
+        padding: 1rem;
+    }
+
+    .card-title {
+        font-size: 1.7rem;
+        font-weight: 600;
+        color: #222426;
+        margin-bottom: 0.3rem;
+        text-align: center;
+        text-shadow: 2px 1px 0px rgba(0, 0, 0, 0.15);
+    }
+
+    .price-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        
+    }
+
+    .price-label {
+        font-size: 1rem ; 
+        color: #666666;
+        margin-bottom: 0;
+        
+    }
+
+    .price-amount {
+        font-size: 1rem ; 
+        color: #143e52;
+        font-weight: 600 !important; 
+        margin-bottom: 0;
+    }
+
+    .card-body .d-flex.align-items-center.mb-3 {
+        justify-content: space-between !important;
+        padding-top: 0.2rem !important; 
+        margin-bottom: 0.5rem !important; 
+    }
+
+    .card-body .form-select {
+        padding: 6px 10px !important;
+        height: 30px !important;
+        max-width: 180px !important;
+        font-size: 0.9rem !important;
+        margin-left: auto !important; 
+    }
+
+    .card-body .d-flex.justify-content-between.align-items-center.mb-2 {
+        border-top: 1px solid #acacac !important;
+        padding-top: 0.5rem !important;
+        margin-top: 0.5rem !important;
+    }
+
+    .amount-right {
+        text-align: right;
+        display: inline-block;
+        min-width: 100px;
+        font-weight: 600;
+    }
+
+    .savings-label {
+        color: #262626 !important;
+        font-size: 1rem;
+    }
+
+    .savings-amount {
+        color: #143e52 !important;
+        font-weight: 600;
+    }
+
+    .card .btn-detail {
+        background-color: #143e52;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        font-size: 1.15rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1.6rem;
+    }
+
+    .card .btn-detail:hover {
+        background-color: #143e52;
+        transform: translateY(-1px);
+    }
+        
     .car-img {
         width: 90%;         
         height: 200px;       
@@ -95,36 +197,59 @@
         align-self: center; 
     }
 
-    .carousel-control-btn {
-        width: 50px;         
-        height: 50px;       
-        padding: 0;          
-        font-size: 1.5rem;   
-        line-height: 50px;   
-        text-align: center;  
+    /* -------------------- 카테고리 캐러셀 -------------------- */
+    .carousel .carousel-control-prev,
+    .carousel .carousel-control-next {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 0 !important;
+        font-size: 18px !important;
+        line-height: 1.8 !important;
+        background-color: rgba(31, 45, 61, .4) !important;
+        opacity: 1 !important;
+        position: absolute !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        border: none !important;
     }
 
-    .row.align-items-center{
-        background-color: #FFFFFF;
-        border-radius: 8px;
-        width: 1260px;
-        margin-left: 3px;
-
+    .row.align-items-center {
+        background-color: #f8f8f8;
+        border-left: 25px solid #143e52;
+        /* border-radius: 8px; */
+        /* border-top: 20px solid #0AA68F;
+        border-bottom: 20px solid #0AA68F; */
+        width: 100% !important; 
+        max-width: none !important; 
+        margin: 0 !important; 
+        min-height: 400px;
+        padding: 3rem 0 !important;
+        align-items: center;
     }
-    /* -------------------- 페이지 누르면 적금추천 뜨는 박스 -------------------- */
+
+    .carousel .carousel-control-prev {
+        left: 5% !important; 
+    }
+
+    .carousel .carousel-control-next {
+        right: 5% !important; 
+    }
+
+    /* -------------------- 적금 추천 박스 -------------------- */
     .recommend-list {
-            padding-left: 0;
-        }
+        padding-left: 0;
+    }
     
     .recommend-list li {
-    border: 1px solid #f1f1f1;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
-    padding: 15px;
-    list-style: none;
-    font-size: 1.2rem;
-    line-height: 1.6;
-    margin-bottom: 10px;
+        border: 1px solid #f1f1f1;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+        padding: 15px;
+        list-style: none;
+        font-size: 1.2rem;
+        line-height: 1.6;
+        margin-bottom: 10px;
+        background-color: #f0f1f2;
     }
     
     .filtered-section { 
@@ -133,69 +258,77 @@
     
     .all-section { 
         display: flex; 
-        flex-wrap: wrap; }
-    
-
+        flex-wrap: wrap; 
+    }
 
     .col-md-5 {
-    margin: 1.5rem 1.5rem !important;  
-    font-size:1.3rem !important;
-    white-space: nowrap;
-}
+        margin: 1.5rem 1.5rem !important;  
+        font-size:1.3rem !important;
+        white-space: nowrap;
+    }
 
     .col-md-5 > p.title { 
-    font-size:2.1rem !important;
-    color: #262626;
-    /* font-weight: bold; */
-    border-bottom: 1px solid #777777;
+        font-size:1.8rem !important;
+        color: #262626;
+        border-bottom: 1px solid #777777;
+        padding-bottom: 0.5rem !important; 
     }
+
     .col-md-5 > p.subtitle { 
         font-size:1.2rem ;
         color: #777777;
         white-space: pre; 
     }
 
-    .col-md-4.form-select {width: 15px;}
-
-    .col-md-4 > p.reference { 
-    font-size:1rem !important;
-    color: #777777 !important;}
-
-
-    col-md-4 text-left > h3 {
-      color: #000000;
-      margin: 1.5rem 0 !important;   
-      font-size: 2.5rem;  
-      white-space: nowrap;
-
+    /* -------------------- 차 정보 영역 스타일 -------------------- */
+    .col-md-4.text-left {
+        margin-left: 3rem !important;
+        padding-top: 2rem !important;
+        padding-bottom: 1.5rem !important;
     }
-    
+
+    .col-md-4.text-left > h3 {
+        color: #000000;
+        margin: 1.5rem 0 !important;   
+        font-size: 2.5rem;  
+        white-space: nowrap;
+        padding-bottom: 0.2rem !important;
+        padding-top: 0.7rem !important;
+        font-weight: 600;
+         text-shadow: 2px 1px 0px rgba(0, 0, 0, 0.15);
+    }
 
     .col-md-4.text-left p {
-    font-size: 1.5rem;      
-    color: #262626;
-    margin: 1rem 0;        
-    white-space: nowrap;
-    font-weight: 100;
+        font-size: 1.5rem;      
+        color: #262626;
+        margin: 0.5rem 0 !important; 
+        white-space: nowrap;
+        font-weight: 500;
+        letter-spacing: 1.5px;    
     }
-
-
-    .col-md-4.text-left .form-select {
-
-    width: 200px;
-    margin-left: 15px;
-    }
-
 
     .col-md-4.text-left .form-label {
-    color:#262626;
-    white-space: nowrap;
-    font-size: 1.5rem;
+        color: #262626 !important;
+        white-space: nowrap;
+        font-size: 1.5rem;
+        padding-top: 0.5rem !important; 
+        font-weight: 500;
+        letter-spacing: 1.5px;  
     }
 
+    .col-md-4.text-left .form-select {
+        width: 200px;
+        margin-left: 15px;
+    }
 
-
+    .col-md-4 > p.reference { 
+        font-size: 0.7rem !important;
+        color: #777777 !important;
+        padding-top: 0.5rem !important; 
+        padding-bottom: 0.5rem !important; 
+    }
 </style>
+
 
 
     <!-- 헤더 -->
@@ -223,14 +356,17 @@
             <div class="carousel-item {% if loop.first %}active{% endif %}">
                 <div class="row align-items-center">
                     <div class="col-md-1 text-center">
-                        <button class="btn carousel-control-btn" type="button" onclick="prevSlide('carousel{{ category }}')">‹</button>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carousel{{ category }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                            </button>
                     </div>
                     <div class="col-md-4 text-left">
                         <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" class="car-img" alt="{{ car['모델명'] }}">
-                        <h3 class="mt-3 text-center">{{ car['모델명'] }}</h3> 
-                        <p>평균 가격 <strong>{{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
+                        <h3 class="mt-3 text-left">{{ car['모델명'] }}</h3> 
+                        <p>평균 <strong> {{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
                         <div class="d-flex align-items-center">
-                        <label for="months{{ idx }}" class="form-label" style="color:#262626;">목표 기간</label>
+                        <label for="months{{ idx }}" class="form-label" style="color:#717171;">목표 기간</label>
                         <select id="months{{ idx }}"
                                 class="form-select"
                                 data-price="{{ car['평균가격'] }}"
@@ -241,13 +377,13 @@
                         </select>
                       </div>
                       <p class="reference">※ 출처: KCAR / 네이버 (2025년 6월 기준)  </p>
-                        
+                        <!-- -------------------------------------------------------------------------------------------------------------------- -->
                     </div>
                     <div class="col-md-5">
-                      <p class="title">CAR MOA 월별·총 적금 안내 </p>
+                      <p class="title" >{{ car['카테고리'] }}</p>
 
-                      <p style="color:#000000;">월 저축액  <span id="monthly{{ idx }}" style="color:#02A88B;">       -</span></p>
-                      <p style="color:#000000;">총 저축 예상 금액  <span id="total{{ idx }}" style="color:#02A88B;">  -</span></p>
+                      <p style="color:#464545;">월 저축액  <span id="monthly{{ idx }}" style="color:#143e52;">       -</span></p>
+                      <p style="color:#464545;">총 저축 예상 금액  <span id="total{{ idx }}" style="color:#143e52;">  -</span></p>
 
                       <div class="recommended-savings" id="recommend{{ idx }}"></div>
                     <div class="col-md-5 text-center">
@@ -255,7 +391,10 @@
                     </div>
                     </div>
                     <div class="col-md-1 text-center">
-                        <button class="btn carousel-control-btn" type="button" onclick="nextSlide('carousel{{ category }}')">›</button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carousel{{ category }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                            </button>
                     </div>
                 </div>
             </div>
@@ -269,16 +408,60 @@
     {% for car in car_list %}
     {% set idx = loop.index0 %}
     <div class="col-md-4 mb-4">
-        <div class="card h-90">
-            <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" class="card-img-top car-img" alt="{{ car['모델명'] }}" style="cursor:pointer" data-category="{{ car['카테고리'] }}" onclick="jumpToSlide('{{ car['카테고리'] }}', {{ loop.index0 }})">
-            <div class="card-body text-center">
+        <div class="card h-100">
+            <img src="{{ url_for('static', filename='car/' ~ car['이미지파일명']) }}" 
+                 class="card-img-top car-img" 
+                 alt="{{ car['모델명'] }}" 
+                 style="cursor:pointer" 
+                 data-category="{{ car['카테고리'] }}" 
+                 onclick="jumpToSlide('{{ car['카테고리'] }}', {{ loop.index0 }})">
+            
+            <div class="card-body">
                 <h5 class="card-title">{{ car['모델명'] }}</h5>
-                <p>평균 가격 <strong>{{ "{:,}".format(car['평균가격']) }}</strong> 만원</p>
+                
+                <!-- 1. 평균 가격 -->
+                <div class="price-container">
+                    <div class="price-label">평균 가격</div>
+                    <div class="price-amount">{{ "{:,}".format(car['평균가격']) }}만원</div>
+                </div>
+
+                <!-- 2. 목표 기간 선택 -->
+                <div class="d-flex align-items-center mb-3">
+                    <label for="cardMonths{{ idx }}" class="form-label me-2" style="color:#666666; font-size: 1rem; white-space: nowrap; margin-bottom: 0;">목표 기간</label>
+                    <select id="cardMonths{{ idx }}"
+                            class="form-select"
+                            style="width: auto; flex: 1;"
+                            data-price="{{ car['평균가격'] }}"
+                            onchange="calculateCardSavings(this, {{ car['평균가격'] }}, {{ idx }})">
+                        {% for period in period_options if period not in [1,3] %}
+                            <option value="{{ period }}" {% if period==24 %}selected{% endif %}>{{ period }}개월</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 3. 총 저축 예상 금액 -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="savings-label">총 저축 예상 금액</span>
+                    <span id="cardTotal{{ idx }}" class="amount-right savings-amount">-</span>
+                </div>
+                                    
+                <!-- 4. 월 저축액 -->
+                <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 1rem;">
+                    <span class="savings-label">월 저축액</span>
+                    <span id="cardMonthly{{ idx }}" class="amount-right savings-amount">-</span>
+                </div>
+                
+                <button class="btn-detail" 
+                        onclick="jumpToSlide('{{ car['카테고리'] }}', {{ loop.index0 }})">
+                    자세히 알아보기
+                </button>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
+
+
 
 </div>
 
@@ -308,11 +491,11 @@ function calculateAndRecommend(select, price, index) {
                 const estimatedTotal = (monthly * months * (1 + (interestRate * months / 12))).toFixed(1);
                 return `
                     <li>
-                        <a href="/savings/detail/${encodeURIComponent(p.금융회사명)}/${encodeURIComponent(p.상품명)}" class="text-decoration-none fw-bold text-dark">
+                        <a href="/savings/detail/${encodeURIComponent(p.금융회사명)}/${encodeURIComponent(p.상품명)}" class="text-decoration-none fw-bold" style = "color:#262626">
                             ${p.상품명}
                         </a><br>
                         <span class="text-muted">(${p.금융회사명}, <strong>${p.금리}%</strong>)</span><br>
-                        <span class="text small"  style="color:#02A88B;"> → 예상 수령 금액 <strong>${estimatedTotal} 만원</strong></span>
+                        <span class="text small"  style="color:#194961;"> → 예상 수령 금액 <strong>${estimatedTotal} 만원</strong></span>
                     </li>`;
             }).join('');
             recommendEl.innerHTML = `<ul class="recommend-list">${list}</ul>`;
@@ -325,6 +508,25 @@ function calculateAndRecommend(select, price, index) {
         recommendEl.innerHTML = "-";
     }
 }
+
+
+function calculateCardSavings(select, price, idx) {
+    const months = parseInt(select.value);
+    // ID를 cardMonthly, cardTotal로 수정
+    const monthlyEl = document.getElementById("cardMonthly" + idx);
+    const totalEl = document.getElementById("cardTotal" + idx);
+
+    if (!isNaN(months) && months > 0) {
+        const monthly = (price / months).toFixed(1);
+        const total = (monthly * months).toFixed(1);
+        monthlyEl.textContent = monthly + "만원";
+        totalEl.textContent = total + "만원";
+    } else {
+        monthlyEl.textContent = "-";
+        totalEl.textContent = "-";
+    }
+}
+
 
 function filterByBox(category, clickedBtn) {
     document.querySelectorAll('.filtered-section').forEach(s => s.style.display = 'none');
@@ -363,14 +565,32 @@ function prevSlide(id) {
 
 
 
-function jumpToSlide(category, index) {
-    filterByBox(category);
+function jumpToSlide(category, globalIndex) {
+    filterByBox(category, document.querySelector(`button[onclick*="${category}"]`));
+    
     setTimeout(() => {
         const carouselId = "carousel" + category;
         const carousel = document.getElementById(carouselId);
         const items = carousel.querySelectorAll('.carousel-item');
+        
+        // 전체 인덱스를 카테고리별 인덱스로 변환
+        let categoryIndex = 0;
+        let currentGlobalIndex = 0;
+        
+        // 전체 차량 리스트에서 해당 카테고리의 차량들만 카운트
+        const allCars = document.querySelectorAll('.all-section .card img');
+        for (let i = 0; i <= globalIndex; i++) {
+            const carCategory = allCars[i].getAttribute('data-category');
+            if (carCategory === category) {
+                if (i === globalIndex) {
+                    break;
+                }
+                categoryIndex++;
+            }
+        }
+        
         items.forEach(item => item.classList.remove('active'));
-        const target = items[index % items.length];
+        const target = items[categoryIndex];
         if (target) {
             target.classList.add('active');
             window.scrollTo({ top: carousel.offsetTop - 80, behavior: 'smooth' });
@@ -382,10 +602,18 @@ window.onload = function () {
     document.querySelectorAll('.filtered-section')
             .forEach(s => s.style.display = 'block');
     setTimeout(() => {
+        // 캐러셀용 계산
         document.querySelectorAll('select[id^="months"]').forEach(select => {
             const idx = select.id.replace('months', '');
             select.value = "24";
             calculateAndRecommend(select, parseInt(select.dataset.price), idx);
+        });
+
+        // 카드용 계산 추가
+        document.querySelectorAll('select[id^="cardMonths"]').forEach(select => {
+            const idx = select.id.replace('cardMonths', '');
+            const price = parseInt(select.dataset.price);
+            calculateCardSavings(select, price, idx);
         });
 
         let firstBtn = document.querySelector('.d-flex button.active');
@@ -396,6 +624,7 @@ window.onload = function () {
         filterByBox('전체', firstBtn);
     }, 300);
 };
+
 </script>
 
 {% endblock %}
