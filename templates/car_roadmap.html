@@ -340,13 +340,13 @@
 <div class="container my-5">
 <div class="d-flex justify-content-center gap-3 my-5">
     <button type="button" class="btn btn-outline-success px-4 active" onclick="filterByBox('전체',this)">전체</button>
-    <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('경차',this)">소형(경차)</button>
+    <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('소형(경차)',this)">소형(경차)</button>
     <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('세단',this)">세단</button>
-    <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('소형 SUV',this)">SUV</button>
+    <button type="button" class="btn btn-outline-success px-4" onclick="filterByBox('SUV',this)">SUV</button>
 </div>
 
 {% set global_counter = namespace(value=0) %}
-{% for category in ['경차', '세단', '소형 SUV'] %}
+{% for category in ['소형(경차)', '세단', 'SUV'] %}
 <div class="mb-2 car-section filtered-section" data-category="{{ category }}">
     <div id="carousel{{ category }}" class="carousel slide" data-bs-touch="false" data-bs-interval="false">
         <div class="carousel-inner">
