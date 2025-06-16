@@ -790,59 +790,39 @@ def plus_calculator():
     ]
     return render_template('calculator_home.html', breadcrumb=breadcrumb)
 
-@app.route('/plus/compare/pdf', methods=['POST'])
-def download_pdf():
+@app.route('/plus/region-data')
+def region_data():
     try:
-        bank1 = request.form['bank1']
-        product1 = request.form['product1']
-        bank2 = request.form['bank2']
-        product2 = request.form['product2']
-        amount = int(request.form['amount'])
-        months = int(request.form['months'])
-        product_type = request.form.get('product_type', 'savings')
+        region = request.args.get('region')
+        region = region.replace("특별시", "").replace("광역시", "").replace("도", "").strip()
 
-        df = pd.concat([deposit_tier1, deposit_tier2] if product_type == 'deposits' else [savings_tier1, savings_tier2])
-        item1 = df[(df['금융회사명'] == bank1) & (df['상품명'] == product1)].iloc[0]
-        item2 = df[(df['금융회사명'] == bank2) & (df['상품명'] == product2)].iloc[0]
+        house_df = pd.read_csv('주택_시도별_보증금.csv')
+        avg_prices = house_df.groupby('시도')['가격'].mean().round(1).to_dict()
+        price = avg_prices.get(region, '정보없음')
 
-        def calc_total(item):
+        savings = pd.concat([savings_tier1, savings_tier2])
+        top_savings = savings[savings['지역'] == region].sort_values(by='최고우대금리(%)', ascending=False).head(5)
+
+        product_list = []
+        for _, row in top_savings.iterrows():
+            기간 = row.get('저축기간(개월)', 12)
             try:
-                rate = float(item['최고우대금리(%)']) / 100
+                기간 = int(기간)
+                월저축금 = int((price * 10000) / 기간 / 10000)  # 만원 단위
             except:
-                rate = 0.0
-            before_tax = amount * months + amount * (months + 1) / 2 * rate / 12
-            tax = before_tax * 0.154
-            after_tax = before_tax - tax
-            return {
-                '상품명': item['상품명'],
-                '금융회사명': item['금융회사명'],
-                '금리': item['최고우대금리(%)'],
-                '세전이자': round(before_tax - amount * months),
-                '이자과세': round(tax),
-                '세후이자': round(after_tax - amount * months),
-                '실수령액': round(after_tax)
-            }
+                월저축금 = '계산불가'
+            product_list.append({
+                '상품명': row['상품명'],
+                '금융회사명': row['금융회사명'],
+                '최고우대금리(%)': row['최고우대금리(%)'],
+                '기간': 기간,
+                '월저축금': 월저축금
+            })
 
-        result1 = calc_total(item1)
-        result2 = calc_total(item2)
-        gap = abs(result1['실수령액'] - result2['실수령액'])
-        better = result1['금융회사명'] if result1['실수령액'] > result2['실수령액'] else result2['금융회사명']
-
-        rendered = render_template("compare_pdf.html", result1=result1, result2=result2, gap=gap, better=better)
-
-        # ✅ wkhtmltopdf 경로 지정 (윈도우 기준)
-        path_wkhtmltopdf = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
-        config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-
-        pdf = pdfkit.from_string(rendered, False, configuration=config)
-
-        response = make_response(pdf)
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'attachment; filename=compare_result.pdf'
-        return response
+        return jsonify({'price': price, 'products': product_list})
     except Exception as e:
-        print(f"PDF 생성 오류: {e}")
-        return "PDF 생성 중 오류가 발생했습니다.", 500
+        print(f"지역 데이터 오류: {e}")
+        return jsonify({'price': '정보없음', 'products': []})
 
 @app.template_filter('extract_rate')
 def extract_rate(val):
