@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ product['상품명'] }} 상세 정보{% endblock %}
+<link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 
 {% block content %}
 <style>
@@ -7,6 +9,7 @@
         --moa-green: #00d8b0;
         --moa-dark: #020715;
     }
+    body,.container{font-family:'NoonnuBasicGothic', sans-serif;}
     .section-title {
         color: var(--moa-dark);
         border-bottom: 3px solid var(--moa-green);
